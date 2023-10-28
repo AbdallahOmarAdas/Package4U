@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/customer/main_page.dart';
+import 'package:flutter_application_1/manager/main_page.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/sign_in_up_pages/forget_pass.dart';
 import 'package:flutter_application_1/sign_in_up_pages/regstration.dart';
@@ -174,10 +175,11 @@ class _sign_inState extends State<sign_in> {
                                 onPressed: () {
                                   if (formState.currentState!.validate()) {
                                     formState.currentState!.save();
-                                    Navigator.of(context).pushReplacement(
-                                        MaterialPageRoute(
+                                    Navigator.of(context)
+                                        .pushReplacement(MaterialPageRoute(
                                             builder: (context) =>
-                                                home_page_customer()));
+                                                // home_page_customer()
+                                                home_page_manager()));
                                   }
                                 },
                               ),
