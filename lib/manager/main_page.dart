@@ -238,11 +238,13 @@ class content extends StatelessWidget {
   final Function() btn;
   @override
   Widget build(BuildContext) {
-    return GestureDetector(
-      onTap: btn,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Container(
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(30),
+        splashColor: primarycolor.withOpacity(0.6),
+        onTap: btn,
+        child: Ink(
           height: 200,
           decoration: BoxDecoration(
             color: Colors.white,
@@ -277,6 +279,7 @@ class content extends StatelessWidget {
             ],
           ),
         ),
+        //),
       ),
     );
   }
