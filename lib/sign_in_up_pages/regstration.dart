@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class registration extends StatefulWidget {
   @override
@@ -45,6 +47,20 @@ class _registrationState extends State<registration> {
     'Salfit',
     'Hebron'
   ];
+
+  String isValidPhone(String input) {
+    bool isnum = RegExp(r'^[0-9]+$').hasMatch(input);
+    if (input.isEmpty)
+      return "Please enter number phone";
+    else if (input.length != 10) {
+      return 'Phone number must have exactly 10 digits';
+    } else if (!isnum) {
+      return "Phone number must have numbers only";
+    } else {
+      return "";
+    }
+  }
+
   bool passwordVisible = false;
 
   String? fname;
@@ -58,8 +74,33 @@ class _registrationState extends State<registration> {
   String? password;
 
   String? town;
-
+  String? street;
   String? phone;
+  var urlStarter = "http://10.0.2.2:8080";
+
+  Future postUsersAddUser() async {
+    var url = urlStarter + "/users/addUser";
+    print("000000000" + town.toString());
+    var responce = await http.post(Uri.parse(url),
+        body: jsonEncode({
+          "userName": username,
+          "password": password,
+          "Fname": fname,
+          "Lname": lname,
+          "email": email,
+          "phoneNumber": phone,
+          "userType": "customer",
+          "city": city,
+          "town": town,
+          "street": street,
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        });
+    var responceBody = responce.body;
+    print(responceBody);
+    return responceBody;
+  }
 
   @override
   Widget build(Object context) {
@@ -176,8 +217,9 @@ class _registrationState extends State<registration> {
                               phone = newValue;
                             },
                             validator: (value) {
-                              if (value!.isEmpty) {
-                                return "Please enter number phone";
+                              String res = isValidPhone(value.toString());
+                              if (!res.isEmpty) {
+                                return res;
                               }
                             },
                             decoration: theme_helper().text_form_style(
@@ -189,29 +231,33 @@ class _registrationState extends State<registration> {
                           SizedBox(
                             height: 15,
                           ),
-                          Container(
-                            padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(100),
-                                border:
-                                    Border.all(color: Colors.grey.shade400)),
-                            child: DropdownButton(
-                              isExpanded: true,
-                              hint: Text('Select City'),
-                              items: citylist.map((value) {
-                                return DropdownMenuItem(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              value: city,
-                              onChanged: (value) {
-                                setState(() {
-                                  city = value as String?;
-                                  print(city);
-                                });
-                              },
+                          DropdownButtonFormField(
+                            isExpanded: true,
+                            hint: Text('Select City',
+                                style: TextStyle(color: Colors.grey)),
+                            items: citylist.map((value) {
+                              return DropdownMenuItem(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            value: city,
+                            decoration: theme_helper().text_form_style(
+                              '',
+                              '',
+                              Icons.location_city,
                             ),
+                            onChanged: (value) {
+                              setState(() {
+                                city = value as String?;
+                                print(city);
+                              });
+                            },
+                            validator: (value) {
+                              if (value == null) {
+                                return "Please select city";
+                              }
+                            },
                           ),
                           SizedBox(
                             height: 15,
@@ -219,10 +265,19 @@ class _registrationState extends State<registration> {
                           TextFormField(
                             onSaved: (newValue) {
                               town = newValue;
+                              if (newValue != null) {
+                                print(newValue.split(",").length);
+                                town = newValue.split(",")[0];
+                                street = newValue.split(",")[1];
+                                print(town);
+                                print("street:");
+                                print(street);
+                              }
                             },
                             validator: (value) {
-                              if (value!.isEmpty) {
-                                return "Enter your town's location";
+                              if (value!.isEmpty ||
+                                  value.split(",").length != 2) {
+                                return "Enter your town's and street location";
                               }
                             },
                             decoration: theme_helper().text_form_style(
@@ -262,10 +317,14 @@ class _registrationState extends State<registration> {
                                   );
                                 },
                               ),
-                              prefixIcon: Icon(Icons.lock),
+                              prefixIcon: Icon(
+                                Icons.lock,
+                                color: primarycolor,
+                              ),
                               labelText: 'Password',
                               hintText: 'Enter Password',
                               fillColor: Colors.white,
+                              labelStyle: TextStyle(color: Colors.grey),
                               contentPadding:
                                   EdgeInsets.fromLTRB(20, 10, 20, 10),
                               focusedBorder: OutlineInputBorder(
@@ -403,6 +462,7 @@ class _registrationState extends State<registration> {
                               onPressed: () {
                                 if (formState1.currentState!.validate()) {
                                   formState1.currentState!.save();
+                                  postUsersAddUser();
                                 }
                               },
                             ),

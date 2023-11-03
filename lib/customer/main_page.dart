@@ -5,6 +5,7 @@ import 'package:flutter_application_1/customer/home.dart';
 import 'package:flutter_application_1/customer/service.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class home_page_customer extends StatefulWidget {
   @override
@@ -24,6 +25,15 @@ class _home_page_customerState extends State<home_page_customer> {
     home(),
     service(),
   ];
+  deletePref() async {
+    SharedPreferences sharedPref = await SharedPreferences.getInstance();
+    sharedPref.remove("userName");
+    sharedPref.remove("Fname");
+    sharedPref.remove("Lname");
+    sharedPref.remove("phoneNumber");
+    sharedPref.remove("email");
+    sharedPref.remove("userType");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,6 +164,7 @@ class _home_page_customerState extends State<home_page_customer> {
                     style: TextStyle(fontSize: 25),
                   ),
                   onTap: () {
+                    deletePref();
                     Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (context) => sign_in()));
                   },

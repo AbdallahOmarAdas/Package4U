@@ -9,20 +9,50 @@ import 'package:flutter_application_1/manager/creat_employee.dart';
 import 'package:flutter_application_1/manager/main_page.dart';
 import 'package:flutter_application_1/sign_in_up_pages/regstration.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
+import 'package:flutter_application_1/sign_in_up_pages/testAPI.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(LoginUiApp());
-}
-
-class LoginUiApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
+// void main() {
+//   runApp(LoginUiApp());
+// }
+Future<void> main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences prefs =await SharedPreferences.getInstance();
+  var userType=prefs.getString("userType");
+  print(userType);
+  runApp(MaterialApp(
+    theme: ThemeData(
         primaryColor: primarycolor,
       ),
-      home: sign_in(),
-    );
-  }
+    debugShowCheckedModeBanner: false,
+    home: userType==null?sign_in():home_page_customer(),));
 }
+// class LoginUiApp extends StatelessWidget {
+//   var userType;
+//   getPref() async {
+//     SharedPreferences sharedPref = await SharedPreferences.getInstance();
+//     if (sharedPref.getString('userType') == "customer")
+//       userType = "customer";
+//     else
+//       userType = "none";
+//   }
+
+//   @override
+//   void initState() {
+//     getPref();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     getPref();
+//     return MaterialApp(
+//       theme: ThemeData(
+//         primaryColor: primarycolor,
+//       ),
+//       home: userType == "customer" ? home_page_customer() : sign_in(),
+//       debugShowCheckedModeBanner: false,
+//       //home: testAPI(),
+//     );
+//   }
+// }
