@@ -306,9 +306,11 @@ class _registrationState extends State<registration> {
                             obscureText: !passwordVisible,
                             decoration: InputDecoration(
                               suffixIcon: IconButton(
-                                icon: Icon(passwordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off),
+                                icon: Icon(
+                                    passwordVisible
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: Colors.grey),
                                 onPressed: () {
                                   setState(
                                     () {

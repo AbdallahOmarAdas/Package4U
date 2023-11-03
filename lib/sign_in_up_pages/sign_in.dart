@@ -250,7 +250,11 @@ class _sign_inState extends State<sign_in> {
                                 onPressed: () {
                                   if (formState.currentState!.validate()) {
                                     formState.currentState!.save();
-                                    var res = postSignin();
+                                    Navigator.of(context)
+                                        .pushReplacement(MaterialPageRoute(
+                                            builder: (context) =>
+                                                //home_page_customer()
+                                                home_page_manager()));
                                   }
                                 },
                               ),
