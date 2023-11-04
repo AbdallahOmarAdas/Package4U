@@ -48,21 +48,21 @@ User.create({
  exports.postSignin=(req,res,next)=>{
     const userName=req.body.userName;
     const password=req.body.password;
-    const trans=nodemailer.createTransport({
-        service:"Gmail",
-        auth:{
-            user:'abood.adas.2001@gmail.com',
-            pass:'layoiychrtedcpvx'
-        }
-    });
-    const info= trans.sendMail({
-        from:'sdfsdsdf <abood@openjavascript.info>',
-        to:'omaradas1234@gmail.com',
-        subject:'sdfgsdfg',
-        messageId:888,
-        text:"drtfgvwwdfgerrgerrgerrgewrrg"
-    })
-    console.log("message send"+info.messageId);
+    // const trans=nodemailer.createTransport({
+    //     service:"Gmail",
+    //     auth:{
+    //         user:'abood.adas.2001@gmail.com',
+    //         pass:'layoiychrtedcpvx'
+    //     }
+    // });
+    // const info= trans.sendMail({
+    //     from:'sdfsdsdf <abood@openjavascript.info>',
+    //     to:'omaradas1234@gmail.com',
+    //     subject:'sdfgsdfg',
+    //     messageId:888,
+    //     text:"drtfgvwwdfgerrgerrgerrgewrrg"
+    // })
+    // console.log("message send"+info.messageId);
         User.findOne({where:{userName:userName,password:password}}).then((result) => {
             if(result)res.status(200).json({"result":"found","user":result});
             else res.status(200).json({"result":"user not found"});
