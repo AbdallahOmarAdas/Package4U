@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
 import 'package:http/http.dart' as http;
@@ -37,7 +38,7 @@ class _registrationState extends State<registration> {
   }
 
   GlobalKey<FormState> formState1 = GlobalKey();
-
+  String errormsg = "";
   List citylist = [
     'Nablus',
     'Tulkarm',
@@ -59,6 +60,19 @@ class _registrationState extends State<registration> {
     } else {
       return "";
     }
+  }
+
+  String? _emailError;
+  void setCustomError(String errorMessage) {
+    setState(() {
+      _emailError = errorMessage;
+    });
+  }
+
+  void clearError() {
+    setState(() {
+      _emailError = null;
+    });
   }
 
   bool passwordVisible = false;
@@ -97,8 +111,48 @@ class _registrationState extends State<registration> {
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
         });
-    var responceBody = responce.body;
+    var responceBody = jsonDecode(responce.body);
     print(responceBody);
+    if (responceBody['message'] == "failed") {
+      List errors = responceBody['error']['errors'];
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      "Ok",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    )),
+              ],
+              title: Text("Sign up failed"),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      child: Text("*${errors[index]['msg']}"),
+                      margin: EdgeInsets.only(bottom: 20),
+                    );
+                  },
+                  itemCount: errors.length,
+                ),
+              ),
+              titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
+              contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
+              backgroundColor: primarycolor,
+            );
+          });
+    }
+    if (responceBody['message'] == "done") {
+      Navigator.push(
+          context, MaterialPageRoute(builder: ((context) => sign_in())));
+    }
     return responceBody;
   }
 
