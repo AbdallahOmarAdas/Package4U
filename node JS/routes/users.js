@@ -10,7 +10,7 @@ router.post('/addUser',body('Fname').notEmpty().withMessage('please enter First 
 router.post('/forgot',body('email').notEmpty().withMessage('Please enter your email').isEmail().withMessage('Please enter vaild email'),usersController.postForgot);
 router.post('/forgotCode',body('email').notEmpty().withMessage('Please enter your email').isEmail().withMessage('Please enter vaild email'),body('code').notEmpty().withMessage('Please the code').isLength({ min: 5, max: 5 }).withMessage('code must be exactly 5 digits long'),usersController.postForgotCode);
 router.post('/forgotSetPass',body('email').notEmpty().withMessage('Please enter your email').isEmail().withMessage('Please enter vaild email'),signupValidators.passwordValidation(),usersController.postForgotSetPass);
-
+router.post('/changePassword',body('oldPassword').notEmpty().withMessage('please enter the old password first'),signupValidators.passwordValidation(),usersController.postChangePassword);
 
 router.get('/showAll',(req,res,next)=>{
 User.findAll().then((result) => {

@@ -206,3 +206,30 @@ exports.postForgotSetPass=(req,res,next)=>{
               });
         }
  }
+
+ exports.postChangePassword=(req,res,next)=>{
+    const userName=req.body.userName;
+    const oldPassword=req.body.oldPassword;
+    const password=req.body.password;
+    const error=validationResult(req);
+    if(!error.isEmpty()){
+        return res.status(422).json({message:'failed',error}); 
+        }
+        else{
+            if(oldPassword===password)res.status(200).json({"message":"please choose a different password."});
+            else
+            User.update(
+                { password:password },
+                {
+                  where: { userName: userName,password:oldPassword }, // The condition to find the user you want to update
+                }
+              ).then((result) => {
+                if(result[0]===1)
+                    res.status(200).json({"message":"done"});
+                else
+                    res.status(200).json({"message":"The old password is incorrect, please verify it."});
+              }).catch((err) => {
+                console.log(err);
+              });
+        }
+ }

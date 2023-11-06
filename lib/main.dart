@@ -26,7 +26,10 @@ Future<void> main() async{
         primaryColor: primarycolor,
       ),
     debugShowCheckedModeBanner: false,
-    home: userType==null?sign_in():home_page_customer(),));
+    home: userType==null?sign_in():home_page_customer(),
+    routes: {"customerHome": (context) => home_page_customer()}
+    ));
+    
 }
 // class LoginUiApp extends StatelessWidget {
 //   var userType;
