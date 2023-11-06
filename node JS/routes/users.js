@@ -4,8 +4,13 @@ const signupValidators=require('../validators/signup')
 const router=express.Router();
 const User=require('../models/users');
 const { body } = require('express-validator');
+
 router.post('/signin',usersController.postSignin);
 router.post('/addUser',body('Fname').notEmpty().withMessage('please enter First name'),body('Lname').notEmpty().withMessage('please enter Last name'),signupValidators.emailIsExist(),signupValidators.phoneValidation(),signupValidators.UserNameIsUsed(),body('city').notEmpty().withMessage('please enter your city'),body('town').notEmpty().withMessage('please enter your town'),body('street').notEmpty().withMessage('please enter your street'),signupValidators.passwordValidation(),usersController.postAddUser);
+router.post('/forgot',body('email').notEmpty().withMessage('Please enter your email').isEmail().withMessage('Please enter vaild email'),usersController.postForgot);
+router.post('/forgotCode',body('email').notEmpty().withMessage('Please enter your email').isEmail().withMessage('Please enter vaild email'),body('code').notEmpty().withMessage('Please the code').isLength({ min: 5, max: 5 }).withMessage('code must be exactly 5 digits long'),usersController.postForgotCode);
+router.post('/forgotSetPass',body('email').notEmpty().withMessage('Please enter your email').isEmail().withMessage('Please enter vaild email'),signupValidators.passwordValidation(),usersController.postForgotSetPass);
+
 
 router.get('/showAll',(req,res,next)=>{
 User.findAll().then((result) => {

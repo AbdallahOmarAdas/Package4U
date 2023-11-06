@@ -4,6 +4,7 @@ const usersRoutes=require('./routes/users');
 const bodyParser=require('body-parser');
 const sequelize=require('./util/database');
 const User=require('./models/users');//importent to creat the table
+const Token=require('./models/token');
 const app=express();
 //app.use(bodyParser.urlencoded());//used in html form x-www-form-urlencoded
 app.use(bodyParser.json());

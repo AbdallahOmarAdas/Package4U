@@ -4,6 +4,9 @@ import 'package:flutter_application_1/style/header/header.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/sign_in_up_pages/verification.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ForgetPassword extends StatelessWidget {
   bool isValidEmail(String email) {
@@ -13,9 +16,92 @@ class ForgetPassword extends StatelessWidget {
 
   final formState2 = GlobalKey<FormState>();
   String? email;
-
+  var urlStarter = "http://10.0.2.2:8080";
+  var responceBody;
   @override
   Widget build(BuildContext context) {
+
+    Future postForgot() async {
+      var url = urlStarter + "/users/forgot";
+      var responce = await http.post(Uri.parse(url),
+          body: jsonEncode({
+            "email": email,
+          }),
+          headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+          });
+      responceBody = jsonDecode(responce.body);
+      print(responceBody);
+      if (responceBody['message'] == "done") {
+        SharedPreferences sharedPref = await SharedPreferences.getInstance();
+        sharedPref.setString("email", email.toString());
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => Verification()
+                //  home_page_manager()
+                ));
+      } else if (responceBody['message'] == "email not found") {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        "Ok",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      )),
+                ],
+                title: Text("Email not found"),
+                content: Text(
+                    "We could not find this email. Please check the email you entered"),
+                titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
+                contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
+                backgroundColor: primarycolor,
+              );
+            });
+        print("Email not found");
+      } else {
+        List errors = responceBody['error']['errors'];
+        showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        "Ok",
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      )),
+                ],
+                title: Text("Validation Error"),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        child: Text("*${errors[index]['msg']}"),
+                        margin: EdgeInsets.only(bottom: 20),
+                      );
+                    },
+                    itemCount: errors.length,
+                  ),
+                ),
+                titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
+                contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
+                backgroundColor: primarycolor,
+              );
+            });
+      }
+      return responceBody;
+    }
+
     //double _headerHeight = 120;
     return Scaffold(
         appBar: AppBar(
@@ -118,10 +204,11 @@ class ForgetPassword extends StatelessWidget {
                                 onPressed: () {
                                   if (formState2.currentState!.validate()) {
                                     formState2.currentState!.save();
-                                    Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                Verification()));
+                                    postForgot();
+                                    // Navigator.of(context).push(
+                                    //     MaterialPageRoute(
+                                    //         builder: (context) =>
+                                    //             Verification()));
                                   }
                                 },
                               ),

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NewPass extends StatefulWidget {
   @override
@@ -33,8 +36,84 @@ class _NewPassState extends State<NewPass> {
   final formState3 = GlobalKey<FormState>();
 
   String? pass;
-
+  var urlStarter = "http://10.0.2.2:8080";
+  var responceBody;
   String? test;
+  Future postForgotSetPass() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var email = prefs.getString("email");
+    var url = urlStarter + "/users/forgotSetPass";
+    var responce = await http.post(Uri.parse(url),
+        body: jsonEncode({"email": email, "password": pass}),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        });
+    responceBody = jsonDecode(responce.body);
+    print(responceBody);
+    if (responceBody['message'] == "done") {
+      SharedPreferences sharedPref = await SharedPreferences.getInstance();
+      sharedPref.getString("email");
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      sharedPref.remove("email");
+                      Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) => sign_in()));
+                    },
+                    child: Text(
+                      "Ok",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    )),
+              ],
+              title: Text("Password Changed"),
+              content: Text("The password has been changed successfully"),
+              titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
+              contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
+              backgroundColor: primarycolor,
+            );
+          });
+    } else {
+      List errors = responceBody['error']['errors'];
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      "Ok",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    )),
+              ],
+              title: Text("Validation Error"),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      child: Text("*${errors[index]['msg']}"),
+                      margin: EdgeInsets.only(bottom: 20),
+                    );
+                  },
+                  itemCount: errors.length,
+                ),
+              ),
+              titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
+              contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
+              backgroundColor: primarycolor,
+            );
+          });
+    }
+    return responceBody;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -286,12 +365,7 @@ class _NewPassState extends State<NewPass> {
                                           if (formState3.currentState!
                                               .validate()) {
                                             formState3.currentState!.save();
-                                            Navigator.pushReplacement(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      sign_in()),
-                                            );
+                                            postForgotSetPass();
                                           }
                                         }),
                                   ),

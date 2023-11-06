@@ -1,11 +1,15 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/sign_in_up_pages/forget_pass.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
 import 'package:flutter_application_1/sign_in_up_pages/new_password.dart';
 import 'package:otp_text_field/otp_field.dart';
 import 'package:otp_text_field/otp_field_style.dart';
 import 'package:otp_text_field/style.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Verification extends StatefulWidget {
   const Verification({Key? key}) : super(key: key);
@@ -17,6 +21,110 @@ class Verification extends StatefulWidget {
 class _VerificationState extends State<Verification> {
   bool _pinSuccess = false;
   String? code;
+  var responceBody;
+  var urlStarter = "http://10.0.2.2:8080";
+  Future postForgotCode() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var email = prefs.getString("email");
+    var url = urlStarter + "/users/forgotCode";
+    var responce = await http.post(Uri.parse(url),
+        body: jsonEncode({"email": email, "code": code}),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        });
+    responceBody = jsonDecode(responce.body);
+    print(responceBody);
+    if (responceBody['message'] == "done") {
+      Navigator.of(context)
+          .pushReplacement(MaterialPageRoute(builder: (context) => NewPass()));
+    } else if (responceBody['message'] ==
+        "We're sorry, but the verification code you entered is incorrect.") {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      "Ok",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    )),
+              ],
+              title: Text("Wrong Code"),
+              content: Text(
+                  "We're sorry, but the verification code you entered is incorrect."),
+              titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
+              contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
+              backgroundColor: primarycolor,
+            );
+          });
+      print("Wrong Code");
+    } else if (responceBody['message'] ==
+        "We're sorry, but the verification code you entered is incorrect.") {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      "Ok",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    )),
+              ],
+              title: Text("No requiest for code"),
+              content: Text(
+                  "We're sorry, no requiest belong this emaile to reset password."),
+              titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
+              contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
+              backgroundColor: primarycolor,
+            );
+          });
+      print("No requiest for code");
+    } else {
+      List errors = responceBody['error']['errors'];
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      "Ok",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    )),
+              ],
+              title: Text("Validation Error"),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      child: Text("*${errors[index]['msg']}"),
+                      margin: EdgeInsets.only(bottom: 20),
+                    );
+                  },
+                  itemCount: errors.length,
+                ),
+              ),
+              titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
+              contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
+              backgroundColor: primarycolor,
+            );
+          });
+    }
+    return responceBody;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +132,16 @@ class _VerificationState extends State<Verification> {
         appBar: AppBar(
           title: Text("Verification"),
           backgroundColor: primarycolor,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () async {
+              SharedPreferences sharedPref =
+                  await SharedPreferences.getInstance();
+              sharedPref.remove("email");
+              Navigator.of(context).pop();
+              print(sharedPref.get("email"));
+            },
+          ),
         ),
         backgroundColor: Colors.white,
         body: SingleChildScrollView(
@@ -97,7 +215,20 @@ class _VerificationState extends State<Verification> {
                                   TextSpan(
                                     text: 'Resend',
                                     recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
+                                      ..onTap = () async {
+                                        SharedPreferences sh =
+                                        await SharedPreferences.getInstance();
+                                        String? email = sh.getString("email");
+                                        var url = urlStarter + "/users/forgot";
+                                        var responce =
+                                            await http.post(Uri.parse(url),
+                                                body: jsonEncode({
+                                                  "email": email,
+                                                }),
+                                                headers: {
+                                              'Content-type':
+                                                  'application/json; charset=UTF-8',
+                                            });
                                         showDialog(
                                           context: context,
                                           builder: (BuildContext context) {
@@ -138,11 +269,7 @@ class _VerificationState extends State<Verification> {
                                 ),
                                 onPressed: _pinSuccess
                                     ? () {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => NewPass()),
-                                        );
+                                        postForgotCode();
                                       }
                                     : null,
                               ),
