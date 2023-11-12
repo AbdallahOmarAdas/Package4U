@@ -4,7 +4,7 @@ import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
 
 class chang_pass extends StatefulWidget {
@@ -20,13 +20,11 @@ class _chang_passState extends State<chang_pass> {
   bool _hasPasswordOneNumber = false;
   bool _hasPasswordOneCapitalchar = false;
   var responceBody;
-  var urlStarter = "http://10.0.2.2:8080";
   String? pass;
   String? oldPass;
 
   Future postchangePassword() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var userName = prefs.getString("userName");
+    var userName = GetStorage().read("userName");
     var url = urlStarter + "/users/changePassword";
     var responce = await http.post(Uri.parse(url),
         body: jsonEncode(
@@ -40,35 +38,30 @@ class _chang_passState extends State<chang_pass> {
       showDialog(
           context: context,
           builder: (context) {
+            String userType = GetStorage().read("userType");
             return show_dialog().alartDialogPushNamed(
-                "Changed!",
-                "The password has been changed successfully.",
-                context,
-                "customerHome");
+              "Changed!",
+              "The password has been changed successfully.",
+              context,userType
+            );
           });
     } else if (responceBody['message'] ==
         "The old password is incorrect, please verify it.") {
       showDialog(
           context: context,
           builder: (context) {
-            return show_dialog().alartDialog(
-                "Failed!",
-                "The old password is incorrect, please verify it.",
-                context);
+            return show_dialog().alartDialog("Failed!",
+                "The old password is incorrect, please verify it.", context);
           });
-    }
-    else if (responceBody['message'] ==
+    } else if (responceBody['message'] ==
         "please choose a different password.") {
       showDialog(
           context: context,
           builder: (context) {
             return show_dialog().alartDialog(
-                "Failed!",
-                "please choose a different password.",
-                context);
+                "Failed!", "please choose a different password.", context);
           });
-    }
-     else {
+    } else {
       List errors = responceBody['error']['errors'];
       showDialog(
           context: context,
@@ -119,7 +112,7 @@ class _chang_passState extends State<chang_pass> {
                   SizedBox(height: 80),
                   TextFormField(
                     obscureText: !passwordVisible1,
-                        decoration: InputDecoration(
+                    decoration: InputDecoration(
                       suffixIcon: IconButton(
                         icon: Icon(
                           passwordVisible1
@@ -155,7 +148,7 @@ class _chang_passState extends State<chang_pass> {
                           borderSide: BorderSide(color: Colors.red, width: 2)),
                     ),
                     validator: (value) {
-                    if (value!.isEmpty) return "Enter  old password";
+                      if (value!.isEmpty) return "Enter  old password";
 
                       // if (test != value) return "dosen\'t match";
                     },
@@ -219,8 +212,8 @@ class _chang_passState extends State<chang_pass> {
                   ),
                   SizedBox(height: 30),
                   TextFormField(
-                    obscureText:!passwordVisible3,
-                        decoration: InputDecoration(
+                    obscureText: !passwordVisible3,
+                    decoration: InputDecoration(
                       suffixIcon: IconButton(
                         icon: Icon(
                           passwordVisible3

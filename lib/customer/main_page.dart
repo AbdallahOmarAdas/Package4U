@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/customer/change_password.dart';
 import 'package:flutter_application_1/customer/edit_profile.dart';
@@ -5,7 +8,10 @@ import 'package:flutter_application_1/customer/home.dart';
 import 'package:flutter_application_1/customer/service.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:get_storage/get_storage.dart';
 
 class home_page_customer extends StatefulWidget {
   @override
@@ -14,6 +20,23 @@ class home_page_customer extends StatefulWidget {
 
 class _home_page_customerState extends State<home_page_customer> {
   int _index = 0;
+  String customerName = GetStorage().read("Fname");
+  String userName = GetStorage().read("userName");
+  String email = GetStorage().read("email");
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    imgUrl = urlStarter +
+        '/image/' +
+        GetStorage().read("userName") +
+        GetStorage().read("url");
+  }
+
+  var imgUrl = urlStarter +
+      '/image/' +
+      GetStorage().read("userName") +
+      GetStorage().read("url");
 
   void _bottomBar(int index) {
     setState(() {
@@ -25,15 +48,6 @@ class _home_page_customerState extends State<home_page_customer> {
     home(),
     service(),
   ];
-  deletePref() async {
-    SharedPreferences sharedPref = await SharedPreferences.getInstance();
-    sharedPref.remove("userName");
-    sharedPref.remove("Fname");
-    sharedPref.remove("Lname");
-    sharedPref.remove("phoneNumber");
-    sharedPref.remove("email");
-    sharedPref.remove("userType");
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +67,19 @@ class _home_page_customerState extends State<home_page_customer> {
           backgroundColor: primarycolor,
           elevation: 0,
           centerTitle: true,
+          leading: Builder(builder: (BuildContext context) {
+            return IconButton(
+                icon: Icon(Icons.menu),
+                onPressed: () {
+                  setState(() {
+                    imgUrl = urlStarter +
+                        '/image/' +
+                        GetStorage().read("userName") +
+                        GetStorage().read("url");
+                  });
+                  Scaffold.of(context).openDrawer();
+                });
+          }),
           title: Text(
             'Express4U',
             style: TextStyle(
@@ -70,19 +97,27 @@ class _home_page_customerState extends State<home_page_customer> {
                           bottomLeft: Radius.circular(30),
                           bottomRight: Radius.circular(30))),
                   accountName: Text(
-                    'customer',
+                    customerName,
                     style: TextStyle(fontSize: 20),
                   ),
                   accountEmail: Text(
-                    'aaaa@gmail.com',
+                    email,
                     style: TextStyle(fontSize: 14),
                   ),
-                  currentAccountPicture: Container(
-                    decoration: BoxDecoration(
+                  currentAccountPicture: CachedNetworkImage(
+                    imageUrl: imgUrl,
+                    imageBuilder: (context, imageProvider) => Container(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         image: DecorationImage(
-                            fit: BoxFit.cover,
-                            image: AssetImage("assets/f3.png"))),
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    placeholder: (context, url) => CircularProgressIndicator(),
+                    errorWidget: (context, url, error) =>
+                        Image.asset('assets/default.jpg'),
                   ),
                 ),
                 Padding(padding: EdgeInsets.only(top: 20)),
@@ -164,7 +199,7 @@ class _home_page_customerState extends State<home_page_customer> {
                     style: TextStyle(fontSize: 25),
                   ),
                   onTap: () {
-                    deletePref();
+                    GetStorage().erase();
                     Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (context) => sign_in()));
                   },

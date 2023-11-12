@@ -5,8 +5,15 @@ const String Titleapp = 'Package4U';
 
 class show_dialog {
   AlertDialog alartDialog(
-      String title, String content, BuildContext context, ) {
+    String title,
+    String content,
+    BuildContext context,
+  ) {
     return AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(27.0), // Adjust the radius as needed
+      ),
       title: Text(title),
       content: Text(content),
       titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
@@ -29,6 +36,10 @@ class show_dialog {
   AlertDialog alartDialogPushNamed(
       String title, String content, BuildContext context, String name) {
     return AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(27.0), // Adjust the radius as needed
+      ),
       title: Text(title),
       content: Text(content),
       titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
@@ -41,7 +52,16 @@ class show_dialog {
             style: TextStyle(color: Colors.white, fontSize: 18),
           ),
           onPressed: () {
-            Navigator.of(context).pushNamed(name);
+            if (name == "customer")
+              Navigator.of(context).pushNamed("customerHome");
+            else if (name == "manager")
+              Navigator.of(context).pushNamed("managerHome");
+            else if (name == "driver")
+              Navigator.of(context).pushNamed("driverHome");
+            else if (name == "employee")
+              Navigator.of(context).pushNamed("employeeHome");
+            else
+              Navigator.of(context).pushNamed("signIn");
           },
         ),
       ],
@@ -77,6 +97,10 @@ class show_dialog {
       titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
       contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
       backgroundColor: primarycolor,
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(27.0), // Adjust the radius as needed
+      ),
     );
   }
 }

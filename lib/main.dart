@@ -12,50 +12,53 @@ import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/sign_in_up_pages/testAPI.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get_storage/get_storage.dart';
 
-// void main() {
-//   runApp(LoginUiApp());
-// }
-Future<void> main() async{
-  WidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences prefs =await SharedPreferences.getInstance();
-  var userType=prefs.getString("userType");
-  print(userType);
-  runApp(MaterialApp(
-    theme: ThemeData(
-        primaryColor: primarycolor,
-      ),
-    debugShowCheckedModeBanner: false,
-    home: userType==null?sign_in():home_page_customer(),
-    routes: {"customerHome": (context) => home_page_customer()}
-    ));
-    
+void main() async {
+  await GetStorage.init();
+  runApp(LoginUiApp());
 }
-// class LoginUiApp extends StatelessWidget {
-//   var userType;
-//   getPref() async {
-//     SharedPreferences sharedPref = await SharedPreferences.getInstance();
-//     if (sharedPref.getString('userType') == "customer")
-//       userType = "customer";
-//     else
-//       userType = "none";
-//   }
+class LoginUiApp extends StatefulWidget {
+  const LoginUiApp({super.key});
 
-//   @override
-//   void initState() {
-//     getPref();
-//   }
+  @override
+  State<LoginUiApp> createState() => _LoginUiAppState();
+}
 
-//   @override
-//   Widget build(BuildContext context) {
-//     getPref();
-//     return MaterialApp(
-//       theme: ThemeData(
-//         primaryColor: primarycolor,
-//       ),
-//       home: userType == "customer" ? home_page_customer() : sign_in(),
-//       debugShowCheckedModeBanner: false,
-//       //home: testAPI(),
-//     );
-//   }
-// }
+class _LoginUiAppState extends State<LoginUiApp> {
+  String? userType;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    userType = GetStorage().read("userType");
+    print("userType:" + userType.toString());
+  }
+
+  HomeReturn() {
+    if (userType == null)
+      return sign_in();
+    else if (userType == "customer")
+      return home_page_customer();
+    else if (userType == "manager") return home_page_manager();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+        theme: ThemeData(
+          primaryColor: primarycolor,
+        ),
+        home: HomeReturn(),
+        debugShowCheckedModeBanner: false,
+        routes: {
+          "customerHome": (context) => home_page_customer(),
+          "managerHome": (context) => home_page_manager(),
+          "driverHome": (context) => home_page_driver(),
+          "employeeHome": (context) => home_page_employee(),
+          "signIn": (context) => sign_in(),
+        }
+        //home: testAPI(),
+        );
+  }
+}

@@ -3,6 +3,11 @@ import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:day_picker/day_picker.dart';
 import 'package:flutter_application_1/style/header/header.dart';
 
+import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 class creat_driver extends StatefulWidget {
   @override
   State<creat_driver> createState() => _creat_driverState();
@@ -12,6 +17,61 @@ class _creat_driverState extends State<creat_driver> {
   bool isValidEmail(String email) {
     final emailRegExp = RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$');
     return emailRegExp.hasMatch(email);
+  }
+
+  String isValidPhone(String input) {
+    bool isnum = RegExp(r'^[0-9]+$').hasMatch(input);
+    if (input.isEmpty)
+      return "Please enter number phone";
+    else if (input.length != 10) {
+      return 'Phone number must have exactly 10 digits';
+    } else if (!isnum) {
+      return "Phone number must have numbers only";
+    } else {
+      return "";
+    }
+  }
+
+  Future postUsersAddDriver() async {
+    var url = urlStarter + "/Driver/addDriver";
+    var responce = await http.post(Uri.parse(url),
+        body: jsonEncode({
+          "userName": username,
+          "Fname": fname,
+          "Lname": lname,
+          "email": email,
+          "phoneNumber": phone,
+          "userType": "driver",
+          "vehicleNumber": vehicle_n,
+          "toCity": tocity,
+          "fromCity": fromcity,
+          "workingDays": workingday
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        });
+    var responceBody = jsonDecode(responce.body);
+    print(responceBody);
+    if (responceBody['message'] == "failed") {
+      List errors = responceBody['error']['errors'];
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().aboutDialogErrors(errors, context);
+          });
+    }
+    if (responceBody['message'] == "done") {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().alartDialogPushNamed(
+                "Done!",
+                "The Driver account is created successfully,\nNow Please ask the driver to reset his password in login page.",
+                context,
+                GetStorage().read("userType"));
+          });
+    }
+    return responceBody;
   }
 
   List<DayInWeek> _days = [
@@ -178,8 +238,9 @@ class _creat_driverState extends State<creat_driver> {
                               phone = newValue!;
                             },
                             validator: (value) {
-                              if (value!.isEmpty) {
-                                return "Please enter your phone number";
+                              String res = isValidPhone(value.toString());
+                              if (!res.isEmpty) {
+                                return res;
                               }
                             },
                             initialValue: phone,
@@ -195,58 +256,64 @@ class _creat_driverState extends State<creat_driver> {
                           Row(
                             children: [
                               Expanded(
-                                child: Container(
-                                  padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(100),
-                                      border: Border.all(
-                                          color: Colors.grey.shade400)),
-                                  child: DropdownButton(
-                                    value: fromcity,
-                                    isExpanded: true,
-                                    hint: Text('From City'),
-                                    items: citylist.map((value) {
-                                      return DropdownMenuItem(
-                                        value: value,
-                                        child: Text(value),
-                                      );
-                                    }).toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        fromcity = (value as String?)!;
-                                        print(fromcity);
-                                      });
-                                    },
+                                child: DropdownButtonFormField(
+                                  value: fromcity,
+                                  isExpanded: true,
+                                  hint: Text('From City'),
+                                  validator: (value) {
+                                    if (value == null) {
+                                      return "Please select city";
+                                    }
+                                  },
+                                  decoration: theme_helper().text_form_style(
+                                    '',
+                                    '',
+                                    Icons.location_city,
                                   ),
+                                  items: citylist.map((value) {
+                                    return DropdownMenuItem(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      fromcity = (value as String?)!;
+                                      print(fromcity);
+                                    });
+                                  },
                                 ),
                               ),
                               SizedBox(
                                 width: 5,
                               ),
                               Expanded(
-                                child: Container(
-                                  padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(100),
-                                      border: Border.all(
-                                          color: Colors.grey.shade400)),
-                                  child: DropdownButton(
-                                    value: tocity,
-                                    hint: Text('To City'),
-                                    isExpanded: true,
-                                    items: citylist.map((value) {
-                                      return DropdownMenuItem(
-                                        value: value,
-                                        child: Text(value),
-                                      );
-                                    }).toList(),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        tocity = (value as String?)!;
-                                        print(tocity);
-                                      });
-                                    },
+                                child: DropdownButtonFormField(
+                                  value: tocity,
+                                  hint: Text('To City'),
+                                  isExpanded: true,
+                                  items: citylist.map((value) {
+                                    return DropdownMenuItem(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                  validator: (value) {
+                                    if (value == null) {
+                                      return "Please select city";
+                                    }
+                                  },
+                                  decoration: theme_helper().text_form_style(
+                                    '',
+                                    '',
+                                    Icons.location_city,
                                   ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      tocity = (value as String?)!;
+                                      print(tocity);
+                                    });
+                                  },
                                 ),
                               ),
                             ],
@@ -309,7 +376,8 @@ class _creat_driverState extends State<creat_driver> {
                               ),
                             ),
                             onSelect: (values) {
-                              print(values);
+                              workingday = values.toString();
+                              print(values.toString());
                             },
                           ),
                           SizedBox(
@@ -334,6 +402,7 @@ class _creat_driverState extends State<creat_driver> {
                       onPressed: () {
                         if (formState4.currentState!.validate()) {
                           formState4.currentState!.save();
+                          postUsersAddDriver();
                         }
                       },
                     )

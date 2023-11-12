@@ -2,7 +2,8 @@ const User=require('../models/users');
 const Token=require('../models/token');
 const { validationResult } = require('express-validator');
 const nodemailer=require('nodemailer');
-
+const fs = require('fs');
+const path = require('path');
 
 exports.postAddUser=(req,res,next)=>{
 const userName=req.body.userName;
@@ -38,7 +39,11 @@ User.create({
     password:password,
     email:email,
     phoneNumber:phoneNumber,
-    userType:userType
+    userType:userType,
+    city:city,
+    town:town,
+    street:street,
+    "url":".jpg"
 }).then((result) => { 
 
     res.status(201).json({message:'done'}); 
@@ -76,7 +81,6 @@ User.create({
  exports.postForgot=(req,res,next)=>{
     const email=req.body.email;
     const error=validationResult(req);
-    console.log(error);
     if(!error.isEmpty()){
     return res.status(422).json({message:'failed',error}); 
     }
@@ -207,6 +211,104 @@ exports.postForgotSetPass=(req,res,next)=>{
         }
  }
 
+
+
+ exports.postEditProfile=(req,res,next)=>{
+    const userName=req.body.userName;
+    const oldUserName=req.body.oldUserName;
+    const Fname=req.body.Fname;
+    const Lname=req.body.Lname;
+    const email=req.body.email;
+    const oldEmail=req.body.oldEmail;
+    const phoneNumber=req.body.phoneNumber;
+    const city=req.body.city;
+    const town=req.body.town;
+    const street=req.body.street;
+    const url=req.body.url;
+    function updateEditProfile(){
+        User.update(
+            { 
+                userName:userName,
+                Fname:Fname,
+                Lname:Lname,
+                email:email,
+                phoneNumber:phoneNumber,
+                city:city,
+                town:town,
+                street:street
+            },
+            {
+              where: { userName: oldUserName,}, // The condition to find the user you want to update
+            }
+          ).then((result) => {
+            if(result[0]===1){
+                const currentFileName = path.join(__dirname,'..','user_images','/')+oldUserName+url; // Replace with the actual current file name
+                const newFileName = path.join(__dirname,'..','user_images','/')+userName+url; 
+                fs.rename(currentFileName, newFileName, (err) => {
+                    if (err) {
+                      console.error(`Error renaming file: ${err}`);
+                    } else {
+                      console.log('File renamed successfully.');
+                    }
+                  });
+                res.status(200).json({"message":"done"});
+            }
+            else
+                res.status(200).json({"message":"please check the old username."});
+          }).catch((err) => {
+            console.log(err);
+          });
+     }
+    const error=validationResult(req);
+    if(!error.isEmpty()){
+        return res.status(422).json({message:'failed',error}); 
+        }
+        else{
+            if(userName===oldUserName)
+                {
+                    if(email===oldEmail)updateEditProfile();
+                    else{
+                        User.findOne({where:{email:email}})
+                        .then((result) => {
+                            if(result){
+                                res.status(200).json({"message":"This email already used for another account."});
+                            }
+                            else{
+                                updateEditProfile();
+                            }    
+                        }).catch((err) => {
+                            console.log(err);
+                        });
+                    }
+                }
+            else{
+                User.findOne({where:{userName:userName}})
+                .then((result) => {
+                    if(result){
+                        res.status(200).json({"message":"This username is not available."});
+                    }
+                    else{
+                        if(email===oldEmail)updateEditProfile();
+                    else{
+                        User.findOne({where:{email:email}})
+                        .then((result) => {
+                            if(result){
+                                res.status(200).json({"message":"This email already used for another account."});
+                            }
+                            else{
+                                updateEditProfile();
+                            }    
+                        }).catch((err) => {
+                            console.log(err);
+                        });
+                    }
+                    }    
+                }).catch((err) => {
+                    
+                });
+            }
+        }
+ }
  exports.postChangePassword=(req,res,next)=>{
     const userName=req.body.userName;
     const oldPassword=req.body.oldPassword;
@@ -233,3 +335,35 @@ exports.postForgotSetPass=(req,res,next)=>{
               });
         }
  }
+
+ exports.postAddEmployee=(req,res,next)=>{
+    const userName=req.body.userName;
+    const password="E"+generateRandomNumber()+"e";
+    const Fname=req.body.Fname;
+    const Lname=req.body.Lname;
+    const email=req.body.email;
+    const phoneNumber=req.body.phoneNumber;
+    const userType=req.body.userType;
+    const error=validationResult(req);
+    console.log(error);
+    if(!error.isEmpty()){
+       return res.status(422).json({message:'failed',error}); 
+    }
+    User.create({
+        Fname:Fname,
+        Lname:Lname,
+        userName:userName,
+        password:password,
+        email:email,
+        phoneNumber:phoneNumber,
+        userType:userType,
+        "url":".jpg"
+    }).then((result) => { 
+    
+        res.status(201).json({message:'done'}); 
+        
+    }).catch((err) => {
+        res.status(500).json({message:'failed'}); 
+        console.log(err);
+    });
+     };

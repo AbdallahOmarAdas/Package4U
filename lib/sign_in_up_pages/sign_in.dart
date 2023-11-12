@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/customer/main_page.dart';
+import 'package:flutter_application_1/drivers/main_page.dart';
+import 'package:flutter_application_1/employee/main_page.dart';
 import 'package:flutter_application_1/manager/main_page.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/sign_in_up_pages/forget_pass.dart';
@@ -8,7 +10,7 @@ import 'package:flutter_application_1/sign_in_up_pages/regstration.dart';
 import 'package:flutter_application_1/style/header/header.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get_storage/get_storage.dart';
 
 class sign_in extends StatefulWidget {
   @override
@@ -22,7 +24,6 @@ class _sign_inState extends State<sign_in> {
   String? userName;
 
   String? password;
-  var urlStarter = "http://10.0.2.2:8080";
 
   Future postSignin() async {
     var url = urlStarter + "/users/signin";
@@ -37,24 +38,32 @@ class _sign_inState extends State<sign_in> {
     responceBody = jsonDecode(responce.body);
     print(responceBody);
     if (responceBody['result'] != "user not found") {
-      SharedPreferences sharedPref = await SharedPreferences.getInstance();
       print(responceBody['user']['userName']);
-      sharedPref.setString("userName", responceBody['user']['userName']);
-      sharedPref.setString("Fname", responceBody['user']['Fname']);
-      sharedPref.setString("Lname", responceBody['user']['Lname']);
-      sharedPref.setString(
-          "phoneNumber", responceBody['user']['phoneNumber'].toString());
-      sharedPref.setString("email", responceBody['user']['email']);
-      sharedPref.setString("userType", responceBody['user']['userType']);
+      GetStorage().write("Fname", responceBody['user']['Fname']);
+      GetStorage().write("Lname", responceBody['user']['Lname']);
+      GetStorage().write("userName", responceBody['user']['userName']);
+      GetStorage().write("email", responceBody['user']['email']);
+      GetStorage().write("phoneNumber", responceBody['user']['phoneNumber']);
+      GetStorage().write("userType", responceBody['user']['userType']);
+      GetStorage().write("city", responceBody['user']['city']);
+      GetStorage().write("town", responceBody['user']['town']);
+      GetStorage().write("street", responceBody['user']['street']);
+      GetStorage().write("url", responceBody['user']['url']);
       if (responceBody['user']['userType'] == "customer")
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => home_page_customer()
-                //  home_page_manager()
                 ));
       if (responceBody['user']['userType'] == "manager")
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => home_page_manager()
-                //  home_page_manager()
+                ));
+      if (responceBody['user']['userType'] == "employee")
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => home_page_employee()
+                ));
+      if (responceBody['user']['userType'] == "driver")
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => home_page_driver()
                 ));
     } else {
       showDialog(
@@ -250,7 +259,7 @@ class _sign_inState extends State<sign_in> {
                                 onPressed: () {
                                   if (formState.currentState!.validate()) {
                                     formState.currentState!.save();
-                                    var res = postSignin(); 
+                                    var res = postSignin();
                                   }
                                 },
                               ),

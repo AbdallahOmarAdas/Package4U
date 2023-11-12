@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class NewPass extends StatefulWidget {
   @override
@@ -36,12 +36,10 @@ class _NewPassState extends State<NewPass> {
   final formState3 = GlobalKey<FormState>();
 
   String? pass;
-  var urlStarter = "http://10.0.2.2:8080";
   var responceBody;
   String? test;
   Future postForgotSetPass() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var email = prefs.getString("email");
+    var email = GetStorage().read("email");
     var url = urlStarter + "/users/forgotSetPass";
     var responce = await http.post(Uri.parse(url),
         body: jsonEncode({"email": email, "password": pass}),
@@ -51,8 +49,6 @@ class _NewPassState extends State<NewPass> {
     responceBody = jsonDecode(responce.body);
     print(responceBody);
     if (responceBody['message'] == "done") {
-      SharedPreferences sharedPref = await SharedPreferences.getInstance();
-      sharedPref.getString("email");
       showDialog(
           context: context,
           builder: (context) {
@@ -60,7 +56,7 @@ class _NewPassState extends State<NewPass> {
               actions: [
                 TextButton(
                     onPressed: () {
-                      sharedPref.remove("email");
+                      GetStorage().remove("email");
                       Navigator.of(context).pushReplacement(
                           MaterialPageRoute(builder: (context) => sign_in()));
                     },

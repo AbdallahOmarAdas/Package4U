@@ -5,9 +5,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/sign_in_up_pages/verification.dart';
 import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ForgetPassword extends StatelessWidget {
   bool isValidEmail(String email) {
@@ -17,7 +17,6 @@ class ForgetPassword extends StatelessWidget {
 
   final formState2 = GlobalKey<FormState>();
   String? email;
-  var urlStarter = "http://10.0.2.2:8080";
   var responceBody;
   @override
   Widget build(BuildContext context) {
@@ -33,8 +32,7 @@ class ForgetPassword extends StatelessWidget {
       responceBody = jsonDecode(responce.body);
       print(responceBody);
       if (responceBody['message'] == "done") {
-        SharedPreferences sharedPref = await SharedPreferences.getInstance();
-        sharedPref.setString("email", email.toString());
+        GetStorage().write("email", email);
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => Verification()));
       } else if (responceBody['message'] == "email not found") {
