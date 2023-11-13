@@ -33,7 +33,7 @@ class _home_page_managerState extends State<home_page_manager> {
         GetStorage().read("userName") +
         GetStorage().read("url");
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -173,6 +173,7 @@ class _home_page_managerState extends State<home_page_manager> {
                   style: TextStyle(fontSize: 25),
                 ),
                 onTap: () {
+                  GetStorage().erase();
                   Navigator.of(context).pushReplacement(
                       MaterialPageRoute(builder: (context) => sign_in()));
                 },

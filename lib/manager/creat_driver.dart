@@ -32,16 +32,19 @@ class _creat_driverState extends State<creat_driver> {
     }
   }
 
+  String managerUserName = GetStorage().read('userName');
+  String managerPassword = GetStorage().read('password');
   Future postUsersAddDriver() async {
-    var url = urlStarter + "/Driver/addDriver";
+    var url = urlStarter + "/manager/addDriver";
     var responce = await http.post(Uri.parse(url),
         body: jsonEncode({
+          "managerUserName": managerUserName,
+          "managerPassword": managerPassword,
           "userName": username,
           "Fname": fname,
           "Lname": lname,
           "email": email,
           "phoneNumber": phone,
-          "userType": "driver",
           "vehicleNumber": vehicle_n,
           "toCity": tocity,
           "fromCity": fromcity,

@@ -22,17 +22,19 @@ class _create_employeeState extends State<create_employee> {
   String? username;
   String? email;
   String? phone;
-
+  String managerUserName = GetStorage().read('userName');
+  String managerPassword = GetStorage().read('password');
   Future postUsersAddEmployee() async {
-    var url = urlStarter + "/users/addEmployee";
+    var url = urlStarter + "/manager/addEmployee";
     var responce = await http.post(Uri.parse(url),
         body: jsonEncode({
+          "managerUserName": managerUserName,
+          "managerPassword": managerPassword,
           "userName": username,
           "Fname": fname,
           "Lname": lname,
           "email": email,
-          "phoneNumber": phone,
-          "userType": "employee",
+          "phoneNumber": phone
         }),
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
@@ -58,6 +60,7 @@ class _create_employeeState extends State<create_employee> {
                 GetStorage().read("userType"));
           });
     }
+
     return responceBody;
   }
 

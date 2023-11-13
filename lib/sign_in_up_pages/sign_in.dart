@@ -40,6 +40,7 @@ class _sign_inState extends State<sign_in> {
     if (responceBody['result'] != "user not found") {
       print(responceBody['user']['userName']);
       GetStorage().write("Fname", responceBody['user']['Fname']);
+      GetStorage().write("password", responceBody['user']['password']);
       GetStorage().write("Lname", responceBody['user']['Lname']);
       GetStorage().write("userName", responceBody['user']['userName']);
       GetStorage().write("email", responceBody['user']['email']);
@@ -51,20 +52,16 @@ class _sign_inState extends State<sign_in> {
       GetStorage().write("url", responceBody['user']['url']);
       if (responceBody['user']['userType'] == "customer")
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => home_page_customer()
-                ));
+            MaterialPageRoute(builder: (context) => home_page_customer()));
       if (responceBody['user']['userType'] == "manager")
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => home_page_manager()
-                ));
+            MaterialPageRoute(builder: (context) => home_page_manager()));
       if (responceBody['user']['userType'] == "employee")
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => home_page_employee()
-                ));
+            MaterialPageRoute(builder: (context) => home_page_employee()));
       if (responceBody['user']['userType'] == "driver")
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => home_page_driver()
-                ));
+            MaterialPageRoute(builder: (context) => home_page_driver()));
     } else {
       showDialog(
           context: context,
@@ -105,6 +102,7 @@ class _sign_inState extends State<sign_in> {
   @override
   void initState() {
     super.initState();
+    GetStorage().erase();
   }
 
   bool isValidEmail(String email) {
