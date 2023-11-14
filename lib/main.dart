@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/customer/add_parcel.dart';
+import 'package:flutter_application_1/customer/call.dart';
 import 'package:flutter_application_1/customer/edit_profile.dart';
 import 'package:flutter_application_1/customer/home.dart';
 import 'package:flutter_application_1/customer/main_page.dart';
+import 'package:flutter_application_1/customer/set_location.dart';
 import 'package:flutter_application_1/drivers/main_page.dart';
 import 'package:flutter_application_1/employee/main_page.dart';
 import 'package:flutter_application_1/manager/creat_driver.dart';
@@ -16,17 +19,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 // void main() {
 //   runApp(LoginUiApp());
 // }
-Future<void> main() async{
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences prefs =await SharedPreferences.getInstance();
-  var userType=prefs.getString("userType");
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var userType = prefs.getString("userType");
   print(userType);
   runApp(MaterialApp(
-    theme: ThemeData(
+      theme: ThemeData(
         primaryColor: primarycolor,
       ),
-    debugShowCheckedModeBanner: false,
-    home: userType==null?sign_in():home_page_customer(),));
+      debugShowCheckedModeBanner: false,
+      // home: userType==null?sign_in():home_page_customer(),
+      home: home_page_customer()));
 }
 // class LoginUiApp extends StatelessWidget {
 //   var userType;

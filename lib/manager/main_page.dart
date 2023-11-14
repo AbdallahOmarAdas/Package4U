@@ -173,18 +173,17 @@ class _home_page_managerState extends State<home_page_manager> {
                         MaterialPageRoute(
                             builder: ((context) => create_employee())));
                   },
-                  IconData: Icons.person_add_alt,
+                  img: "assets/add-friend.png",
                 ),
                 content(
                   label: 'Add Driver',
                   btn: () {
-                    print('heloo');
                     Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: ((context) => creat_driver())));
                   },
-                  IconData: Icons.drive_eta_rounded,
+                  img: "assets/driver.png",
                 ),
                 content(
                   label: 'View Reports',
@@ -194,7 +193,7 @@ class _home_page_managerState extends State<home_page_manager> {
                     //     MaterialPageRoute(
                     //         builder: ((context) => create_employee())));
                   },
-                  IconData: Icons.document_scanner,
+                  img: "assets/audit.png",
                 ),
                 content(
                   label: 'Track Driver',
@@ -204,17 +203,17 @@ class _home_page_managerState extends State<home_page_manager> {
                     //     MaterialPageRoute(
                     //         builder: ((context) => create_employee())));
                   },
-                  IconData: Icons.gps_fixed,
+                  img: "assets/route.png",
                 ),
                 content(
-                  label: 'Sending Development or technical notes to admin',
+                  label: 'Sending Notes to Admin',
                   btn: () {
                     // Navigator.push(
                     //     context,
                     //     MaterialPageRoute(
                     //         builder: ((context) => create_employee())));
                   },
-                  IconData: Icons.chat,
+                  img: "assets/send.png",
                 )
               ],
             ),
@@ -227,15 +226,12 @@ class _home_page_managerState extends State<home_page_manager> {
 
 class content extends StatelessWidget {
   final String label;
-  final IconData;
+  final img;
+  final Function() btn;
 
   const content(
-      {super.key,
-      required this.label,
-      required this.IconData,
-      required this.btn});
+      {super.key, required this.label, required this.img, required this.btn});
 
-  final Function() btn;
   @override
   Widget build(BuildContext) {
     return Padding(
@@ -257,17 +253,14 @@ class content extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                  padding: const EdgeInsets.all(30),
-                  decoration: BoxDecoration(
-                    color: primarycolor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    IconData,
-                    color: Colors.white,
-                    size: 30,
-                  )),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Image(
+                  image: AssetImage(img),
+                  height: 100,
+                  width: 100,
+                ),
+              ),
               SizedBox(height: 8),
               Text(
                 '${label}',

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/customer/change_password.dart';
 import 'package:flutter_application_1/customer/edit_profile.dart';
+import 'package:flutter_application_1/customer/from_me.dart';
 import 'package:flutter_application_1/customer/home.dart';
 import 'package:flutter_application_1/customer/service.dart';
+import 'package:flutter_application_1/customer/to_me.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +25,8 @@ class _home_page_customerState extends State<home_page_customer> {
 
   final List<Widget> _pages = [
     home(),
+    from_me(),
+    to_me(),
     service(),
   ];
   deletePref() async {
@@ -39,14 +43,25 @@ class _home_page_customerState extends State<home_page_customer> {
   Widget build(BuildContext context) {
     return Scaffold(
         bottomNavigationBar: BottomNavigationBar(
+          fixedColor: primarycolor,
           currentIndex: _index,
           onTap: _bottomBar,
           type: BottomNavigationBarType.fixed,
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.location_city), label: 'Service point'),
+                icon: Icon(
+                  Icons.outbox,
+                ),
+                label: 'From me'),
+            BottomNavigationBarItem(
+                icon: Icon(
+                  Icons.inventory,
+                ),
+                label: 'To me'),
             //BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.location_city), label: 'Service point'),
           ],
         ),
         appBar: AppBar(
