@@ -1,6 +1,16 @@
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io';
+import 'package:get_storage/get_storage.dart';
+import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 class edit_profile extends StatefulWidget {
   @override
@@ -13,15 +23,31 @@ class _edit_profileState extends State<edit_profile> {
     return emailRegExp.hasMatch(email);
   }
 
-  GlobalKey<FormState> formState4 = GlobalKey();
+  String isValidPhone(String input) {
+    bool isnum = RegExp(r'^[0-9]+$').hasMatch(input);
+    if (input.isEmpty)
+      return "Please enter number phone";
+    else if (input.length != 10) {
+      return 'Phone number must have exactly 10 digits';
+    } else if (!isnum) {
+      return "Phone number must have numbers only";
+    } else {
+      return "";
+    }
+  }
 
-  String? fname = 'mohammad';
-  String? lname = 'zaied';
-  String username = "Mohammad123";
-  String town = "anabta";
-  String city = "Tulkarm";
-  String email = "mohammad@gmail.com";
-  String phone = "0598952644";
+  GlobalKey<FormState> formState4 = GlobalKey();
+  String? fname;
+  String? lname;
+  String? username;
+  String? oldUserName;
+  String? city;
+  String? email;
+  String? oldEmail;
+  String? town;
+  String? street;
+  String? phone;
+  String? townStreet;
   List citylist = [
     'Nablus',
     'Tulkarm',
@@ -31,6 +57,125 @@ class _edit_profileState extends State<edit_profile> {
     'Salfit',
     'Hebron'
   ];
+  @override
+  void initState() {
+    super.initState();
+    fname = GetStorage().read("Fname");
+    lname = GetStorage().read("Lname");
+    username = GetStorage().read("userName");
+    oldUserName = GetStorage().read("userName");
+    email = GetStorage().read("email");
+    oldEmail = GetStorage().read("email");
+    phone = GetStorage().read("phoneNumber").toString();
+    city = GetStorage().read("city");
+    town = GetStorage().read("town");
+    street = GetStorage().read("street");
+    townStreet = town! + ", " + street!;
+  }
+
+  Future postEditProfile() async {
+    var url = urlStarter + "/users/editProfile";
+    print(oldUserName);
+    var responce = await http.post(Uri.parse(url),
+        body: jsonEncode({
+          "oldUserName": oldUserName,
+          "userName": username,
+          "Fname": fname,
+          "Lname": lname,
+          "oldEmail": oldEmail,
+          "email": email,
+          "phoneNumber": phone,
+          "city": city,
+          "town": town,
+          "street": street,
+          "url": GetStorage().read("url")
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        });
+    var responceBody = jsonDecode(responce.body);
+    print(responceBody);
+    if (responceBody['message'] == "done") {
+      GetStorage().write("Fname", fname);
+      GetStorage().write("Lname", lname);
+      GetStorage().write("userName", username);
+      GetStorage().write("email", email);
+      GetStorage().write("phoneNumber", phone);
+      GetStorage().write("city", city);
+      GetStorage().write("town", town);
+      GetStorage().write("street", street);
+      showDialog(
+          context: context,
+          builder: (context) {
+            String userType = GetStorage().read("userType");
+            return show_dialog().alartDialogPushNamed(
+                "Done!",
+                "The profile has been successfully modifiedly.",
+                context,
+                userType);
+          });
+    } else if (responceBody['message'] != "failed") {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog()
+                .alartDialog("Failed!", responceBody['message'], context);
+          });
+    } else {
+      List errors = responceBody['error']['errors'];
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().aboutDialogErrors(errors, context);
+          });
+    }
+    return responceBody;
+  }
+
+  XFile? _image;
+
+  Future getImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = pickedFile;
+        uploadImage();
+      });
+    }
+  }
+
+  var imgUrl = urlStarter +
+      '/image/' +
+      GetStorage().read("userName") +
+      GetStorage().read("url");
+
+  Future uploadImage() async {
+    final uri = Uri.parse(urlStarter + "/users/imm");
+    var request = http.MultipartRequest('POST', uri);
+    request.fields['userName'] = GetStorage().read("userName");
+
+    var file = await http.MultipartFile.fromPath('image', _image!.path);
+    request.files.add(file);
+
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      print(_image!.name.split('.')[1]);
+      GetStorage().write("url", "." + _image!.name.split('.')[1]);
+      print('Image uploaded successfully');
+      final respStr = await response.stream.bytesToString();
+      var res = jsonDecode(respStr);
+      print(res['url']);
+      GetStorage().write("url", res['url']);
+      setState(() {
+        imgUrl = urlStarter +
+            '/image/' +
+            GetStorage().read("userName") +
+            GetStorage().read("url");
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,45 +201,49 @@ class _edit_profileState extends State<edit_profile> {
                         Padding(
                           padding: const EdgeInsets.only(top: 30),
                           child: Center(
-                            child: Positioned(
-                              bottom: 0,
-                              left: 200,
-                              top: 20,
-                              child: Center(
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      width: 130,
-                                      height: 130,
-                                      decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          image: DecorationImage(
-                                              fit: BoxFit.cover,
-                                              image:
-                                                  AssetImage('assets/f3.png'))),
+                            child: Stack(
+                              children: [
+                                CachedNetworkImage(
+                                  imageUrl: imgUrl,
+                                  width: 130,
+                                  height: 130,
+                                  imageBuilder: (context, imageProvider) =>
+                                      Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      image: DecorationImage(
+                                        image: imageProvider,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
-                                    Positioned(
-                                        bottom: 0,
-                                        right: 0,
-                                        child: Container(
-                                          height: 40,
-                                          width: 40,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: primarycolor,
-                                          ),
-                                          child: IconButton(
-                                            onPressed: () {},
-                                            icon: Icon(Icons.edit),
-                                            color: Colors.white,
-                                          ),
-                                        )),
-                                  ],
+                                  ),
+                                  placeholder: (context, url) =>
+                                      CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) =>
+                                      Image.asset('assets/default.jpg'),
                                 ),
-                              ),
+                                Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      height: 40,
+                                      width: 40,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: primarycolor,
+                                      ),
+                                      child: IconButton(
+                                        onPressed: () {
+                                          getImage();
+                                        },
+                                        icon: Icon(Icons.edit),
+                                        color: Colors.white,
+                                      ),
+                                    )),
+                              ],
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
 
@@ -198,8 +347,9 @@ class _edit_profileState extends State<edit_profile> {
                               phone = newValue!;
                             },
                             validator: (value) {
-                              if (value!.isEmpty) {
-                                return "Please enter your phone number";
+                              String res = isValidPhone(value.toString());
+                              if (!res.isEmpty) {
+                                return res;
                               }
                             },
                             initialValue: phone,
@@ -212,40 +362,54 @@ class _edit_profileState extends State<edit_profile> {
                           SizedBox(
                             height: 20,
                           ),
-                          Container(
-                            padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(100),
-                                border:
-                                    Border.all(color: Colors.grey.shade400)),
-                            child: DropdownButton(
-                              isExpanded: true,
-                              value: city,
-                              items: citylist.map((value) {
-                                return DropdownMenuItem(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  city = (value as String?)!;
-                                  print(city);
-                                });
-                              },
+                          DropdownButtonFormField(
+                            isExpanded: true,
+                            hint: Text('Select City',
+                                style: TextStyle(color: Colors.grey)),
+                            items: citylist.map((value) {
+                              return DropdownMenuItem(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            value: city,
+                            decoration: theme_helper().text_form_style(
+                              '',
+                              '',
+                              Icons.location_city,
                             ),
+                            onChanged: (value) {
+                              setState(() {
+                                city = value as String?;
+                                print(city);
+                              });
+                            },
+                            validator: (value) {
+                              if (value == null) {
+                                return "Please select city";
+                              }
+                            },
                           ),
                           SizedBox(
                             height: 20,
                           ),
                           TextFormField(
-                            initialValue: town,
+                            initialValue: townStreet,
                             onSaved: (newValue) {
-                              town = newValue!;
+                              town = newValue;
+                              if (newValue != null) {
+                                print(newValue.split(",").length);
+                                town = newValue.split(",")[0];
+                                street = newValue.split(",")[1];
+                                print(town);
+                                print("street:");
+                                print(street);
+                              }
                             },
                             validator: (value) {
-                              if (value!.isEmpty) {
-                                return "Enter your town's location";
+                              if (value!.isEmpty ||
+                                  value.split(",").length != 2) {
+                                return "Enter your town's and street location";
                               }
                             },
                             decoration: theme_helper().text_form_style(
@@ -297,6 +461,7 @@ class _edit_profileState extends State<edit_profile> {
                       onPressed: () {
                         if (formState4.currentState!.validate()) {
                           formState4.currentState!.save();
+                          postEditProfile();
                         }
                       },
                     )

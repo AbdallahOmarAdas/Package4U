@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
+import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class create_employee extends StatefulWidget {
   @override
@@ -13,13 +17,54 @@ class _create_employeeState extends State<create_employee> {
     return emailRegExp.hasMatch(email);
   }
 
-  GlobalKey<FormState> formState1 = GlobalKey();
-
   String? fname;
   String? lname;
   String? username;
   String? email;
   String? phone;
+  String managerUserName = GetStorage().read('userName');
+  String managerPassword = GetStorage().read('password');
+  Future postUsersAddEmployee() async {
+    var url = urlStarter + "/manager/addEmployee";
+    var responce = await http.post(Uri.parse(url),
+        body: jsonEncode({
+          "managerUserName": managerUserName,
+          "managerPassword": managerPassword,
+          "userName": username,
+          "Fname": fname,
+          "Lname": lname,
+          "email": email,
+          "phoneNumber": phone
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        });
+    var responceBody = jsonDecode(responce.body);
+    print(responceBody);
+    if (responceBody['message'] == "failed") {
+      List errors = responceBody['error']['errors'];
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().aboutDialogErrors(errors, context);
+          });
+    }
+    if (responceBody['message'] == "done") {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().alartDialogPushNamed(
+                "Done!",
+                "The employee account is created successfully,\nNow Please ask the employee to reset his password in login page.",
+                context,
+                GetStorage().read("userType"));
+          });
+    }
+
+    return responceBody;
+  }
+
+  GlobalKey<FormState> formState1 = GlobalKey();
 
   @override
   Widget build(Object context) {
@@ -168,6 +213,7 @@ class _create_employeeState extends State<create_employee> {
                               onPressed: () {
                                 if (formState1.currentState!.validate()) {
                                   formState1.currentState!.save();
+                                  postUsersAddEmployee();
                                 }
                               },
                             ),

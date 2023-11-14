@@ -4,12 +4,12 @@ import 'package:flutter_application_1/sign_in_up_pages/forget_pass.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
 import 'package:flutter_application_1/sign_in_up_pages/new_password.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:otp_text_field/otp_field.dart';
 import 'package:otp_text_field/otp_field_style.dart';
 import 'package:otp_text_field/style.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Verification extends StatefulWidget {
   const Verification({Key? key}) : super(key: key);
@@ -22,10 +22,8 @@ class _VerificationState extends State<Verification> {
   bool _pinSuccess = false;
   String? code;
   var responceBody;
-  var urlStarter = "http://10.0.2.2:8080";
   Future postForgotCode() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var email = prefs.getString("email");
+    var email = GetStorage().read("email");
     var url = urlStarter + "/users/forgotCode";
     var responce = await http.post(Uri.parse(url),
         body: jsonEncode({"email": email, "code": code}),
@@ -135,11 +133,8 @@ class _VerificationState extends State<Verification> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () async {
-              SharedPreferences sharedPref =
-                  await SharedPreferences.getInstance();
-              sharedPref.remove("email");
+              GetStorage().remove("email");
               Navigator.of(context).pop();
-              print(sharedPref.get("email"));
             },
           ),
         ),
@@ -216,9 +211,8 @@ class _VerificationState extends State<Verification> {
                                     text: 'Resend',
                                     recognizer: TapGestureRecognizer()
                                       ..onTap = () async {
-                                        SharedPreferences sh =
-                                        await SharedPreferences.getInstance();
-                                        String? email = sh.getString("email");
+                                        String? email =
+                                            GetStorage().read("email");
                                         var url = urlStarter + "/users/forgot";
                                         var responce =
                                             await http.post(Uri.parse(url),

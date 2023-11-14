@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/customer/main_page.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:get_storage/get_storage.dart';
+import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
 
 class chang_pass extends StatefulWidget {
   @override
@@ -8,10 +13,64 @@ class chang_pass extends StatefulWidget {
 }
 
 class _chang_passState extends State<chang_pass> {
-  bool passwordVisible = false;
+  bool passwordVisible1 = false;
+  bool passwordVisible2 = false;
+  bool passwordVisible3 = false;
   bool _isPasswordEightCharacters = false;
   bool _hasPasswordOneNumber = false;
   bool _hasPasswordOneCapitalchar = false;
+  var responceBody;
+  String? pass;
+  String? oldPass;
+
+  Future postchangePassword() async {
+    var userName = GetStorage().read("userName");
+    var url = urlStarter + "/users/changePassword";
+    var responce = await http.post(Uri.parse(url),
+        body: jsonEncode(
+            {"userName": userName, "oldPassword": oldPass, "password": pass}),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        });
+    responceBody = jsonDecode(responce.body);
+    print(responceBody);
+    if (responceBody['message'] == "done") {
+      showDialog(
+          context: context,
+          builder: (context) {
+            String userType = GetStorage().read("userType");
+            return show_dialog().alartDialogPushNamed(
+              "Changed!",
+              "The password has been changed successfully.",
+              context,userType
+            );
+          });
+    } else if (responceBody['message'] ==
+        "The old password is incorrect, please verify it.") {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().alartDialog("Failed!",
+                "The old password is incorrect, please verify it.", context);
+          });
+    } else if (responceBody['message'] ==
+        "please choose a different password.") {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().alartDialog(
+                "Failed!", "please choose a different password.", context);
+          });
+    } else {
+      List errors = responceBody['error']['errors'];
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().aboutDialogErrors(errors, context);
+          });
+    }
+    return responceBody;
+  }
 
   onPasswordChanged(String password) {
     final numericRegex = RegExp(r'[0-9]');
@@ -30,8 +89,6 @@ class _chang_passState extends State<chang_pass> {
   }
 
   final formState5 = GlobalKey<FormState>();
-
-  String? pass;
 
   String? test;
   @override
@@ -54,13 +111,49 @@ class _chang_passState extends State<chang_pass> {
                 children: [
                   SizedBox(height: 80),
                   TextFormField(
-                    obscureText: true,
-                    decoration: theme_helper().text_form_style(
-                        "Old password", "Enter old password", Icons.lock),
+                    obscureText: !passwordVisible1,
+                    decoration: InputDecoration(
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          passwordVisible1
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(
+                            () {
+                              passwordVisible1 = !passwordVisible1;
+                            },
+                          );
+                        },
+                      ),
+                      prefixIcon: Icon(Icons.lock, color: primarycolor),
+                      labelText: 'Old Password',
+                      hintText: 'Enter Old Password',
+                      fillColor: Colors.white,
+                      labelStyle: TextStyle(color: Colors.grey),
+                      contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          borderSide: BorderSide(color: Colors.grey)),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          borderSide: BorderSide(color: Colors.grey.shade400)),
+                      errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          borderSide: BorderSide(color: Colors.red, width: 2)),
+                      focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          borderSide: BorderSide(color: Colors.red, width: 2)),
+                    ),
                     validator: (value) {
                       if (value!.isEmpty) return "Enter  old password";
 
                       // if (test != value) return "dosen\'t match";
+                    },
+                    onSaved: (newvalue) {
+                      oldPass = newvalue;
                     },
                   ),
                   SizedBox(height: 30),
@@ -80,11 +173,11 @@ class _chang_passState extends State<chang_pass> {
                     onSaved: (newvalue) {
                       pass = newvalue;
                     },
-                    obscureText: !passwordVisible,
+                    obscureText: !passwordVisible2,
                     decoration: InputDecoration(
                       suffixIcon: IconButton(
                         icon: Icon(
-                          passwordVisible
+                          passwordVisible2
                               ? Icons.visibility
                               : Icons.visibility_off,
                           color: Colors.grey,
@@ -92,7 +185,7 @@ class _chang_passState extends State<chang_pass> {
                         onPressed: () {
                           setState(
                             () {
-                              passwordVisible = !passwordVisible;
+                              passwordVisible2 = !passwordVisible2;
                             },
                           );
                         },
@@ -101,6 +194,7 @@ class _chang_passState extends State<chang_pass> {
                       labelText: 'New Password',
                       hintText: 'Enter new Password',
                       fillColor: Colors.white,
+                      labelStyle: TextStyle(color: Colors.grey),
                       contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
                       focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(100),
@@ -118,11 +212,42 @@ class _chang_passState extends State<chang_pass> {
                   ),
                   SizedBox(height: 30),
                   TextFormField(
-                    obscureText: true,
-                    decoration: theme_helper().text_form_style(
-                        "confirm password",
-                        "Enter confirm password",
-                        Icons.lock),
+                    obscureText: !passwordVisible3,
+                    decoration: InputDecoration(
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          passwordVisible3
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(
+                            () {
+                              passwordVisible3 = !passwordVisible3;
+                            },
+                          );
+                        },
+                      ),
+                      prefixIcon: Icon(Icons.lock, color: primarycolor),
+                      labelText: 'confirm password',
+                      hintText: 'Enter confirm password',
+                      fillColor: Colors.white,
+                      labelStyle: TextStyle(color: Colors.grey),
+                      contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          borderSide: BorderSide(color: Colors.grey)),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          borderSide: BorderSide(color: Colors.grey.shade400)),
+                      errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          borderSide: BorderSide(color: Colors.red, width: 2)),
+                      focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          borderSide: BorderSide(color: Colors.red, width: 2)),
+                    ),
                     validator: (value) {
                       if (value!.isEmpty) return "Enter confirm password";
 
@@ -250,6 +375,7 @@ class _chang_passState extends State<chang_pass> {
                         onPressed: () {
                           if (formState5.currentState!.validate()) {
                             formState5.currentState!.save();
+                            postchangePassword();
                           }
                         }),
                   ),

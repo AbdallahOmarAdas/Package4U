@@ -1,5 +1,5 @@
 const Sequelize=require('sequelize');
-
+const Driver=require('./driver')
 const sequelize=require('../util/database');
 
 const User=sequelize.define('users',{
@@ -31,7 +31,30 @@ const User=sequelize.define('users',{
     userType:{
         type:Sequelize.STRING,
         allowNull:false
+    },
+    city:{
+        type:Sequelize.STRING,
+        allowNull:true
+    },
+    town:{
+        type:Sequelize.STRING,
+        allowNull:true
+    },
+    street:{
+        type:Sequelize.STRING,
+        allowNull:true
+    },
+    url:{
+        type:Sequelize.STRING,
+        allowNull:true
+    
     }
 });
-
+// Driver.associate=models=>{
+//     User.hasOne(models.Driver,{
+//         foreignKey:{
+//             onDelete:"cascade"
+//         }
+//     });
+// }
 module.exports=User;

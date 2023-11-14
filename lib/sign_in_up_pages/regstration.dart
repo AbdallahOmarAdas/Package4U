@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
+import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -90,7 +91,6 @@ class _registrationState extends State<registration> {
   String? town;
   String? street;
   String? phone;
-  var urlStarter = "http://10.0.2.2:8080";
 
   Future postUsersAddUser() async {
     var url = urlStarter + "/users/addUser";
@@ -118,40 +118,19 @@ class _registrationState extends State<registration> {
       showDialog(
           context: context,
           builder: (context) {
-            return AlertDialog(
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      "Ok",
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    )),
-              ],
-              title: Text("Sign up failed"),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      child: Text("*${errors[index]['msg']}"),
-                      margin: EdgeInsets.only(bottom: 20),
-                    );
-                  },
-                  itemCount: errors.length,
-                ),
-              ),
-              titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
-              contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
-              backgroundColor: primarycolor,
-            );
+            return show_dialog().aboutDialogErrors(errors, context);
           });
     }
     if (responceBody['message'] == "done") {
-      Navigator.push(
-          context, MaterialPageRoute(builder: ((context) => sign_in())));
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().alartDialogPushNamed(
+                "Done!",
+                "Thank you for creating account in Package4U,\nNow please sign in to your new account.",
+                context,
+                "signIn");
+          });
     }
     return responceBody;
   }

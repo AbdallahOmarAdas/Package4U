@@ -1,52 +1,57 @@
 const User=require('../models/users');
 const Token=require('../models/token');
+const Customer=require('../models/customer');
 const { validationResult } = require('express-validator');
 const nodemailer=require('nodemailer');
+const fs = require('fs');
+const path = require('path');
+
+
+const user = Customer.belongsTo(User, { as: 'user' ,constraints:true,onDelete:'CASCADE'});
+User.hasOne(Customer);
 
 
 exports.postAddUser=(req,res,next)=>{
-const userName=req.body.userName;
-const password=req.body.password;
-const Fname=req.body.Fname;
-const Lname=req.body.Lname;
-const email=req.body.email;
-const phoneNumber=req.body.phoneNumber;
-const userType=req.body.userType;
-const city=req.body.city;
-const town=req.body.town;
-const street=req.body.street;
-const error=validationResult(req);
-console.log(error);
-if(!error.isEmpty()){
-    console.log('$$$$$$$$$$$$$$$$$$$$$$$$$')
-   return res.status(422).json({message:'failed',error}); 
-}
-console.log(userName);
-console.log(password);
-console.log(Fname);
-console.log(Lname);
-console.log(email);
-console.log(userType);
-console.log(phoneNumber);
-console.log(city);
-console.log(town);
-console.log(street);
-User.create({
-    Fname:Fname,
-    Lname:Lname,
-    userName:userName,
-    password:password,
-    email:email,
-    phoneNumber:phoneNumber,
-    userType:userType
-}).then((result) => { 
 
-    res.status(201).json({message:'done'}); 
-    
-}).catch((err) => {
-    res.status(500).json({message:'failed'}); 
-    console.log(err);
-});
+    const userName=req.body.userName;
+    const password=req.body.password;
+    const Fname=req.body.Fname;
+    const Lname=req.body.Lname;
+    const email=req.body.email;
+    const phoneNumber=req.body.phoneNumber;
+    const city=req.body.city;
+    const town=req.body.town;
+    const street=req.body.street;
+    const error=validationResult(req);
+
+    if(!error.isEmpty()){
+    return res.status(422).json({message:'failed',error}); 
+    }
+    Customer.create({
+        user:{
+            Fname:Fname,
+            Lname:Lname,
+            userName:userName,
+            password:password,
+            email:email,
+            phoneNumber:phoneNumber,
+            userType:"customer",
+            city:city,
+            town:town,
+            street:street,
+            "url":".jpg"
+        }
+        },
+        {
+            include:   [user]
+        })
+        .then((result) => { 
+            res.status(201).json({message:'done'}); 
+        })
+        .catch((err) => {
+            res.status(500).json({message:'failed'}); 
+            console.log(err);
+        });
  };
 
 
@@ -76,7 +81,6 @@ User.create({
  exports.postForgot=(req,res,next)=>{
     const email=req.body.email;
     const error=validationResult(req);
-    console.log(error);
     if(!error.isEmpty()){
     return res.status(422).json({message:'failed',error}); 
     }
@@ -201,6 +205,131 @@ exports.postForgotSetPass=(req,res,next)=>{
                 }
               ).then((result) => {
                 res.status(200).json({"message":"done"});
+              }).catch((err) => {
+                console.log(err);
+              });
+        }
+ }
+
+
+
+ exports.postEditProfile=(req,res,next)=>{
+    const userName=req.body.userName;
+    const oldUserName=req.body.oldUserName;
+    const Fname=req.body.Fname;
+    const Lname=req.body.Lname;
+    const email=req.body.email;
+    const oldEmail=req.body.oldEmail;
+    const phoneNumber=req.body.phoneNumber;
+    const city=req.body.city;
+    const town=req.body.town;
+    const street=req.body.street;
+    const url=req.body.url;
+    function updateEditProfile(){
+        User.update(
+            { 
+                userName:userName,
+                Fname:Fname,
+                Lname:Lname,
+                email:email,
+                phoneNumber:phoneNumber,
+                city:city,
+                town:town,
+                street:street
+            },
+            {
+              where: { userName: oldUserName,}, // The condition to find the user you want to update
+            }
+          ).then((result) => {
+            if(result[0]===1){
+                const currentFileName = path.join(__dirname,'..','user_images','/')+oldUserName+url; // Replace with the actual current file name
+                const newFileName = path.join(__dirname,'..','user_images','/')+userName+url; 
+                fs.rename(currentFileName, newFileName, (err) => {
+                    if (err) {
+                      console.error(`Error renaming file: ${err}`);
+                    } else {
+                      console.log('File renamed successfully.');
+                    }
+                  });
+                res.status(200).json({"message":"done"});
+            }
+            else
+                res.status(200).json({"message":"please check the old username."});
+          }).catch((err) => {
+            console.log(err);
+          });
+     }
+    const error=validationResult(req);
+    if(!error.isEmpty()){
+        return res.status(422).json({message:'failed',error}); 
+        }
+        else{
+            if(userName===oldUserName)
+                {
+                    if(email===oldEmail)updateEditProfile();
+                    else{
+                        User.findOne({where:{email:email}})
+                        .then((result) => {
+                            if(result){
+                                res.status(200).json({"message":"This email already used for another account."});
+                            }
+                            else{
+                                updateEditProfile();
+                            }    
+                        }).catch((err) => {
+                            console.log(err);
+                        });
+                    }
+                }
+            else{
+                User.findOne({where:{userName:userName}})
+                .then((result) => {
+                    if(result){
+                        res.status(200).json({"message":"This username is not available."});
+                    }
+                    else{
+                        if(email===oldEmail)updateEditProfile();
+                    else{
+                        User.findOne({where:{email:email}})
+                        .then((result) => {
+                            if(result){
+                                res.status(200).json({"message":"This email already used for another account."});
+                            }
+                            else{
+                                updateEditProfile();
+                            }    
+                        }).catch((err) => {
+                            console.log(err);
+                        });
+                    }
+                    }    
+                }).catch((err) => {
+                    
+                });
+            }
+        }
+ }
+ exports.postChangePassword=(req,res,next)=>{
+    const userName=req.body.userName;
+    const oldPassword=req.body.oldPassword;
+    const password=req.body.password;
+    const error=validationResult(req);
+    if(!error.isEmpty()){
+        return res.status(422).json({message:'failed',error}); 
+        }
+        else{
+            if(oldPassword===password)res.status(200).json({"message":"please choose a different password."});
+            else
+            User.update(
+                { password:password },
+                {
+                  where: { userName: userName,password:oldPassword }, // The condition to find the user you want to update
+                }
+              ).then((result) => {
+                if(result[0]===1)
+                    res.status(200).json({"message":"done"});
+                else
+                    res.status(200).json({"message":"The old password is incorrect, please verify it."});
               }).catch((err) => {
                 console.log(err);
               });
