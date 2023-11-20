@@ -18,6 +18,33 @@ class DataItem {
 }
 
 class add_parcel extends StatefulWidget {
+  final String title;
+  final String name;
+  final String phone;
+  final String email;
+  final int price;
+  final int shipping; //1 doc, 2 package
+  final int package_size; //0 small , 1 meduim ,2 large
+  final String shippingfrom;
+  final String shippingto;
+  final int delv_price;
+  final int total_price;
+
+  add_parcel({
+    Key? key,
+    required this.title,
+    this.name = '',
+    this.phone = '',
+    this.email = '',
+    this.price = 0,
+    this.shipping = 0,
+    this.shippingfrom = '',
+    this.shippingto = '',
+    this.delv_price = 0,
+    this.total_price = 0,
+    this.package_size = 0,
+  }) : super(key: key);
+
   @override
   State<add_parcel> createState() => _add_parcelState();
 }
@@ -37,8 +64,21 @@ class _add_parcelState extends State<add_parcel> {
   GlobalKey<FormState> formState5 = GlobalKey();
   TextEditingController _textController = TextEditingController();
   TextEditingController _textController2 = TextEditingController();
-  int selectedValue = 1;
-  int selectedIdx = 0;
+  late int selectedValue;
+  late int selectedIdx;
+  @override
+  void initState() {
+    super.initState();
+    selectedValue = widget.shipping == 0 ? 1 : widget.shipping;
+    selectedIdx = widget.package_size == 0 ? 0 : widget.package_size;
+    _textController = TextEditingController(
+      text: widget.shippingto != '' ? widget.shippingto : null,
+    );
+    _textController2 = TextEditingController(
+      text: widget.shippingfrom != '' ? widget.shippingfrom : null,
+    );
+  }
+
   List payment = [
     'Card',
     'Paypal',
@@ -90,7 +130,7 @@ class _add_parcelState extends State<add_parcel> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Send Package'),
+        title: Text(widget.title),
         backgroundColor: primarycolor,
       ),
       body: SingleChildScrollView(
@@ -102,6 +142,7 @@ class _add_parcelState extends State<add_parcel> {
                 child: Column(
                   children: [
                     TextFormField(
+                      initialValue: widget.name != '' ? widget.name : null,
                       decoration: theme_helper().text_form_style(
                           "The recipient's name",
                           "Enter The recipient's name",
@@ -115,6 +156,7 @@ class _add_parcelState extends State<add_parcel> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
+                      initialValue: widget.phone != '' ? widget.phone : null,
                       keyboardType: TextInputType.phone,
                       decoration: theme_helper().text_form_style(
                           "The recipient's Phone",
@@ -129,6 +171,7 @@ class _add_parcelState extends State<add_parcel> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
+                      initialValue: widget.email != '' ? widget.email : null,
                       keyboardType: TextInputType.emailAddress,
                       decoration: theme_helper().text_form_style(
                           "The recipient's email",
@@ -143,6 +186,7 @@ class _add_parcelState extends State<add_parcel> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
+                      initialValue: widget.phone != 0 ? widget.phone : null,
                       keyboardType: TextInputType.phone,
                       decoration: theme_helper().text_form_style(
                           "package price(or enter 0 if payment done)",
@@ -281,7 +325,6 @@ class _add_parcelState extends State<add_parcel> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
-                      // initialValue: textFromChild == '' ? null : textFromChild,
                       controller: _textController,
                       style: TextStyle(fontSize: 12.0),
                       validator: (val) {
@@ -374,7 +417,9 @@ class _add_parcelState extends State<add_parcel> {
                                 fontSize: 20),
                           ),
                           Text(
-                            '1000\$',
+                            widget.delv_price != ''
+                                ? '${widget.delv_price}\$'
+                                : '1000\$',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -422,7 +467,9 @@ class _add_parcelState extends State<add_parcel> {
                                 fontSize: 20),
                           ),
                           Text(
-                            '9090\$',
+                            widget.total_price != ''
+                                ? '${widget.total_price}\$'
+                                : '1000\$',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -455,6 +502,9 @@ class _add_parcelState extends State<add_parcel> {
                           }
                         },
                       ),
+                    ),
+                    SizedBox(
+                      height: 20,
                     ),
                   ],
                 )),
