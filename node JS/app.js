@@ -1,7 +1,9 @@
 const express=require('express');
 const feedRoutes=require('./routes/feeds');
 const usersRoutes=require('./routes/users');
+const Package=require('./models/package');
 const managerRoutes=require('./routes/manager');
+const customerRoutes=require('./routes/customer');
 const bodyParser=require('body-parser');
 const sequelize=require('./util/database');
 const User=require('./models/users');//importent to creat the table
@@ -23,6 +25,7 @@ app.use((req, res, next) => {
 app.use('/feed',feedRoutes);
 app.use('/users',usersRoutes);
 app.use('/manager',managerRoutes);
+app.use('/customer',customerRoutes);
 app.use('/image',express.static(path.join(__dirname,'user_images')));
 app.use('/image',(req,res,next)=>{
     res.status(200).sendFile(path.join(__dirname,'user_images','__@@__33&default.jpg'));

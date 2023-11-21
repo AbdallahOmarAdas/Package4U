@@ -4,6 +4,24 @@ var urlStarter = "http://192.168.1.222:8080";
 const primarycolor = Color.fromARGB(255, 7, 146, 93);
 const String Titleapp = 'Package4U';
 
+String isValidPhone(String input) {
+  bool isnum = RegExp(r'^[0-9]+$').hasMatch(input);
+  if (input.isEmpty)
+    return "Please enter number phone";
+  else if (input.length != 10) {
+    return 'Phone number must have exactly 10 digits';
+  } else if (!isnum) {
+    return "Phone number must have numbers only";
+  } else {
+    return "";
+  }
+}
+
+bool isValidEmail(String email) {
+  final emailRegExp = RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$');
+  return emailRegExp.hasMatch(email);
+}
+
 class theme_helper {
   InputDecoration text_form_style(
       [String label = "", String hinttext = "", IconData? iconData]) {

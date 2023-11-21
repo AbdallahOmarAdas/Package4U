@@ -4,10 +4,12 @@ const usersController=require('../controller/usersController')
 const signupValidators=require('../validators/signup')
 const router=express.Router();
 const path = require('path');
-
+const cost=require('../json/cost');
 const User=require('../models/users');
 const { body } = require('express-validator');
 const { where } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
+
 
 router.post('/signin',usersController.postSignin);
 router.post('/addUser',body('Fname').notEmpty().withMessage('please enter First name'),body('Lname').notEmpty().withMessage('please enter Last name'),signupValidators.emailIsExist(),signupValidators.phoneValidation(),signupValidators.UserNameIsUsed(),body('city').notEmpty().withMessage('please enter your city'),body('town').notEmpty().withMessage('please enter your town'),body('street').notEmpty().withMessage('please enter your street'),signupValidators.passwordValidation(),usersController.postAddUser);
@@ -18,12 +20,20 @@ router.post('/changePassword',body('oldPassword').notEmpty().withMessage('please
 router.post('/editProfile',body('oldUserName').notEmpty().withMessage('please enter the old username'),body('userName').notEmpty().withMessage('please enter the new username'),body('Fname').notEmpty().withMessage('please enter First name'),body('Lname').notEmpty().withMessage('please enter Last name'),body('email').notEmpty().withMessage('Please enter your email').isEmail().withMessage('Please enter vaild email'),body('oldEmail').notEmpty().withMessage('Please enter your old email').isEmail().withMessage('Please enter vaild email'),signupValidators.phoneValidation(),body('city').notEmpty().withMessage('please enter your city'),body('town').notEmpty().withMessage('please enter your town'),body('street').notEmpty().withMessage('please enter your street'),usersController.postEditProfile)
 
 
-router.get('/showAll',(req,res,next)=>{
-User.findAll().then((result) => {
-    res.status(200).send(result)
-}).catch((err) => {
-    console.log(err);
-});
+router.get('/showCustomers',(req,res,next)=>{
+  const userName=req.query.userName;
+  console.log(userName)
+  User.findAll(
+    {attributes:['userName','Fname','Lname','phoneNumber','email'],
+    where:{userName:{[Sequelize.Op.not]: userName},
+            userType:"customer"        
+  }})
+    .then((result) => {
+        res.status(200).json({cost:cost,users:result})
+    })
+    .catch((err) => {
+        console.log(err);
+    });
 });
 function generateRandomNumber() {
   const min = 10000; // Smallest 5-digit number
