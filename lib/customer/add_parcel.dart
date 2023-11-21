@@ -23,6 +23,33 @@ class DataItem {
 }
 
 class add_parcel extends StatefulWidget {
+  final String title;
+  final String name;
+  final String phone;
+  final String email;
+  final int price;
+  final int shipping; //1 doc, 2 package
+  final int package_size; //0 small , 1 meduim ,2 large
+  final String shippingfrom;
+  final String shippingto;
+  final int delv_price;
+  final int total_price;
+
+  add_parcel({
+    Key? key,
+    required this.title,
+    this.name = '',
+    this.phone = '',
+    this.email = '',
+    this.price = 0,
+    this.shipping = 0,
+    this.shippingfrom = '',
+    this.shippingto = '',
+    this.delv_price = 0,
+    this.total_price = 0,
+    this.package_size = 0,
+  }) : super(key: key);
+
   @override
   State<add_parcel> createState() => _add_parcelState();
 }
@@ -266,7 +293,7 @@ class _add_parcelState extends State<add_parcel> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Send Package'),
+        title: Text(widget.title),
         backgroundColor: primarycolor,
       ),
       body: SingleChildScrollView(
@@ -385,8 +412,7 @@ class _add_parcelState extends State<add_parcel> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
-                      controller: _textControllerName,
-                      //initialValue: rec_name,
+                      initialValue: widget.name != '' ? widget.name : null,
                       decoration: theme_helper().text_form_style(
                           "The recipient's name",
                           "Enter The recipient's name",
@@ -400,8 +426,7 @@ class _add_parcelState extends State<add_parcel> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
-                      controller: _textControllerphone,
-                      //initialValue: rec_phone,
+                      initialValue: widget.phone != '' ? widget.phone : null,
                       keyboardType: TextInputType.phone,
                       decoration: theme_helper().text_form_style(
                           "The recipient's Phone",
@@ -445,6 +470,7 @@ class _add_parcelState extends State<add_parcel> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
+                      initialValue: widget.phone != 0 ? widget.phone : null,
                       keyboardType: TextInputType.phone,
                       decoration: theme_helper().text_form_style(
                           "package price(or enter 0 if payment done)",
@@ -624,7 +650,6 @@ class _add_parcelState extends State<add_parcel> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
-                      // initialValue: textFromChild == '' ? null : textFromChild,
                       controller: _textController,
                       style: TextStyle(fontSize: 12.0),
                       validator: (val) {
@@ -754,8 +779,13 @@ class _add_parcelState extends State<add_parcel> {
                             style: TextStyle(color: Colors.grey, fontSize: 20),
                           ),
                           Text(
-                            pricePerKm.toStringAsFixed(1) + '\$',
-                            style: TextStyle(color: Colors.grey, fontSize: 20),
+                            widget.delv_price != ''
+                                ? '${widget.delv_price}\$'
+                                : '1000\$',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                                fontSize: 20),
                           ),
                         ],
                       ),
@@ -794,7 +824,9 @@ class _add_parcelState extends State<add_parcel> {
                                 fontSize: 20),
                           ),
                           Text(
-                            totalPrice.toStringAsFixed(2) + '\$',
+                            widget.total_price != ''
+                                ? '${widget.total_price}\$'
+                                : '1000\$',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -833,6 +865,9 @@ class _add_parcelState extends State<add_parcel> {
                           }
                         },
                       ),
+                    ),
+                    SizedBox(
+                      height: 20,
                     ),
                   ],
                 )),

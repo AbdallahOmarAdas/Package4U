@@ -100,8 +100,12 @@ class _homeState extends State<home> {
               content(
                 label: 'Send Package',
                 btn: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: ((context) => add_parcel())));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: ((context) => add_parcel(
+                                title: 'Send Package',
+                              ))));
                 },
                 img: "assets/add_package.png",
               ),
