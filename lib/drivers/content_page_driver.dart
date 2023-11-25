@@ -118,7 +118,9 @@ class _content_page_driverState extends State<content_page_driver>
         setState(() {
           ongoing_orders;
         });
-        print(Disstance);
+        // print(Disstance);
+        // print(curruent.latitude);
+        // print(curruent.longitude);
         return Disstance;
       }
 
@@ -126,6 +128,8 @@ class _content_page_driverState extends State<content_page_driver>
       double oo = await calc_distance(31.974231, 35.262922);
       ongoing_orders.add(
         content_ongoing(
+          late_cuu: curruent.latitude,
+          lang_cuu: curruent.longitude,
           late: 31.974231,
           lang: 35.262922,
           dist: oo,
@@ -146,6 +150,8 @@ class _content_page_driverState extends State<content_page_driver>
       double a = await calc_distance(32.139794, 35.287315);
       ongoing_orders.add(
         content_ongoing(
+          late_cuu: curruent.latitude,
+          lang_cuu: curruent.longitude,
           late: 32.139794,
           lang: 35.287315,
           dist: a,
@@ -166,6 +172,8 @@ class _content_page_driverState extends State<content_page_driver>
       double f = await calc_distance(32.247584, 35.271168);
       ongoing_orders.add(
         content_ongoing(
+          late_cuu: curruent.latitude,
+          lang_cuu: curruent.longitude,
           late: 32.247584,
           lang: 35.271168,
           dist: f,
@@ -708,6 +716,8 @@ class content_ongoing extends StatefulWidget {
   final String to;
   final String payment_type;
   final BuildContext context;
+  final double late_cuu;
+  final double lang_cuu;
 
   const content_ongoing(
       {super.key,
@@ -724,7 +734,9 @@ class content_ongoing extends StatefulWidget {
       required this.payment_type,
       required this.package_type,
       required this.late,
-      required this.lang});
+      required this.lang,
+      required this.late_cuu,
+      required this.lang_cuu});
 
   @override
   State<content_ongoing> createState() => _content_ongoingState();
@@ -878,6 +890,8 @@ class _content_ongoingState extends State<content_ongoing> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => map_(
+                                        langfrom: widget.lang_cuu,
+                                        latefrom: widget.late_cuu,
                                         phone: widget.phone,
                                         id: widget.id,
                                         langto: widget.lang,
@@ -1124,6 +1138,8 @@ class map_ extends StatefulWidget {
   final int price;
   final int del_price;
   final String phone;
+  final double langfrom;
+  final double latefrom;
 
   map_(
       {required this.Lateto,
@@ -1134,7 +1150,9 @@ class map_ extends StatefulWidget {
       required this.payment_type,
       required this.price,
       required this.del_price,
-      required this.phone});
+      required this.phone,
+      required this.langfrom,
+      required this.latefrom});
 
   State<map_> createState() => _map_State();
   //set_location({required this.onDataReceived});
@@ -1151,6 +1169,8 @@ class _map_State extends State<map_> {
   late int price;
   late int del_price;
   late String phone;
+  late double langfrom;
+  late double latefrom;
 
   @override
   void initState() {
@@ -1163,10 +1183,12 @@ class _map_State extends State<map_> {
     price = widget.price;
     del_price = widget.del_price;
     phone = widget.phone;
+    langfrom = widget.langfrom;
+    latefrom = widget.latefrom;
     super.initState();
 
     _addMarker(
-        LatLng(32.204059, 35.288683), "origin", BitmapDescriptor.defaultMarker);
+        LatLng(latefrom, langfrom), "origin", BitmapDescriptor.defaultMarker);
     // destination marker
     _addMarker(LatLng(Lateto, langto), "destination",
         BitmapDescriptor.defaultMarkerWithHue(90));
