@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/customer/add_parcel.dart';
 import 'package:flutter_application_1/customer/call.dart';
 import 'package:flutter_application_1/customer/edit_profile.dart';
+import 'package:flutter_application_1/customer/from_me.dart';
 import 'package:flutter_application_1/customer/home.dart';
 import 'package:flutter_application_1/customer/main_page.dart';
 import 'package:flutter_application_1/customer/set_location.dart';
@@ -61,6 +62,7 @@ class _LoginUiAppState extends State<LoginUiApp> {
           "driverHome": (context) => home_page_driver(),
           "employeeHome": (context) => home_page_employee(),
           "signIn": (context) => sign_in(),
+          "fromMe": (context) => from_me(),
         }
         //home: testAPI(),
         );

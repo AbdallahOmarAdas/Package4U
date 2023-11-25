@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_application_1/customer/set_location.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:flutter_application_1/style/header/header.dart';
+import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:searchfield/searchfield.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:get_storage/get_storage.dart';
 
 class DataItem {
   final String name;
@@ -20,29 +26,47 @@ class DataItem {
 class add_parcel extends StatefulWidget {
   final String title;
   final String name;
-  final String phone;
+  final String rec_userName;
+  final int phone;
+  final int packageId;
   final String email;
   final int price;
-  final int shipping; //1 doc, 2 package
+  final double distance;
+  final String accountSelectedValue;
+  final String paySelectedValue;
+  final String shipping; //1 doc, 2 package
   final int package_size; //0 small , 1 meduim ,2 large
   final String shippingfrom;
   final String shippingto;
   final int delv_price;
-  final int total_price;
+  final double total_price;
+  final double latfrom;
+  final double longfrom;
+  final double latto;
+  final double longto;
 
   add_parcel({
     Key? key,
     required this.title,
+    this.packageId = 0,
+    this.rec_userName = '',
     this.name = '',
-    this.phone = '',
+    this.phone = 0,
+    this.distance = 0,
     this.email = '',
     this.price = 0,
-    this.shipping = 0,
+    this.accountSelectedValue = "Have",
+    this.paySelectedValue = "The recipient",
+    this.shipping = "Document",
     this.shippingfrom = '',
     this.shippingto = '',
     this.delv_price = 0,
     this.total_price = 0,
     this.package_size = 0,
+    this.latfrom = 0,
+    this.longfrom = 0,
+    this.latto = 0,
+    this.longto = 0,
   }) : super(key: key);
 
   @override
@@ -50,26 +74,72 @@ class add_parcel extends StatefulWidget {
 }
 
 class _add_parcelState extends State<add_parcel> {
-  late double latfrom;
+  late double latfrom = 0;
   late double longfrom;
   late double latto = 0;
   late double longto;
   late double distance = 0;
+  String? userName;
+  double openingPrice = 5;
+  double totalPrice = 0;
+  double boxSizePrice = 0;
+  double pricePerKm = 1.5;
+  double bigPackagePrice = 4;
   String? rec_name;
   String? payment_method;
   String? rec_phone;
   String? rec_email;
+  String? locationFromInfo;
+  String? locationToInfo;
   String? package_price;
   String textFromChild = '';
+  double distancePrice = 0;
   GlobalKey<FormState> formState5 = GlobalKey();
   TextEditingController _textController = TextEditingController();
+  TextEditingController myController = TextEditingController();
   TextEditingController _textController2 = TextEditingController();
+  TextEditingController _textControllerName = TextEditingController();
+  TextEditingController _textControllerphone = TextEditingController();
+  TextEditingController _textControllerRec_userName = TextEditingController();
+  String selectedUserName = "";
+  int discount = 0;
+  String shippingType = "Document";
+  String paySelectedValue = "The recipient";
+  String accountSelectedValue = "Have";
+  int selectedIdx = 0;
+  List<dynamic> suggestions = [];
+  List payment = [
+    'Card',
+    'Paypal',
+    'Cash delivery',
+  ];
   late int selectedValue;
-  late int selectedIdx;
   @override
   void initState() {
     super.initState();
-    selectedValue = widget.shipping == 0 ? 1 : widget.shipping;
+    calculatePackageSizeprice();
+    userName = GetStorage().read('userName');
+    fetchData();
+
+    totalPrice = openingPrice;
+    if (widget.title == "Edit Package") {
+      accountSelectedValue = widget.accountSelectedValue;
+      paySelectedValue = widget.paySelectedValue;
+      distance = widget.distance;
+      totalPrice = widget.total_price;
+      longto = widget.longto;
+      latto = widget.latto;
+      longfrom = widget.longfrom;
+      latfrom = widget.latfrom;
+      rec_email = widget.email;
+      package_price = widget.price.toString();
+      _textControllerRec_userName.text =
+          widget.rec_userName == "null" ? '' : widget.rec_userName;
+      selectedUserName =
+          widget.rec_userName == "null" ? '' : widget.rec_userName;
+    }
+    // = widget.accountSelectedValue == "Have" ? "Document" : widget.shipping;
+    shippingType = widget.shipping == "Document" ? "Document" : widget.shipping;
     selectedIdx = widget.package_size == 0 ? 0 : widget.package_size;
     _textController = TextEditingController(
       text: widget.shippingto != '' ? widget.shippingto : null,
@@ -77,13 +147,39 @@ class _add_parcelState extends State<add_parcel> {
     _textController2 = TextEditingController(
       text: widget.shippingfrom != '' ? widget.shippingfrom : null,
     );
+    _textControllerName.text = widget.name != '' ? widget.name : '';
+    _textControllerphone.text =
+        widget.phone != 0 ? "0" + widget.phone.toString() : "";
+    calculatePackageSizeprice();
   }
 
-  List payment = [
-    'Card',
-    'Paypal',
-    'Cash delivery',
-  ];
+  void calculatePackageSizeprice() {
+    if (shippingType == "Package") {
+      if (selectedIdx == 0) {
+        boxSizePrice = 0;
+      } else if (selectedIdx == 1) {
+        boxSizePrice = bigPackagePrice / 2;
+      } else {
+        boxSizePrice = bigPackagePrice;
+      }
+    } else {
+      boxSizePrice = 0;
+    }
+    setState(() {
+      boxSizePrice;
+    });
+  }
+
+  void calaulateTotalPrice() {
+    calculatePackageSizeprice();
+    distancePrice = (distance * pricePerKm);
+    totalPrice = openingPrice + boxSizePrice + distancePrice;
+    totalPrice *= (100 - discount) / 100.0;
+    setState(() {
+      totalPrice;
+    });
+  }
+
   void getlocationfrom(String text, double lat, double long) async {
     setState(() {
       String modifiedString = text.replaceAll("','", ",");
@@ -95,6 +191,7 @@ class _add_parcelState extends State<add_parcel> {
       distance = await calculateDistance(latfrom, longfrom, latto, longto);
       setState(() {
         distance;
+        calaulateTotalPrice();
       });
     }
   }
@@ -106,10 +203,135 @@ class _add_parcelState extends State<add_parcel> {
       latto = lat;
       longto = long;
     });
-    distance = await calculateDistance(latfrom, longfrom, lat, long);
-    setState(() {
-      distance;
-    });
+    if (latfrom != 0) {
+      distance = await calculateDistance(latfrom, longfrom, lat, long);
+      setState(() {
+        distance;
+        calaulateTotalPrice();
+      });
+    }
+  }
+
+  Future<void> fetchData() async {
+    var url =
+        urlStarter + "/users/showCustomers?userName=" + userName.toString();
+    final response = await http.get(Uri.parse(url));
+    List<dynamic> sug = [];
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      sug.clear();
+      for (var item in data['users']) {
+        print(item);
+        sug.add(item);
+      }
+      setState(() {
+        suggestions = sug;
+        openingPrice = data['cost']['openingPrice'] + 0.0;
+        bigPackagePrice = data['cost']['bigPackagePrice'] + 0.0;
+        pricePerKm = data['cost']['pricePerKm'] + 0.0;
+        discount = data['cost']['discount'];
+      });
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
+
+  String customerUserName = GetStorage().read('userName');
+  String customerPassword = GetStorage().read('password');
+
+  Future postSendPackageEmail(String endPoint, String doneMsg) async {
+    var url = urlStarter + endPoint;
+    var responce = await http.post(Uri.parse(url),
+        body: jsonEncode({
+          "customerUserName": customerUserName,
+          "customerPassword": customerPassword,
+          "recName": rec_name,
+          "recEmail": rec_email,
+          "phoneNumber": rec_phone,
+          "packagePrice": package_price,
+          "shippingType": shippingType + selectedIdx.toString(),
+          "whoWillPay": paySelectedValue == "The recipient"
+              ? paySelectedValue
+              : "The sender",
+          "distance": distance,
+          "latTo": latto,
+          "longTo": longto,
+          "latFrom": latfrom,
+          "longFrom": longfrom,
+          "locationFromInfo": locationFromInfo,
+          "locationToInfo": locationToInfo
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        });
+    var responceBody = jsonDecode(responce.body);
+    print(responceBody);
+    if (responceBody['message'] == "failed") {
+      List errors = responceBody['error']['errors'];
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().aboutDialogErrors(errors, context);
+          });
+    }
+    if (responceBody['message'] == "done") {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().alartDialogPushNamed(
+                "Done!", doneMsg, context, GetStorage().read("userType"));
+          });
+    }
+
+    return responceBody;
+  }
+
+  Future postSendPackageUser(String endPoint, String doneMsg) async {
+    var url = urlStarter + endPoint;
+    var responce = await http.post(Uri.parse(url),
+        body: jsonEncode({
+          "customerUserName": customerUserName,
+          "customerPassword": customerPassword,
+          "rec_userName": selectedUserName,
+          "recName": rec_name,
+          "recEmail": rec_email,
+          "phoneNumber": rec_phone,
+          "packagePrice": package_price,
+          "shippingType": shippingType + selectedIdx.toString(),
+          "whoWillPay": paySelectedValue == "The recipient"
+              ? paySelectedValue
+              : "The sender",
+          "distance": distance,
+          "latTo": latto,
+          "longTo": longto,
+          "latFrom": latfrom,
+          "longFrom": longfrom,
+          "locationFromInfo": locationFromInfo,
+          "locationToInfo": locationToInfo
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        });
+    var responceBody = jsonDecode(responce.body);
+    print(responceBody);
+    if (responceBody['message'] == "failed") {
+      List errors = responceBody['error']['errors'];
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().aboutDialogErrors(errors, context);
+          });
+    }
+    if (responceBody['message'] == "done") {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().alartDialogPushNamed(
+                "Done!", doneMsg, context, GetStorage().read("userType"));
+          });
+    }
+
+    return responceBody;
   }
 
   Future<double> calculateDistance(
@@ -122,12 +344,11 @@ class _add_parcelState extends State<add_parcel> {
     DataItem(name: 'Small Package', img: "assets/small.jpeg"),
     DataItem(name: 'Meduim Package', img: "assets/meduim.jpeg"),
     DataItem(name: 'Large Package', img: "assets/large.jpeg"),
-
-    //DataItem(name: 'Item 5', img: 'Description 2'),
-    // Add more items as needed
   ];
   @override
   Widget build(BuildContext context) {
+    final focus = FocusNode();
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -135,20 +356,137 @@ class _add_parcelState extends State<add_parcel> {
       ),
       body: SingleChildScrollView(
         child: Column(children: [
+          Container(
+            height: 110,
+            child: HeaderWidget(110),
+          ),
           Padding(
-            padding: const EdgeInsets.only(top: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Form(
                 key: formState5,
                 child: Column(
                   children: [
+                    // SizedBox(height: 10),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Text(
+                          'Does the recipient have a Package4u account?',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Radio(
+                          activeColor: primarycolor,
+                          value: "Have",
+                          groupValue: accountSelectedValue,
+                          onChanged: (value) {
+                            setState(() {
+                              accountSelectedValue = value.toString();
+                            });
+                          },
+                        ),
+                        Text("Have"),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Radio(
+                          activeColor: primarycolor,
+                          value: "Doesn't have",
+                          groupValue: accountSelectedValue,
+                          onChanged: (value) {
+                            setState(() {
+                              accountSelectedValue = value.toString();
+                            });
+                          },
+                        ),
+                        Text("Doesn't have"),
+                      ],
+                    ),
+                    Visibility(
+                      visible: accountSelectedValue == "Have",
+                      child: SearchField(
+                        controller: _textControllerRec_userName,
+                        onSearchTextChanged: (query) {
+                          if (!query.isEmpty) {
+                            final filter = suggestions
+                                .where((element) => element['userName']
+                                    .toLowerCase()
+                                    .startsWith(query.toLowerCase()))
+                                .toList();
+                            return filter
+                                .map((e) => SearchFieldListItem<String>(
+                                    e['userName'].toString(),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4.0),
+                                      child: Text(e['userName'].toString(),
+                                          style: TextStyle(fontSize: 16)),
+                                    )))
+                                .toList();
+                          }
+                          return null;
+                        },
+                        validator: (value) {
+                          if (value!.isEmpty)
+                            return "please enter the recipient's username";
+                          return null;
+                        },
+                        onSaved: (newValue) {
+                          print(newValue);
+                        },
+                        scrollbarDecoration: ScrollbarDecoration(),
+                        searchInputDecoration: theme_helper().text_form_style(
+                            "The recipient's username",
+                            "Enter The recipient's username",
+                            Icons.person_outline_sharp),
+                        itemHeight: 50,
+                        suggestions: []
+                            .map((e) => SearchFieldListItem<String>(e,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4.0),
+                                  child:
+                                      Text(e, style: TextStyle(fontSize: 16)),
+                                )))
+                            .toList(),
+                        suggestionState: Suggestion.hidden,
+                        focusNode: focus,
+                        onSuggestionTap: (SearchFieldListItem<String> x) {
+                          setState(() {
+                            focus.unfocus();
+                            selectedUserName = x.searchKey;
+                            final filter = suggestions
+                                .where((element) => element['userName']
+                                    .toLowerCase()
+                                    .startsWith(selectedUserName.toLowerCase()))
+                                .toList();
+                            rec_name =
+                                filter[0]['Fname'] + " " + filter[0]['Lname'];
+                            rec_phone =
+                                "0" + filter[0]['phoneNumber'].toString();
+                            _textControllerphone.text = rec_phone.toString();
+                            _textControllerName.text = rec_name.toString();
+                            rec_email = filter[0]['email'];
+                          });
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 10),
                     TextFormField(
-                      initialValue: widget.name != '' ? widget.name : null,
+                      controller: _textControllerName,
+                      //initialValue: widget.name != '' ? widget.name : null,
                       decoration: theme_helper().text_form_style(
                           "The recipient's name",
                           "Enter The recipient's name",
-                          Icons.receipt_long),
+                          Icons.abc),
                       validator: (value) {
                         if (value!.isEmpty) return "The recipient's name";
+                        return null;
                       },
                       onSaved: (newValue) {
                         rec_name = newValue;
@@ -156,37 +494,55 @@ class _add_parcelState extends State<add_parcel> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
-                      initialValue: widget.phone != '' ? widget.phone : null,
+                      controller: _textControllerphone,
+                      //initialValue: widget.phone != '' ? widget.phone : null,
                       keyboardType: TextInputType.phone,
                       decoration: theme_helper().text_form_style(
                           "The recipient's Phone",
                           "Enter The recipient's phone",
                           Icons.phone),
                       validator: (value) {
-                        if (value!.isEmpty) return "The recipient's phone";
+                        String res = isValidPhone(value.toString());
+                        if (!res.isEmpty) {
+                          return res;
+                        }
+                        return null;
                       },
                       onSaved: (newValue) {
                         rec_phone = newValue;
                       },
                     ),
-                    SizedBox(height: 10),
-                    TextFormField(
-                      initialValue: widget.email != '' ? widget.email : null,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: theme_helper().text_form_style(
-                          "The recipient's email",
-                          "Enter The recipient's email",
-                          Icons.email),
-                      validator: (value) {
-                        if (value!.isEmpty) return "The recipient's email";
-                      },
-                      onSaved: (newValue) {
-                        rec_email = newValue;
-                      },
+                    Visibility(
+                      visible: accountSelectedValue == "Doesn't have",
+                      child: Column(
+                        children: [
+                          SizedBox(height: 10),
+                          TextFormField(
+                            initialValue: rec_email,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: theme_helper().text_form_style(
+                                "The recipient's email",
+                                "Enter The recipient's email",
+                                Icons.email),
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return "Please enter recipient's email";
+                              }
+                              if (!isValidEmail(value)) {
+                                return 'Please enter a valid email address';
+                              }
+                              return null;
+                            },
+                            onSaved: (newValue) {
+                              rec_email = newValue;
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                     SizedBox(height: 10),
                     TextFormField(
-                      initialValue: widget.phone != 0 ? widget.phone : null,
+                      initialValue: package_price,
                       keyboardType: TextInputType.phone,
                       decoration: theme_helper().text_form_style(
                           "package price(or enter 0 if payment done)",
@@ -194,39 +550,81 @@ class _add_parcelState extends State<add_parcel> {
                           Icons.price_change),
                       validator: (value) {
                         if (value!.isEmpty) return "The package price";
+                        return null;
                       },
                       onSaved: (newValue) {
                         package_price = newValue;
                       },
                     ),
                     SizedBox(height: 10),
-                    DropdownButtonFormField(
-                      isExpanded: true,
-                      hint: Text('Choose payment method',
-                          style: TextStyle(color: Colors.grey)),
-                      items: payment.map((value) {
-                        return DropdownMenuItem(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      value: payment_method,
-                      decoration: theme_helper().text_form_style(
-                        '',
-                        '',
-                        Icons.location_city,
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          payment_method = value as String?;
-                          print(payment_method);
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return "Please select payment method";
-                        }
-                      },
+                    // DropdownButtonFormField(
+                    //   isExpanded: true,
+                    //   hint: Text('Choose payment method',
+                    //       style: TextStyle(color: Colors.grey)),
+                    //   items: payment.map((value) {
+                    //     return DropdownMenuItem(
+                    //       value: value,
+                    //       child: Text(value),
+                    //     );
+                    //   }).toList(),
+                    //   value: payment_method,
+                    //   decoration: theme_helper().text_form_style(
+                    //     '',
+                    //     '',
+                    //     Icons.location_city,
+                    //   ),
+                    //   onChanged: (value) {
+                    //     setState(() {
+                    //       payment_method = value as String?;
+                    //       print(payment_method);
+                    //     });
+                    //   },
+                    //   validator: (value) {
+                    //     if (value == null) {
+                    //       return "Please select payment method";
+                    //     }
+                    //   },
+                    // ),
+                    // SizedBox(height: 10),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Text(
+                          'Who will pay the delivery costs?',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Radio(
+                          activeColor: primarycolor,
+                          value: "The recipient",
+                          groupValue: paySelectedValue,
+                          onChanged: (value) {
+                            setState(() {
+                              paySelectedValue = value.toString();
+                            });
+                          },
+                        ),
+                        Text("The recipient"),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Radio(
+                          activeColor: primarycolor,
+                          value: "I'll pay",
+                          groupValue: paySelectedValue,
+                          onChanged: (value) {
+                            setState(() {
+                              paySelectedValue = value.toString();
+                            });
+                          },
+                        ),
+                        Text("I'll pay"),
+                      ],
                     ),
                     SizedBox(height: 10),
                     Row(
@@ -245,11 +643,12 @@ class _add_parcelState extends State<add_parcel> {
                       children: [
                         Radio(
                           activeColor: primarycolor,
-                          value: 1,
-                          groupValue: selectedValue,
+                          value: "Document",
+                          groupValue: shippingType,
                           onChanged: (value) {
                             setState(() {
-                              selectedValue = value as int;
+                              shippingType = value.toString();
+                              calaulateTotalPrice();
                             });
                           },
                         ),
@@ -259,11 +658,11 @@ class _add_parcelState extends State<add_parcel> {
                         ),
                         Radio(
                           activeColor: primarycolor,
-                          value: 2,
-                          groupValue: selectedValue,
+                          value: "Package",
+                          groupValue: shippingType,
                           onChanged: (value) {
                             setState(() {
-                              selectedValue = value as int;
+                              shippingType = value.toString();
                             });
                           },
                         ),
@@ -271,7 +670,7 @@ class _add_parcelState extends State<add_parcel> {
                       ],
                     ),
                     Visibility(
-                      visible: selectedValue == 2,
+                      visible: shippingType == "Package",
                       child: Container(
                         height: 200.0,
                         child: ListView.builder(
@@ -280,9 +679,9 @@ class _add_parcelState extends State<add_parcel> {
                           itemBuilder: (BuildContext context, int index) {
                             return GestureDetector(
                               onTap: () {
-                                // Handle press for the specific item
                                 setState(() {
                                   selectedIdx = index;
+                                  calaulateTotalPrice();
                                 });
                                 print('${items[index].name}');
                               },
@@ -293,8 +692,7 @@ class _add_parcelState extends State<add_parcel> {
                                     color: selectedIdx == index
                                         ? primarycolor
                                         : Colors.transparent,
-                                    width:
-                                        5.0, // Adjust the border width as needed
+                                    width: 5.0,
                                   ),
                                   borderRadius: BorderRadius.circular(30.0),
                                 ),
@@ -330,8 +728,12 @@ class _add_parcelState extends State<add_parcel> {
                       validator: (val) {
                         if (val!.isEmpty)
                           return 'Please set location shipping from';
+                        return null;
                       },
                       readOnly: true,
+                      onSaved: (val) {
+                        locationFromInfo = val;
+                      },
                       onTap: () {
                         Navigator.push(
                             context,
@@ -368,8 +770,12 @@ class _add_parcelState extends State<add_parcel> {
                       validator: (val) {
                         if (val!.isEmpty)
                           return 'Please set location shipping to';
+                        return null;
                       },
                       readOnly: true,
+                      onSaved: (val) {
+                        locationToInfo = val;
+                      },
                       onTap: () {
                         Navigator.push(
                             context,
@@ -410,20 +816,12 @@ class _add_parcelState extends State<add_parcel> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Delivery Price:',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                fontSize: 20),
+                            '+ Opening price:',
+                            style: TextStyle(color: Colors.grey, fontSize: 20),
                           ),
                           Text(
-                            widget.delv_price != ''
-                                ? '${widget.delv_price}\$'
-                                : '1000\$',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                fontSize: 20),
+                            openingPrice.toString() + '\$',
+                            style: TextStyle(color: Colors.grey, fontSize: 20),
                           ),
                         ],
                       ),
@@ -435,22 +833,98 @@ class _add_parcelState extends State<add_parcel> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Distance:',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                fontSize: 20),
+                            '+ Package size price:',
+                            style: TextStyle(color: Colors.grey, fontSize: 20),
+                          ),
+                          Text(
+                            boxSizePrice.toString() + '\$',
+                            style: TextStyle(color: Colors.grey, fontSize: 20),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      color: Colors.white,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '   Delivery Price/Km:',
+                            style: TextStyle(color: Colors.grey, fontSize: 20),
+                          ),
+                          Text(
+                            // widget.delv_price != ''
+                            //     ? '${widget.delv_price}\$'
+                            //     : '1000\$'
+                            pricePerKm.toStringAsFixed(2),
+                            style: TextStyle(color: Colors.grey, fontSize: 20),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      color: Colors.white,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '   Distance:',
+                            style: TextStyle(color: Colors.grey, fontSize: 20),
                           ),
                           distance > 0
                               ? Text(
                                   '${distance.toStringAsFixed(2)} km',
                                   style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                      fontSize: 20),
+                                      color: Colors.grey, fontSize: 20),
                                 )
                               : Text('---'),
                         ],
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      color: Colors.white,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '+ Distance delivery price:',
+                            style: TextStyle(color: Colors.grey, fontSize: 20),
+                          ),
+                          distance > 0
+                              ? Text(
+                                  '${distancePrice.toStringAsFixed(2)}\$',
+                                  style: TextStyle(
+                                      color: Colors.grey, fontSize: 20),
+                                )
+                              : Text(
+                                  '---',
+                                  style: TextStyle(
+                                      color: Colors.grey, fontSize: 20),
+                                ),
+                        ],
+                      ),
+                    ),
+                    Visibility(
+                      visible: discount > 0,
+                      child: Container(
+                        padding: EdgeInsets.all(10),
+                        color: Colors.white,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '% Discount:',
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 20),
+                            ),
+                            Text('${discount}%',
+                                style: TextStyle(
+                                    color: Colors.grey, fontSize: 20)),
+                          ],
+                        ),
                       ),
                     ),
                     Container(
@@ -467,14 +941,12 @@ class _add_parcelState extends State<add_parcel> {
                                 fontSize: 20),
                           ),
                           Text(
-                            widget.total_price != ''
-                                ? '${widget.total_price}\$'
-                                : '1000\$',
+                            totalPrice.toStringAsFixed(2) + "\$",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
                                 fontSize: 20),
-                          ),
+                          )
                         ],
                       ),
                     ),
@@ -499,6 +971,31 @@ class _add_parcelState extends State<add_parcel> {
                         onPressed: () {
                           if (formState5.currentState!.validate()) {
                             formState5.currentState!.save();
+                            if (widget.title == "Edit Package") {
+                              print("Edit Package");
+                              if (accountSelectedValue == "Have") {
+                                print("have");
+                                postSendPackageUser(
+                                    "/customer/editPackageUser?packageId=" +
+                                        widget.packageId.toString(),
+                                    "The package is edited successfully");
+                              } else {
+                                postSendPackageEmail(
+                                    "/customer/editPackageEmail?packageId=" +
+                                        widget.packageId.toString(),
+                                    "The package is edited successfully");
+                              }
+                            } else {
+                              if (accountSelectedValue == "Have") {
+                                print("have");
+                                postSendPackageUser("/customer/sendPackageUser",
+                                    "The package is created successfully, now it is in review status you can edit it");
+                              } else {
+                                postSendPackageEmail(
+                                    "/customer/sendPackageEmail",
+                                    "The package is created successfully, now it is in review status you can edit it");
+                              }
+                            }
                           }
                         },
                       ),

@@ -7,6 +7,8 @@ import 'package:flutter_application_1/customer/home.dart';
 import 'package:flutter_application_1/customer/service.dart';
 import 'package:flutter_application_1/manager/creat_driver.dart';
 import 'package:flutter_application_1/manager/creat_employee.dart';
+import 'package:flutter_application_1/manager/editCompany.dart';
+import 'package:flutter_application_1/manager/editCosts.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:get_storage/get_storage.dart';
@@ -94,7 +96,7 @@ class _home_page_managerState extends State<home_page_manager> {
                       Image.asset('assets/default.jpg'),
                 ),
               ),
-              Padding(padding: EdgeInsets.only(top: 20)),
+              Padding(padding: EdgeInsets.only(top: 0)),
               ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -106,7 +108,7 @@ class _home_page_managerState extends State<home_page_manager> {
                 ),
                 title: Text(
                   "Edit Profile",
-                  style: TextStyle(fontSize: 25),
+                  style: TextStyle(fontSize: 20),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -115,7 +117,7 @@ class _home_page_managerState extends State<home_page_manager> {
                       MaterialPageRoute(builder: (context) => edit_profile()));
                 },
               ),
-              Padding(padding: EdgeInsets.only(top: 20)),
+              Padding(padding: EdgeInsets.only(top: 0)),
               ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -127,7 +129,7 @@ class _home_page_managerState extends State<home_page_manager> {
                 ),
                 title: Text(
                   "Change password",
-                  style: TextStyle(fontSize: 25),
+                  style: TextStyle(fontSize: 20),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -136,22 +138,41 @@ class _home_page_managerState extends State<home_page_manager> {
                       MaterialPageRoute(builder: (context) => chang_pass()));
                 },
               ),
-              Padding(padding: EdgeInsets.only(top: 20)),
+              Padding(padding: EdgeInsets.only(top: 0)),
               ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
                 leading: Icon(
-                  Icons.help,
+                  Icons.edit,
                   color: primarycolor,
                   size: 30,
                 ),
                 title: Text(
-                  "Help",
-                  style: TextStyle(fontSize: 25),
+                  "Company Informations",
+                  style: TextStyle(fontSize: 20),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => editCompany()));
+                },
+              ),
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                leading: Icon(
+                  Icons.edit,
+                  color: primarycolor,
+                  size: 30,
+                ),
+                title: Text(
+                  "Delivery Costs",
+                  style: TextStyle(fontSize: 20),
+                ),
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => editCosts()));
                 },
               ),
               Divider(

@@ -5,6 +5,10 @@ import 'package:flutter_application_1/customer/main_page.dart';
 import 'package:flutter_application_1/customer/set_location.dart';
 import 'package:flutter_application_1/manager/creat_employee.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:get_storage/get_storage.dart';
 
 class to_me extends StatefulWidget {
   @override
@@ -13,14 +17,53 @@ class to_me extends StatefulWidget {
 
 class _to_meState extends State<to_me> with TickerProviderStateMixin {
   late TabController _tabController;
-  late List<content> pending_orders;
-  late List<content> deliverd_orders;
+  List<content> pending_orders = [];
+  List<content> accepted_orders = [];
+  String? userName;
+  String? customerUserName;
+  String? customerPassword;
+  List<dynamic> pindingList = [];
+  List<dynamic> AcceptedList = [];
+
+  Future<void> fetchData() async {
+    var url = urlStarter +
+        "/customer/getPendingPackagesToMe?userName=" +
+        userName.toString();
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      setState(() {
+        pindingList = data['result'];
+      });
+      pending_orders = _buildMy_p_Orders();
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
+
+  Future<void> fetchDataAccepted() async {
+    var url = urlStarter +
+        "/customer/getNotPendingPackagesToMe?userName=" +
+        userName.toString();
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      AcceptedList = data['result'];
+      print(AcceptedList.length);
+      accepted_orders = _buildMy_d_Orders();
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    pending_orders = _buildMy_p_Orders();
-    deliverd_orders = _buildMy_d_Orders();
+    String customerUserName = GetStorage().read('userName');
+    String customerPassword = GetStorage().read('password');
+    userName = GetStorage().read('userName');
+    fetchData();
+    fetchDataAccepted();
     _tabController = TabController(length: 2, vsync: this);
   }
 
@@ -32,15 +75,48 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
 
   List<content> _buildMy_p_Orders() {
     List<content> pending_orders = [];
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 0; i < pindingList.length; i++) {
+      String whoPay =
+          pindingList[i]['rec_userName'] == null ? "Doesn't have" : "Have";
+      int pktSize = 0;
+      String pktType = '';
+      switch (pindingList[i]['shippingType']) {
+        case 'Package0':
+          pktSize = 0;
+          pktType = 'Package';
+          break;
+        case 'Package1':
+          pktSize = 1;
+          pktType = 'Package';
+          break;
+        case 'Package2':
+          pktSize = 2;
+          pktType = 'Package';
+          break;
+        case 'Document0':
+          pktSize = 0;
+          pktType = 'Document';
+          break;
+        default:
+          pktSize = 0;
+          pktType = 'Document';
+          break;
+      }
+      String fromTxt = pindingList[i]['locationFromInfo'];
+      List fromTxt2 = fromTxt.split(",");
+      String toTxt = pindingList[i]['locationToInfo'];
+      List toTxt2 = toTxt.split(",");
+      String nameFull = pindingList[i]['user']['Fname'] +
+          " " +
+          pindingList[i]['user']['Lname'];
       pending_orders.add(
         content(
-          id: 1234567382,
-          sender_name: 'mohammad',
-          price: 75,
-          sender_phone: 0599224532,
-          from: 'nablus',
-          to: 'tulkarm',
+          id: pindingList[i]['packageId'],
+          sender_name: nameFull,
+          price: pindingList[i]['total'],
+          sender_phone: pindingList[i]['user']['phoneNumber'],
+          from: fromTxt2[0] + ", " + fromTxt2[1],
+          to: toTxt2[0] + ", " + toTxt2[1],
           flag: false,
           context: this.context,
           btn_edit: () {
@@ -49,16 +125,20 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
               MaterialPageRoute(
                   builder: (context) => add_parcel(
                         title: 'Edit Package',
-                        name: 'Mohammad',
-                        phone: '888888888',
-                        email: 'aa@gmail.com',
-                        price: 200,
-                        shipping: 2, //package
-                        package_size: 1, // meduim
-                        shippingfrom: 'tulkarm,......',
-                        shippingto: 'nablus.........',
+                        name: nameFull,
+                        phone: pindingList[i]['user']['phoneNumber'],
+                        email: pindingList[i]['user']['email'],
+                        price: pindingList[i]['total'],
+                        shipping: pktType, //package
+                        package_size: pktSize,
+                        shippingfrom: pindingList[i]['locationFromInfo'],
+                        shippingto: pindingList[i]['locationToInfo'],
                         delv_price: 300,
-                        total_price: 500,
+                        total_price: pindingList[i]['total'],
+                        latfrom: pindingList[i]['latFrom'],
+                        latto: pindingList[i]['latTo'],
+                        longfrom: pindingList[i]['longFrom'],
+                        longto: pindingList[i]['longTo'],
                       )),
             );
           },
@@ -70,25 +150,32 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
   }
 
   List<content> _buildMy_d_Orders() {
-    List<content> deliverd_orders = [];
-    for (int i = 1; i <= 5; i++) {
-      deliverd_orders.add(
+    List<content> accepted_orders = [];
+    for (int i = 0; i < AcceptedList.length; i++) {
+      String fromTxt = AcceptedList[i]['locationFromInfo'];
+      List fromTxt2 = fromTxt.split(",");
+      String toTxt = AcceptedList[i]['locationToInfo'];
+      List toTxt2 = toTxt.split(",");
+      String nameFull = AcceptedList[i]['user']['Fname'] +
+          " " +
+          AcceptedList[i]['user']['Lname'];
+      accepted_orders.add(
         content(
-          id: 1234567382,
-          sender_name: 'mohammad',
-          price: 75,
-          sender_phone: 0599224532,
-          from: 'nablus',
-          to: 'tulkarm',
+          id: AcceptedList[i]['packageId'],
+          sender_name: nameFull,
+          price: AcceptedList[i]['total'],
+          sender_phone: AcceptedList[i]['user']['phoneNumber'],
+          from: fromTxt2[0] + ", " + fromTxt2[1],
+          to: toTxt2[0] + ", " + toTxt2[1],
           flag: true,
           context: this.context,
-          Status: 'Delivered',
+          Status: AcceptedList[i]['status'],
           btn_edit: () {},
         ),
       );
     }
 
-    return deliverd_orders;
+    return accepted_orders;
   }
 
   @override
@@ -118,7 +205,7 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
           Padding(
             padding: const EdgeInsets.all(10),
             child: ListView(
-              children: deliverd_orders,
+              children: accepted_orders,
             ),
           ),
         ],
@@ -130,7 +217,7 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
 class content extends StatefulWidget {
   final int id;
   final int sender_phone;
-  final int price;
+  final double price;
   final String from;
   final String to;
   final String sender_name;
@@ -157,28 +244,71 @@ class content extends StatefulWidget {
 }
 
 class _contentState extends State<content> {
+  Future postEditPackageLocationTo(
+      int packageId, String locationToInfo, double latto, double longto) async {
+    var url = urlStarter + "/customer/editPackageLocationTo";
+    var responce = await http.post(Uri.parse(url),
+        body: jsonEncode({
+          "customerUserName": GetStorage().read('userName'),
+          "customerPassword": GetStorage().read('password'),
+          "packageId": packageId,
+          "latTo": latto,
+          "longTo": longto,
+          "locationToInfo": locationToInfo
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        });
+    var responceBody = jsonDecode(responce.body);
+    print(responceBody);
+    if (responceBody['message'] == "failed") {
+      List errors = responceBody['error']['errors'];
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().aboutDialogErrors(errors, context);
+          });
+    }
+    if (responceBody['message'] == "failed1") {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return show_dialog().alartDialogPushNamed(
+                "Failed!",
+                "There is an error happend while update location, please try latter ",
+                context,
+                GetStorage().read("userType"));
+          });
+    }
+
+    return responceBody;
+  }
+
   late double latto = 0;
   late double longto;
   late String location = '';
   void getlocationto(String text, double lat, double long) async {
+    String modifiedString = text.replaceAll("','", ",");
+    postEditPackageLocationTo(widget.id, modifiedString, lat, long);
     setState(() {
-      int startIndex = 0;
-      int colonIndex;
-      int commaIndex;
-      String extractedText = '';
-      while (true) {
-        colonIndex = text.indexOf(':', startIndex);
-        commaIndex = text.indexOf(',', colonIndex + 1);
+      // int startIndex = 0;
+      // int colonIndex;
+      // int commaIndex;
+      // String extractedText = '';
+      // while (true) {
+      //   colonIndex = text.indexOf(':', startIndex);
+      //   commaIndex = text.indexOf(',', colonIndex + 1);
 
-        if (colonIndex == -1 || commaIndex == -1) {
-          break;
-        }
-        extractedText +=
-            text.substring(colonIndex + 1, commaIndex - 1).trim() + ' , ';
+      //   if (colonIndex == -1 || commaIndex == -1) {
+      //     break;
+      //   }
+      //   extractedText +=
+      //       text.substring(colonIndex + 1, commaIndex - 1).trim() + ' , ';
 
-        startIndex = commaIndex + 1;
-      }
-      location = extractedText;
+      //   startIndex = commaIndex + 1;
+      // }
+      location = modifiedString;
+      _to_meState().fetchDataAccepted();
       latto = lat;
       longto = long;
     });
@@ -240,11 +370,11 @@ class _contentState extends State<content> {
                   ],
                 ),
                 Text.rich(TextSpan(
-                    text: 'Price :',
+                    text: 'Total Delivery Price :',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     children: <InlineSpan>[
                       TextSpan(
-                        text: ' ${widget.price}\$',
+                        text: ' ${widget.price.toStringAsFixed(2)}\$',
                         style: TextStyle(
                             fontSize: 18,
                             color: Colors.red,
@@ -316,11 +446,16 @@ class _contentState extends State<content> {
                         height: 10,
                       ),
                       Container(
-                        child: MaterialButton(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(22.0)),
-                          color: primarycolor,
-                          child: Text(
+                        decoration: BoxDecoration(
+                            borderRadius:
+                                BorderRadiusDirectional.circular(22.0),
+                            color: primarycolor),
+                        child: TextButton.icon(
+                          icon: Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                          ),
+                          label: Text(
                             "Edit Delivery location",
                             style: TextStyle(
                                 fontSize: 20,
@@ -428,14 +563,16 @@ class _contentState extends State<content> {
                                             ),
                                             SizedBox(height: 20),
                                             Text.rich(TextSpan(
-                                                text: 'Price :',
+                                                text:
+                                                    'Total Delivery Price : :',
                                                 style: TextStyle(
                                                     fontSize: 20,
                                                     fontWeight:
                                                         FontWeight.bold),
                                                 children: <InlineSpan>[
                                                   TextSpan(
-                                                    text: ' ${widget.price}\$',
+                                                    text:
+                                                        ' ${widget.price.toStringAsFixed(2)}\$',
                                                     style: TextStyle(
                                                         fontSize: 18,
                                                         color: Colors.red,

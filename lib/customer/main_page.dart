@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/customer/change_password.dart';
@@ -11,8 +9,6 @@ import 'package:flutter_application_1/customer/to_me.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:get_storage/get_storage.dart';
 
 class home_page_customer extends StatefulWidget {

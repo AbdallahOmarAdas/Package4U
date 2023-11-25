@@ -182,8 +182,9 @@ class _create_employeeState extends State<create_employee> {
                               phone = newValue;
                             },
                             validator: (value) {
-                              if (value!.isEmpty) {
-                                return "Please enter number phone";
+                              String res = isValidPhone(value.toString());
+                              if (!res.isEmpty) {
+                                return res;
                               }
                             },
                             decoration: theme_helper().text_form_style(

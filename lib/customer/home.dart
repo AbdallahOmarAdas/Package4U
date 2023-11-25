@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/customer/add_parcel.dart';
 import 'package:flutter_application_1/customer/call.dart';
+import 'package:flutter_application_1/customer/claculatePrice.dart';
 import 'package:flutter_application_1/customer/track_package.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 
@@ -31,10 +32,12 @@ class _homeState extends State<home> {
                     Container(
                       alignment: Alignment.bottomLeft,
                       child: Text(
-                        "Enter your tracking number and see details about your parcel",
-                        style: TextStyle(
-                            fontSize: 12, color: Colors.grey.shade700),
-                      ),
+                          "Enter your package number and see details about your parcel",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          )),
                     ),
                     SizedBox(
                       height: 15,
@@ -52,7 +55,7 @@ class _homeState extends State<home> {
                                       builder: ((context) => track_p())));
                             },
                             decoration: InputDecoration(
-                              hintText: 'Enter 10 digits tracking number',
+                              hintText: 'Enter 6 digits tracking number',
                               filled: true,
                               fillColor: Colors.white,
                               focusedBorder: OutlineInputBorder(
@@ -110,17 +113,17 @@ class _homeState extends State<home> {
                 img: "assets/add_package.png",
               ),
               content(
-                label: 'Get a Quote',
+                label: 'Calculate Delivery Price',
                 btn: () {
-                  // Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //         builder: ((context) => create_employee())));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: ((context) => calculatePrice())));
                 },
                 img: "assets/calculator.png",
               ),
               content(
-                label: 'Call for booking',
+                label: 'Contact Information',
                 btn: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder: ((context) => call())));

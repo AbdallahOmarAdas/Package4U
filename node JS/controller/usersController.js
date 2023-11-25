@@ -25,7 +25,7 @@ exports.postAddUser=(req,res,next)=>{
     const error=validationResult(req);
 
     if(!error.isEmpty()){
-    return res.status(422).json({message:'failed',error}); 
+        return res.status(422).json({message:'failed',error}); 
     }
     Customer.create({
         user:{

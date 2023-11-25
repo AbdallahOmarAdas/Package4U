@@ -61,7 +61,7 @@ class show_dialog {
             else if (name == "employee")
               Navigator.of(context).pushNamed("employeeHome");
             else
-              Navigator.of(context).pushNamed("signIn");
+              Navigator.of(context).pushNamed(name);
           },
         ),
       ],
