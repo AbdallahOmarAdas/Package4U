@@ -40,7 +40,7 @@ const Package=sequelize.define('package',{
         allowNull:false
     },
     distance:{
-        type:Sequelize.STRING,
+        type:Sequelize.DOUBLE,
         allowNull:false
     },
     latTo:{

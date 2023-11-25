@@ -5,6 +5,7 @@ const signupValidators=require('../validators/signup')
 const router=express.Router();
 const path = require('path');
 const cost=require('../json/cost');
+const company=require('../json/company');
 const User=require('../models/users');
 const { body } = require('express-validator');
 const { where } = require('sequelize');
@@ -19,7 +20,12 @@ router.post('/forgotSetPass',body('email').notEmpty().withMessage('Please enter 
 router.post('/changePassword',body('oldPassword').notEmpty().withMessage('please enter the old password first'),signupValidators.passwordValidation(),usersController.postChangePassword);
 router.post('/editProfile',body('oldUserName').notEmpty().withMessage('please enter the old username'),body('userName').notEmpty().withMessage('please enter the new username'),body('Fname').notEmpty().withMessage('please enter First name'),body('Lname').notEmpty().withMessage('please enter Last name'),body('email').notEmpty().withMessage('Please enter your email').isEmail().withMessage('Please enter vaild email'),body('oldEmail').notEmpty().withMessage('Please enter your old email').isEmail().withMessage('Please enter vaild email'),signupValidators.phoneValidation(),body('city').notEmpty().withMessage('please enter your city'),body('town').notEmpty().withMessage('please enter your town'),body('street').notEmpty().withMessage('please enter your street'),usersController.postEditProfile)
 
-
+router.get('/costs',(req,res,next)=>{
+  res.status(200).json(cost)
+});
+router.get('/info',(req,res,next)=>{
+  res.status(200).json(company)
+});
 router.get('/showCustomers',(req,res,next)=>{
   const userName=req.query.userName;
   console.log(userName)
@@ -35,6 +41,7 @@ router.get('/showCustomers',(req,res,next)=>{
         console.log(err);
     });
 });
+
 function generateRandomNumber() {
   const min = 10000; // Smallest 5-digit number
   const max = 99999; // Largest 5-digit number

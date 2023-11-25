@@ -53,9 +53,9 @@ class _set_locationState extends State<set_location> {
   @override
   void initState() {
     onGetCurrentLocationPressed().then((value) {
-      setState(() {
-        current;
-      });
+      // setState(() {
+      //   current;
+      // });
     });
     super.initState();
   }
@@ -94,12 +94,12 @@ class _set_locationState extends State<set_location> {
                     actions: [
                       TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
                             widget.onDataReceived(
                                 "${addressParts[0]}','${addressParts[1]}','${addressParts[2]}','${addressParts[3]}",
                                 pickedData.latLong.latitude,
                                 pickedData.latLong.longitude);
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
                             //add_parcel().
                           },
                           child: Text(

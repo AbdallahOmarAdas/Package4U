@@ -1,5 +1,6 @@
 {
-    "openingPrice":5,
-    "bigPackagePrice":4,
-    "pricePerKm":1.5
+  "openingPrice": 5,
+  "bigPackagePrice": 8,
+  "pricePerKm": 1.5,
+  "discount": 0
 }
