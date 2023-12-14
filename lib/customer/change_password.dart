@@ -40,10 +40,10 @@ class _chang_passState extends State<chang_pass> {
           builder: (context) {
             String userType = GetStorage().read("userType");
             return show_dialog().alartDialogPushNamed(
-              "Changed!",
-              "The password has been changed successfully.",
-              context,userType
-            );
+                "Changed!",
+                "The password has been changed successfully.",
+                context,
+                userType);
           });
     } else if (responceBody['message'] ==
         "The old password is incorrect, please verify it.") {
@@ -252,6 +252,7 @@ class _chang_passState extends State<chang_pass> {
                       if (value!.isEmpty) return "Enter confirm password";
 
                       if (test != value) return "dosen\'t match";
+                      return null;
                     },
                   ),
                   SizedBox(height: 30.0),

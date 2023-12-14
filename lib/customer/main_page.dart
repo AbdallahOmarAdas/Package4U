@@ -5,6 +5,7 @@ import 'package:flutter_application_1/customer/edit_profile.dart';
 import 'package:flutter_application_1/customer/from_me.dart';
 import 'package:flutter_application_1/customer/home.dart';
 import 'package:flutter_application_1/customer/service.dart';
+import 'package:flutter_application_1/customer/technicalReport.dart';
 import 'package:flutter_application_1/customer/to_me.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
@@ -171,6 +172,26 @@ class _home_page_customerState extends State<home_page_customer> {
 
                     Navigator.of(context).push(
                         MaterialPageRoute(builder: (context) => chang_pass()));
+                  },
+                ),
+                Padding(padding: EdgeInsets.only(top: 20)),
+                ListTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  leading: Icon(
+                    Icons.bug_report,
+                    color: primarycolor,
+                    size: 30,
+                  ),
+                  title: Text(
+                    "Technical Report",
+                    style: TextStyle(fontSize: 25),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => TechnicalReport()));
                   },
                 ),
                 Padding(padding: EdgeInsets.only(top: 20)),

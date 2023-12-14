@@ -56,6 +56,7 @@ exports.postAddUser=(req,res,next)=>{
 
 
  exports.postSignin=(req,res,next)=>{
+    console.log("dodood");
     const userName=req.body.userName;
     const password=req.body.password;
         User.findOne({where:{userName:userName,password:password}})

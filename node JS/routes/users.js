@@ -11,7 +11,6 @@ const { body } = require('express-validator');
 const { where } = require('sequelize');
 const { Sequelize, DataTypes } = require('sequelize');
 
-
 router.post('/signin',usersController.postSignin);
 router.post('/addUser',body('Fname').notEmpty().withMessage('please enter First name'),body('Lname').notEmpty().withMessage('please enter Last name'),signupValidators.emailIsExist(),signupValidators.phoneValidation(),signupValidators.UserNameIsUsed(),body('city').notEmpty().withMessage('please enter your city'),body('town').notEmpty().withMessage('please enter your town'),body('street').notEmpty().withMessage('please enter your street'),signupValidators.passwordValidation(),usersController.postAddUser);
 router.post('/forgot',body('email').notEmpty().withMessage('Please enter your email').isEmail().withMessage('Please enter vaild email'),usersController.postForgot);
@@ -20,15 +19,35 @@ router.post('/forgotSetPass',body('email').notEmpty().withMessage('Please enter 
 router.post('/changePassword',body('oldPassword').notEmpty().withMessage('please enter the old password first'),signupValidators.passwordValidation(),usersController.postChangePassword);
 router.post('/editProfile',body('oldUserName').notEmpty().withMessage('please enter the old username'),body('userName').notEmpty().withMessage('please enter the new username'),body('Fname').notEmpty().withMessage('please enter First name'),body('Lname').notEmpty().withMessage('please enter Last name'),body('email').notEmpty().withMessage('Please enter your email').isEmail().withMessage('Please enter vaild email'),body('oldEmail').notEmpty().withMessage('Please enter your old email').isEmail().withMessage('Please enter vaild email'),signupValidators.phoneValidation(),body('city').notEmpty().withMessage('please enter your city'),body('town').notEmpty().withMessage('please enter your town'),body('street').notEmpty().withMessage('please enter your street'),usersController.postEditProfile)
 
-router.get('/costs',(req,res,next)=>{
+router.get('/cost',(req,res,next)=>{
   res.status(200).json(cost)
 });
+
+router.get('/isAvailableUserName',(req,res)=>{
+  const userName=req.query.userName;
+  User.findOne({where:{userName:userName}}).then((result) => {
+    if(result){
+      return res.status(409).json({message:"conflict"})
+    }
+    return res.status(200).json({"message":"ok"})
+  });
+});
+
+router.get('/isAvailableEmail',(req,res)=>{
+  const email=req.query.email;
+  User.findOne({where:{email:email}}).then((result) => {
+    if(result){
+      return res.status(409).json({message:"conflict"})
+    }
+    return res.status(200).json({"message":"ok"})
+  });
+});
+
 router.get('/info',(req,res,next)=>{
   res.status(200).json(company)
 });
 router.get('/showCustomers',(req,res,next)=>{
   const userName=req.query.userName;
-  console.log(userName)
   User.findAll(
     {attributes:['userName','Fname','Lname','phoneNumber','email'],
     where:{userName:{[Sequelize.Op.not]: userName},

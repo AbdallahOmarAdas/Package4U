@@ -64,5 +64,6 @@ router.post('/editDeliveryCosts',
                         body('bigPackagePrice').notEmpty().withMessage('please enter bigPackagePrice'),
                         body('pricePerKm').notEmpty().withMessage('please enter pricePerKm'),
                         body('discount').notEmpty().withMessage('please enter discount'),                                              
-                        managerController.postEditDeliveryCosts);     
+                        managerController.postEditDeliveryCosts);
+      
 module.exports=router;

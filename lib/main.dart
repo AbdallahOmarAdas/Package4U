@@ -6,7 +6,9 @@ import 'package:flutter_application_1/customer/from_me.dart';
 import 'package:flutter_application_1/customer/home.dart';
 import 'package:flutter_application_1/customer/main_page.dart';
 import 'package:flutter_application_1/customer/set_location.dart';
+import 'package:flutter_application_1/drivers/content_page_driver.dart';
 import 'package:flutter_application_1/drivers/home_page_driver.dart';
+import 'package:flutter_application_1/drivers/onGoing.dart';
 import 'package:flutter_application_1/employee/main_page.dart';
 import 'package:flutter_application_1/manager/creat_driver.dart';
 import 'package:flutter_application_1/manager/creat_employee.dart';
@@ -45,7 +47,9 @@ class _LoginUiAppState extends State<LoginUiApp> {
       return sign_in();
     else if (userType == "customer")
       return home_page_customer();
-    else if (userType == "manager") return home_page_manager();
+    else if (userType == "manager")
+      return home_page_manager();
+    else if (userType == "driver") return home_page_driver();
   }
 
   @override
@@ -63,6 +67,7 @@ class _LoginUiAppState extends State<LoginUiApp> {
           "employeeHome": (context) => home_page_employee(),
           "signIn": (context) => sign_in(),
           "fromMe": (context) => from_me(),
+          "onGoing": (context) => OnGoingPackages(),
         }
         //home: testAPI(),
         );

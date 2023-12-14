@@ -1,7 +1,10 @@
 const express=require('express');
+const CORS=require('cors');
 const feedRoutes=require('./routes/feeds');
 const usersRoutes=require('./routes/users');
+const driverRoutes=require('./routes/driver');
 const Package=require('./models/package');
+const Technical=require('./models/technicalMessage');
 const managerRoutes=require('./routes/manager');
 const customerRoutes=require('./routes/customer');
 const bodyParser=require('body-parser');
@@ -15,6 +18,7 @@ const Sequelize=require('sequelize');
 const app=express();
 //app.use(bodyParser.urlencoded());//used in html form x-www-form-urlencoded
 app.use(bodyParser.json());
+app.use(CORS());
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
@@ -25,6 +29,7 @@ app.use((req, res, next) => {
 app.use('/feed',feedRoutes);
 app.use('/users',usersRoutes);
 app.use('/manager',managerRoutes);
+app.use('/driver',driverRoutes);
 app.use('/customer',customerRoutes);
 app.use('/image',express.static(path.join(__dirname,'user_images')));
 app.use('/image',(req,res,next)=>{

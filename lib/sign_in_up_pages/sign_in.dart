@@ -24,7 +24,7 @@ class _sign_inState extends State<sign_in> {
   String? userName;
 
   String? password;
-
+  bool isLoginFaild = false;
   Future postSignin() async {
     var url = urlStarter + "/users/signin";
     var responce = await http.post(Uri.parse(url),
@@ -63,40 +63,27 @@ class _sign_inState extends State<sign_in> {
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => home_page_driver()));
     } else {
-      showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      "Ok",
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    )),
-                TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: ((context) => ForgetPassword())));
-                    },
-                    child: Text("Forgot Password",
-                        style: TextStyle(color: Colors.white, fontSize: 18))),
-              ],
-              title: Text("Log In failed"),
-              content:
-                  Text("The username or password you entered is incorrect"),
-              titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
-              contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
-              backgroundColor: primarycolor,
-            );
-          });
+      setState(() {
+        isLoginFaild = true;
+      });
+
+      formState.currentState!.validate();
+      showValidationMessage("Incorrect username or password");
       print("user not found");
     }
     return responceBody;
+  }
+
+  void showValidationMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(fontSize: 16),
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override
@@ -130,163 +117,179 @@ class _sign_inState extends State<sign_in> {
               ),
             ),
             SafeArea(
-              child: Container(
-                child: Column(
-                  children: [
-                    Text(
-                      "Welcome",
-                      style: TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                          color: primarycolor),
-                    ),
-                    Text(
-                      "Log In to your account",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                    ),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    Form(
-                        key: formState,
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              onSaved: (newValue) {
-                                userName = newValue;
-                              },
-                              validator: (value) {
-                                if (value!.isEmpty) {
-                                  return "Please the enter username";
-                                }
-                              },
-                              decoration: theme_helper().text_form_style(
-                                'Username',
-                                'Enter your username',
-                                Icons.person,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Welcome",
+                        style: TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            color: primarycolor),
+                      ),
+                      Text(
+                        "Log In to your account",
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey),
+                      ),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      Form(
+                          key: formState,
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                onSaved: (newValue) {
+                                  userName = newValue;
+                                },
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return "Please the enter username";
+                                  }
+                                  if (isLoginFaild) {
+                                    return "Incorrect username or password";
+                                  }
+                                  return null;
+                                },
+                                decoration: theme_helper().text_form_style(
+                                  'Username',
+                                  'Enter your username',
+                                  Icons.person,
+                                ),
+                                keyboardType: TextInputType.emailAddress,
                               ),
-                              keyboardType: TextInputType.emailAddress,
-                            ),
-                            SizedBox(height: 30),
-                            TextFormField(
-                              onSaved: (newValue) {
-                                password = newValue;
-                              },
-                              validator: (value) {
-                                if (value!.isEmpty) {
-                                  return "Please enter password";
-                                }
-                              },
-                              obscureText: !passwordVisible,
-                              decoration: InputDecoration(
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    passwordVisible
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
-                                    color: Colors.grey,
+                              SizedBox(height: 30),
+                              TextFormField(
+                                onSaved: (newValue) {
+                                  password = newValue;
+                                },
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return "Please enter password";
+                                  }
+
+                                  if (isLoginFaild) {
+                                    return "Incorrect username or password";
+                                  }
+                                  return null;
+                                },
+                                obscureText: !passwordVisible,
+                                decoration: InputDecoration(
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      passwordVisible
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                      color: Colors.grey,
+                                    ),
+                                    onPressed: () {
+                                      setState(
+                                        () {
+                                          passwordVisible = !passwordVisible;
+                                        },
+                                      );
+                                    },
                                   ),
-                                  onPressed: () {
-                                    setState(
-                                      () {
-                                        passwordVisible = !passwordVisible;
-                                      },
-                                    );
+                                  prefixIcon: Icon(
+                                    Icons.password,
+                                    color: primarycolor,
+                                  ),
+                                  labelText: 'Password',
+                                  hintText: 'Enter your user Password',
+                                  fillColor: Colors.white,
+                                  labelStyle: TextStyle(color: Colors.grey),
+                                  contentPadding:
+                                      EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(100),
+                                      borderSide:
+                                          BorderSide(color: Colors.grey)),
+                                  enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(100),
+                                      borderSide: BorderSide(
+                                          color: Colors.grey.shade400)),
+                                  errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(100),
+                                      borderSide: BorderSide(
+                                          color: Colors.red, width: 2)),
+                                  focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(100),
+                                      borderSide: BorderSide(
+                                          color: Colors.red, width: 2)),
+                                ),
+                              ),
+                              SizedBox(height: 30),
+                              Container(
+                                margin: EdgeInsets.fromLTRB(10, 0, 10, 20),
+                                alignment: Alignment.topRight,
+                                child: GestureDetector(
+                                  child: Text("Forgot your password?"),
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: ((context) =>
+                                                ForgetPassword())));
                                   },
                                 ),
-                                prefixIcon: Icon(
-                                  Icons.password,
+                              ),
+                              Container(
+                                child: MaterialButton(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(22.0)),
                                   color: primarycolor,
-                                ),
-                                labelText: 'Password',
-                                hintText: 'Enter your user Password',
-                                fillColor: Colors.white,
-                                labelStyle: TextStyle(color: Colors.grey),
-                                contentPadding:
-                                    EdgeInsets.fromLTRB(20, 10, 20, 10),
-                                focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(100),
-                                    borderSide: BorderSide(color: Colors.grey)),
-                                enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(100),
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.shade400)),
-                                errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(100),
-                                    borderSide: BorderSide(
-                                        color: Colors.red, width: 2)),
-                                focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(100),
-                                    borderSide: BorderSide(
-                                        color: Colors.red, width: 2)),
-                              ),
-                            ),
-                            SizedBox(height: 30),
-                            Container(
-                              margin: EdgeInsets.fromLTRB(10, 0, 10, 20),
-                              alignment: Alignment.topRight,
-                              child: GestureDetector(
-                                child: Text("Forgot your password?"),
-                                onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: ((context) =>
-                                              ForgetPassword())));
-                                },
-                              ),
-                            ),
-                            Container(
-                              child: MaterialButton(
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(22.0)),
-                                color: primarycolor,
-                                child: Padding(
-                                  padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
-                                  child: Text(
-                                    "Log in",
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
+                                  child: Padding(
+                                    padding:
+                                        EdgeInsets.fromLTRB(40, 10, 40, 10),
+                                    child: Text(
+                                      "Log in",
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
                                   ),
+                                  onPressed: () {
+                                    isLoginFaild = false;
+                                    if (formState.currentState!.validate()) {
+                                      formState.currentState!.save();
+                                      postSignin();
+                                    }
+                                  },
                                 ),
-                                onPressed: () {
-                                  if (formState.currentState!.validate()) {
-                                    formState.currentState!.save();
-                                    var res = postSignin();
-                                  }
-                                },
                               ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.fromLTRB(10, 20, 10, 20),
-                              child: Text.rich(
-                                TextSpan(children: [
-                                  TextSpan(text: "Don\'t have an account?"),
-                                  TextSpan(
-                                    text: " Create",
-                                    style: TextStyle(
-                                        color: primarycolor, fontSize: 18),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: ((context) =>
-                                                    registration())));
-                                      },
-                                  ),
-                                ]),
+                              Container(
+                                margin: EdgeInsets.fromLTRB(10, 20, 10, 20),
+                                child: Text.rich(
+                                  TextSpan(children: [
+                                    TextSpan(text: "Don\'t have an account?"),
+                                    TextSpan(
+                                      text: " Create",
+                                      style: TextStyle(
+                                          color: primarycolor, fontSize: 18),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () {
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: ((context) =>
+                                                      registration())));
+                                        },
+                                    ),
+                                  ]),
+                                ),
+                                // 'Don\'t have an account? Creat'
                               ),
-                              // 'Don\'t have an account? Creat'
-                            ),
-                          ],
-                        )),
-                  ],
+                            ],
+                          )),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -201,7 +201,7 @@ class _content_page_driverState extends State<content_page_driver>
   List<content_delivered> _buildMy_deliverd_Orders() {
     List<content_delivered> deliverd_orders = [];
 
-    for (int i = 1; i <= 10; i++) {
+    for (int i = 1; i <= 1; i++) {
       deliverd_orders.add(
         content_delivered(
           package_type: i - 1,
@@ -380,7 +380,7 @@ class content_new extends StatefulWidget {
 }
 
 class _content_newState extends State<content_new> {
-  final formGlobalKey = GlobalKey<FormState>();
+  //final formGlobalKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext) {
@@ -615,12 +615,12 @@ class _content_newState extends State<content_new> {
                                   actions: [
                                     TextButton(
                                         onPressed: () {
-                                          if (formGlobalKey.currentState!
-                                              .validate()) {
-                                            formGlobalKey.currentState!.save();
-                                            Navigator.of(context).pop();
-                                            print(widget.reason);
-                                          }
+                                          // if (formGlobalKey.currentState!
+                                          //     .validate()) {
+                                          //   formGlobalKey.currentState!.save();
+                                          //   Navigator.of(context).pop();
+                                          //   print(widget.reason);
+                                          // }
                                         },
                                         child: Text(
                                           "Reject Package",
@@ -641,7 +641,7 @@ class _content_newState extends State<content_new> {
                                   ],
                                   title: Text("Reject Package"),
                                   content: Form(
-                                    key: formGlobalKey,
+                                    //key: formGlobalKey,
                                     child: TextFormField(
                                       onSaved: (newValue) {
                                         widget.reason = newValue!;

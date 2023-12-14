@@ -32,9 +32,7 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
-      setState(() {
-        pindingList = data['result'];
-      });
+      pindingList = data['result'];
       pending_orders = _buildMy_p_Orders();
     } else {
       throw Exception('Failed to load data');
@@ -48,9 +46,10 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
-      AcceptedList = data['result'];
-      print(AcceptedList.length);
-      accepted_orders = _buildMy_d_Orders();
+      setState(() {
+        AcceptedList = data['result'];
+        accepted_orders = _buildMy_d_Orders();
+      });
     } else {
       throw Exception('Failed to load data');
     }
@@ -106,41 +105,23 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
       List fromTxt2 = fromTxt.split(",");
       String toTxt = pindingList[i]['locationToInfo'];
       List toTxt2 = toTxt.split(",");
-      String nameFull = pindingList[i]['user']['Fname'] +
+      String nameFull = pindingList[i]['rec_user']['Fname'] +
           " " +
-          pindingList[i]['user']['Lname'];
+          pindingList[i]['rec_user']['Lname'];
       pending_orders.add(
         content(
           id: pindingList[i]['packageId'],
           sender_name: nameFull,
           price: pindingList[i]['total'],
-          sender_phone: pindingList[i]['user']['phoneNumber'],
+          sender_phone: pindingList[i]['rec_user']['phoneNumber'],
           from: fromTxt2[0] + ", " + fromTxt2[1],
           to: toTxt2[0] + ", " + toTxt2[1],
           flag: false,
           context: this.context,
-          btn_edit: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => add_parcel(
-                        title: 'Edit Package',
-                        name: nameFull,
-                        phone: pindingList[i]['user']['phoneNumber'],
-                        email: pindingList[i]['user']['email'],
-                        price: pindingList[i]['total'],
-                        shipping: pktType, //package
-                        package_size: pktSize,
-                        shippingfrom: pindingList[i]['locationFromInfo'],
-                        shippingto: pindingList[i]['locationToInfo'],
-                        delv_price: 300,
-                        total_price: pindingList[i]['total'],
-                        latfrom: pindingList[i]['latFrom'],
-                        latto: pindingList[i]['latTo'],
-                        longfrom: pindingList[i]['longFrom'],
-                        longto: pindingList[i]['longTo'],
-                      )),
-            );
+          btn_edit: () {},
+          refreshData: () {
+            fetchData();
+            fetchDataAccepted();
           },
         ),
       );
@@ -156,21 +137,25 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
       List fromTxt2 = fromTxt.split(",");
       String toTxt = AcceptedList[i]['locationToInfo'];
       List toTxt2 = toTxt.split(",");
-      String nameFull = AcceptedList[i]['user']['Fname'] +
+      String nameFull = AcceptedList[i]['rec_user']['Fname'] +
           " " +
-          AcceptedList[i]['user']['Lname'];
+          AcceptedList[i]['rec_user']['Lname'];
       accepted_orders.add(
         content(
           id: AcceptedList[i]['packageId'],
           sender_name: nameFull,
           price: AcceptedList[i]['total'],
-          sender_phone: AcceptedList[i]['user']['phoneNumber'],
+          sender_phone: AcceptedList[i]['rec_user']['phoneNumber'],
           from: fromTxt2[0] + ", " + fromTxt2[1],
           to: toTxt2[0] + ", " + toTxt2[1],
           flag: true,
           context: this.context,
           Status: AcceptedList[i]['status'],
           btn_edit: () {},
+          refreshData: () {
+            fetchData();
+            fetchDataAccepted();
+          },
         ),
       );
     }
@@ -225,6 +210,7 @@ class content extends StatefulWidget {
   final String Status;
   final BuildContext context;
   final Function() btn_edit;
+  final Function() refreshData;
 
   const content(
       {super.key,
@@ -237,6 +223,7 @@ class content extends StatefulWidget {
       required this.to,
       required this.flag,
       required this.context,
+      required this.refreshData,
       this.Status = ''});
 
   @override
@@ -280,35 +267,54 @@ class _contentState extends State<content> {
                 GetStorage().read("userType"));
           });
     }
-
+    widget.refreshData();
     return responceBody;
+  }
+
+  Future<void> fetchLocations() async {
+    var url = urlStarter +
+        "/customer/getMyLocations?userName=" +
+        GetStorage().read('userName').toString();
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      setState(() {
+        Locations = data['result'];
+      });
+    } else if (response.statusCode == 404) {
+      setState(() {});
+    } else {
+      throw Exception('Failed to load data');
+    }
+    Locations.add({
+      "longTo": 35.297659,
+      "latTo": 32.193192,
+      "location":
+          "residential: روجيب, suburb: إسكان الموظفين, village: روجيب, county: منطقة ب",
+      "name": "Manually set Location",
+      "id": 99999999
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchLocations();
   }
 
   late double latto = 0;
   late double longto;
   late String location = '';
+  TextEditingController _textController = TextEditingController();
+  List Locations = [];
   void getlocationto(String text, double lat, double long) async {
     String modifiedString = text.replaceAll("','", ",");
     postEditPackageLocationTo(widget.id, modifiedString, lat, long);
     setState(() {
-      // int startIndex = 0;
-      // int colonIndex;
-      // int commaIndex;
-      // String extractedText = '';
-      // while (true) {
-      //   colonIndex = text.indexOf(':', startIndex);
-      //   commaIndex = text.indexOf(',', colonIndex + 1);
-
-      //   if (colonIndex == -1 || commaIndex == -1) {
-      //     break;
-      //   }
-      //   extractedText +=
-      //       text.substring(colonIndex + 1, commaIndex - 1).trim() + ' , ';
-
-      //   startIndex = commaIndex + 1;
-      // }
-      location = modifiedString;
-      _to_meState().fetchDataAccepted();
+      List list = modifiedString.split(',');
+      location = list[0] + ", " + list[1];
+      _to_meState().fetchData();
       latto = lat;
       longto = long;
     });
@@ -438,39 +444,57 @@ class _contentState extends State<content> {
                         height: 20,
                       ),
                       Text(
-                        'Do you want to modify the access location?',
+                        'Do you want to modify the delivery location?',
                         style: TextStyle(
                             fontWeight: FontWeight.bold, color: primarycolor),
                       ),
                       SizedBox(
                         height: 10,
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                            borderRadius:
-                                BorderRadiusDirectional.circular(22.0),
-                            color: primarycolor),
-                        child: TextButton.icon(
-                          icon: Icon(
-                            Icons.edit,
-                            color: Colors.white,
-                          ),
-                          label: Text(
-                            "Edit Delivery location",
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                                widget.context,
-                                MaterialPageRoute(
-                                    builder: ((context) => set_location(
-                                        onDataReceived: getlocationto))));
-                          },
+                      DropdownButtonFormField(
+                        isExpanded: true,
+                        hint: Text('Edit delivery location',
+                            style: TextStyle(color: Colors.grey)),
+                        items: Locations.map((value) {
+                          return DropdownMenuItem(
+                            value: value['id'],
+                            child: Text(
+                              value['name'].toString(),
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          );
+                        }).toList(),
+                        decoration: theme_helper().text_form_style(
+                          '',
+                          '',
+                          Icons.edit,
                         ),
-                      ),
+                        onChanged: (value) {
+                          setState(() {
+                            if (99999999 == value) {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: ((context) => set_location(
+                                          onDataReceived: getlocationto))));
+                            } else {
+                              Locations.map((value1) {
+                                if (value == value1['id']) {
+                                  latto = value1['latTo'];
+                                  longto = value1['longTo'];
+                                  location = value1['location'];
+                                  List modifiedString = location.split(',');
+                                  location = modifiedString[0] +
+                                      ", " +
+                                      modifiedString[1];
+                                  postEditPackageLocationTo(widget.id,
+                                      value1['location'], latto, longto);
+                                }
+                              }).toString();
+                            }
+                          });
+                        },
+                      )
                     ],
                   ),
                 ),

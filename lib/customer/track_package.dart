@@ -28,7 +28,9 @@ class _track_pState extends State<track_p> {
     "In Warehouse",
     "With Driver",
     "Delivered",
-    "Rejected by driver"
+    "Rejected by driver",
+    "Deliver Rejected",
+    "Receive Rejected",
   ];
   bool result = false;
   Future<void> fetchData() async {
@@ -55,6 +57,8 @@ class _track_pState extends State<track_p> {
           vehicleNumber = data['driver']['vehicleNumber'];
           pktIndex = allStatus.indexOf(status);
           pktIndex == 6 ? _index = 3 : _index = pktIndex;
+          pktIndex == 7 ? _index = 3 : _index = 3;
+          pktIndex == 8 ? _index = 3 : _index = 1;
           result = true;
         });
       } else if (data['message'] == "invalid id") {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/customer/addLocations.dart';
 import 'package:flutter_application_1/customer/add_parcel.dart';
 import 'package:flutter_application_1/customer/call.dart';
 import 'package:flutter_application_1/customer/claculatePrice.dart';
@@ -129,6 +130,14 @@ class _homeState extends State<home> {
                       MaterialPageRoute(builder: ((context) => call())));
                 },
                 img: "assets/help.png",
+              ),
+              content(
+                label: 'My Favorite locations',
+                btn: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: ((context) => AddLocation())));
+                },
+                img: "assets/favorite_locations.png",
               ),
             ],
           ),

@@ -1,6 +1,8 @@
 const User=require('../models/users');
 const Package=require('../models/package');
 const Driver=require('../models/driver');
+const Locations=require('../models/locations');
+const Technical=require('../models/technicalMessage');
 const Customer=require('../models/customer');
 const { validationResult } = require('express-validator');
 const nodemailer=require('nodemailer');
@@ -9,14 +11,22 @@ const path = require('path');
 const sequelize = require('../util/database');
 const {Sequelize}=require('sequelize')
 //User.hasOne(Package);
-const user = Package.belongsTo(User, { foreignKey: 'rec_userName',onDelete:'CASCADE'});
+const user = Package.belongsTo(User, { foreignKey: 'rec_userName',onDelete:'CASCADE',as:'rec_user'});
 User.hasMany(Package, { foreignKey: 'rec_userName' });
-const user2 = Package.belongsTo(User, { foreignKey: 'send_userName',onDelete:'CASCADE'});
+const user2 = Package.belongsTo(User, { foreignKey: 'send_userName',onDelete:'CASCADE', as :'send_user'});
 User.hasMany(Package, { foreignKey: 'send_userName' });
 
 const driver = Package.belongsTo(User, { foreignKey: 'driver_userName',onDelete:'CASCADE',as:'driver'});
 User.hasMany(Package, { foreignKey: 'driver_userName' });
 
+const userLocation = Locations.belongsTo(User, { foreignKey: 'userName'});
+User.hasMany(Locations, { foreignKey: 'userName' });
+
+function generateRandomNumber() {
+    const min = 100000; // Smallest 5-digit number
+    const max = 999990; // Largest 5-digit number
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
 function calaulateTotalPrice(shippingType,distance) {
     var totalPrice;
         const jsonData =require('../json/cost');
@@ -164,6 +174,7 @@ exports.sendPackageUser=(req,res,next)=>{
         return res.status(422).json({message:'failed',error}); 
     }
     const total=calaulateTotalPrice(shippingType,distance);
+    if(rec_userName!=""){
     Package.create({
         send_userName:customerUserName,
         rec_userName:rec_userName,
@@ -184,7 +195,7 @@ exports.sendPackageUser=(req,res,next)=>{
         packagePrice:packagePrice,
         total:total
     },{
-        include:   [user,user2]
+        include:   [user]
     }).then((result) => { 
     
         res.status(201).json({message:'done'}); 
@@ -193,7 +204,104 @@ exports.sendPackageUser=(req,res,next)=>{
         res.status(500).json({message:'failed'}); 
         console.log(err);
     });
-
+}
+else{
+    let packageSize;
+    let pass="c"+generateRandomNumber()+"f";
+    if(shippingType=="Package2"){
+        packageSize="Large size box";
+    }
+    else if(shippingType=="Package1"){
+        packageSize="Meduim size box";
+    }
+    else if(shippingType=="Package0"){
+        packageSize="Small size box";
+    }
+    else{
+        packageSize="Document";
+    }
+    Package.create({
+        send_userName:customerUserName,
+        user:
+        {
+            Fname:recName,
+            Lname:" ",
+            userName:"E"+generateRandomNumber()+"fop",
+            password:pass,
+            email:recEmail,
+            phoneNumber:phoneNumber,
+            userType:"customer",
+            "url":".jpg"
+            },
+        status:"Under review",
+        whoWillPay:whoWillPay,
+        shippingType:shippingType,
+        recName:recName,
+        recEmail:recEmail,
+        recPhone:phoneNumber,
+        locationFromInfo:locationFromInfo,
+        locationToInfo:locationToInfo,
+        distance:distance,
+        latTo:latTo,
+        longTo:longTo,
+        latFrom:latFrom,
+        longFrom:longFrom,
+        whoWillPay:whoWillPay,
+        packagePrice:packagePrice,
+        total:total
+    },{
+        include:   [user]
+    }).then((result) => { 
+    
+        //res.status(201).json({message:'done'});
+        User.findOne({where:{username:customerUserName}})
+        .then(result2=>{
+            const emailTemplate = (recName) => {
+                return `
+                  <html>
+                    <body>
+                      <p>Hello ${recName},</p>
+                      <p>${result2.Fname+" "+result2.Lname} has created a new package with number: ${result.packageId} for you, 
+                      you can track the status of the package by downloading Package4U application and writing the attached package number, and also you can edit delivery location.</p>
+                      <p>We create an account for you with username: ${result.rec_userName} and password: ${pass}, you can change your information and password once you sign in to your account.</p>
+                      <p><strong>Package details:</strong></p>
+                      <ol>
+                        <li>The one who will pay to the driver is: ${result.whoWillPay}</li>
+                        <li>The price of the package is: ${result.packagePrice}</li>
+                        <li>Total delivery price is: ${result.total.toFixed(2)}</li>
+                        <li>Package Type: ${packageSize}</li>
+                        <li>Delivery place:${result.locationFromInfo}</li>
+                      </ol>
+                      <p>We will contact you when this package is ready for delivery, and we will also contact you if the package details are modified.</p>
+                      <p>Thank you</p>
+                    </body>
+                  </html>
+                `;
+              };
+              
+            const trans=nodemailer.createTransport({
+                service:"Gmail",
+                auth:{
+                    user:'abood.adas.2001@gmail.com',
+                    pass:'layoiychrtedcpvx'
+                }
+            });
+            const info= trans.sendMail({
+                from:'Package4U <support@Package4U.ps>',
+                to:recEmail,
+                subject:"There's a package for you",
+                html:emailTemplate(recName)
+            })
+            console.log("email send");
+        })
+        .catch(err=>console.log(err));
+        res.status(201).json({message:'done'});  
+        
+    }).catch((err) => {
+        res.status(500).json({message:'failed'}); 
+        console.log(err);
+    });
+}
 }
 
 exports.PendingPackages=(req,res,next)=>{
@@ -250,16 +358,11 @@ exports.PendingPackagesToMe=(req,res,next)=>{
     Package.findAll({ include: [
         {
           model: User,
+          as:"rec_user",
           attributes: ['Fname', 'Lname', 'phoneNumber', 'email'],
           //as: user // Alias for the included model (optional)
         }
-      ],
-      include: [
-        {
-          model: User,
-          attributes: ['Fname', 'Lname', 'phoneNumber', 'email'],
-          //as: user2 // Alias for the included model (optional)
-        }
+      
       ],where:{rec_userName:userName,status:"Under review"}})
     .then((result) => {
         res.status(200).json({message:'done',result:result}); 
@@ -272,15 +375,9 @@ exports.notPendingPackagesToMe=(req,res,next)=>{
     Package.findAll({  include: [
         {
           model: User,
+          as:"rec_user",
           attributes: ['Fname', 'Lname', 'phoneNumber', 'email'],
           //as: user // Alias for the included model (optional)
-        }
-      ],
-      include: [
-        {
-          model: User,
-          attributes: ['Fname', 'Lname', 'phoneNumber', 'email'],
-          //as: user2 // Alias for the included model (optional)
         }
       ],
       where:{rec_userName:userName,status:{ [Sequelize.Op.not]: "Under review" }}})
@@ -316,6 +413,7 @@ exports.editPackageUser=(req,res,next)=>{
         return res.status(422).json({message:'failed',error}); 
     }
     const total=calaulateTotalPrice(shippingType,distance);
+    if(rec_userName!=""){
     Package.update({
         rec_userName:rec_userName,
         whoWillPay:whoWillPay,
@@ -347,6 +445,106 @@ exports.editPackageUser=(req,res,next)=>{
         res.status(500).json({message:'failed edit'}); 
         console.log(err);
     });
+}
+else{
+    let packageSize;
+    let pass="c"+generateRandomNumber()+"f";
+    if(shippingType=="Package2"){
+        packageSize="Large size box";
+    }
+    else if(shippingType=="Package1"){
+        packageSize="Meduim size box";
+    }
+    else if(shippingType=="Package0"){
+        packageSize="Small size box";
+    }
+    else{
+        packageSize="Document";
+    }
+    Package.update({
+        user:
+        {
+            Fname:recName,
+            Lname:" ",
+            userName:"E"+generateRandomNumber()+"fop",
+            password:pass,
+            email:recEmail,
+            phoneNumber:phoneNumber,
+            userType:"customer",
+            "url":".jpg"
+            },
+        whoWillPay:whoWillPay,
+        shippingType:shippingType,
+        recName:recName,
+        recEmail:recEmail,
+        recPhone:phoneNumber,
+        locationFromInfo:locationFromInfo,
+        locationToInfo:locationToInfo,
+        distance:distance,
+        latTo:latTo,
+        longTo:longTo,
+        latFrom:latFrom,
+        longFrom:longFrom,
+        whoWillPay:whoWillPay,
+        packagePrice:packagePrice,
+        total:total
+    },
+    {where:{
+        packageId:packageId,send_userName:customerUserName,status:"Under review"
+    }}
+    ,{
+        include:   [user]
+    }).then((result) => { 
+    
+        //res.status(201).json({message:'done'});
+        User.findOne({where:{username:customerUserName}})
+        .then(result2=>{
+            const emailTemplate = (recName) => {
+                return `
+                  <html>
+                    <body>
+                      <p>Hello ${recName},</p>
+                      <p>${result2.Fname+" "+result2.Lname} has update the package with number: ${result.packageId} for you, 
+                      you can track the status of the package by downloading Package4U application and writing the attached package number, and also you can edit delivery location.</p>
+                      <p>We create an account for you with username: ${result.rec_userName} and password: ${pass}, you can change your information and password once you sign in to your account.</p>
+                      <p><strong>Package details:</strong></p>
+                      <ol>
+                        <li>The one who will pay to the driver is: ${result.whoWillPay}</li>
+                        <li>The price of the package is: ${result.packagePrice}</li>
+                        <li>Total delivery price is: ${result.total.toFixed(2)}</li>
+                        <li>Package Type: ${packageSize}</li>
+                        <li>Delivery place:${result.locationFromInfo}</li>
+                      </ol>
+                      <p>We will contact you when this package is ready for delivery, and we will also contact you if the package details are modified.</p>
+                      <p>Thank you</p>
+                    </body>
+                  </html>
+                `;
+              };
+              
+            const trans=nodemailer.createTransport({
+                service:"Gmail",
+                auth:{
+                    user:'abood.adas.2001@gmail.com',
+                    pass:'layoiychrtedcpvx'
+                }
+            });
+            const info= trans.sendMail({
+                from:'Package4U <support@Package4U.ps>',
+                to:recEmail,
+                subject:"There's a package for you",
+                html:emailTemplate(recName)
+            })
+            console.log("email send");
+        })
+        .catch(err=>console.log(err));
+        res.status(201).json({message:'done'});  
+        
+    }).catch((err) => {
+        res.status(500).json({message:'failed'}); 
+        console.log(err);
+    });
+}
 }
 
 exports.editPackageEmail=(req,res,next)=>{
@@ -472,6 +670,69 @@ exports.getPackageState=(req,res,next)=>{
             res.status(500).json({message:'failed'}); 
         });
     }
+        }).catch((err) => {
+            console.log(err)
+            res.status(500).json({message:'failed'}); 
+        });
+}
+
+exports.getMyLocations=(req,res,next)=>{
+    const userName=req.query.userName;
+    Locations.findAll({attributes:['longTo','latTo','location','name','id'],
+        where:{userName:userName}})
+        .then((result) => {
+            if(result.length!=0)
+                return res.status(200).json({message:'done',result}); 
+            return res.status(404).json({message:'No locations saved'}); 
+        }).catch((err) => {
+            console.log(err)
+            res.status(500).json({message:'failed'}); 
+        });
+}
+
+exports.postAddNewLocation=(req,res,next)=>{
+    const customerUserName=req.body.customerUserName;
+    const locationName=req.body.locationName;
+    const locationInfo=req.body.locationInfo;
+    const latTo=req.body.latTo;
+    const longTo=req.body.longTo;
+    Locations.create({
+        userName:customerUserName,
+        name:locationName,
+        location:locationInfo,
+        latTo:latTo,
+        longTo:longTo,
+    },{
+        include:   [userLocation]
+    }).then((result) => { 
+    
+        res.status(201).json({message:'done'}); 
+        
+    }).catch((err) => {
+        res.status(500).json({message:'failed'}); 
+        console.log(err);
+    });
+}
+exports.postDeleteLocation=(req,res,next)=>{
+    const customerUserName=req.body.customerUserName;
+    const id=req.body.id;
+    Locations.destroy({where:{userName:customerUserName,id:id}})
+    .then((result) => {
+        if(result==1)res.status(200).json({message:'done'}); 
+        else res.status(500).json({message:'failed'}); 
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).json({message:'failed'}); 
+    });
+}
+exports.getTechnicalReports=(req,res,next)=>{
+    const customerUserName=req.body.customerUserName;
+    Technical.findAll({
+        where:{userName:customerUserName}})
+        .then((result) => {
+            if(result.length!=0)
+                return res.status(200).json({message:'done',result}); 
+            return res.status(404).json({message:'There are no reports sent'}); 
         }).catch((err) => {
             console.log(err)
             res.status(500).json({message:'failed'}); 

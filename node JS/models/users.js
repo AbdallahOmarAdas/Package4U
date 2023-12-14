@@ -50,11 +50,4 @@ const User=sequelize.define('users',{
     
     }
 });
-// Driver.associate=models=>{
-//     User.hasOne(models.Driver,{
-//         foreignKey:{
-//             onDelete:"cascade"
-//         }
-//     });
-// }
 module.exports=User;

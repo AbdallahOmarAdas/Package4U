@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_application_1/customer/set_location.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
@@ -77,8 +78,8 @@ class _add_parcelState extends State<add_parcel> {
   late double latfrom = 0;
   late double longfrom;
   late double latto = 0;
-  late double longto;
-  late double distance = 0;
+  late double longto = 0;
+  double distance = 0;
   String? userName;
   double openingPrice = 5;
   double totalPrice = 0;
@@ -86,6 +87,7 @@ class _add_parcelState extends State<add_parcel> {
   double pricePerKm = 1.5;
   double bigPackagePrice = 4;
   String? rec_name;
+  String? rec_userName = "";
   String? payment_method;
   String? rec_phone;
   String? rec_email;
@@ -100,24 +102,31 @@ class _add_parcelState extends State<add_parcel> {
   TextEditingController _textController2 = TextEditingController();
   TextEditingController _textControllerName = TextEditingController();
   TextEditingController _textControllerphone = TextEditingController();
-  TextEditingController _textControllerRec_userName = TextEditingController();
-  String selectedUserName = "";
+  //TextEditingController _textControllerRec_userName = TextEditingController();
+  TextEditingController _textControllerEmail = TextEditingController();
+  String selectedName = "";
   int discount = 0;
   String shippingType = "Document";
   String paySelectedValue = "The recipient";
   String accountSelectedValue = "Have";
   int selectedIdx = 0;
   List<dynamic> suggestions = [];
+  List Locations = [];
+  bool isSetLocationAllow = false;
   List payment = [
     'Card',
     'Paypal',
     'Cash delivery',
   ];
   late int selectedValue;
+
   @override
   void initState() {
     super.initState();
     calculatePackageSizeprice();
+
+    fetchLocations();
+
     userName = GetStorage().read('userName');
     fetchData();
 
@@ -131,26 +140,26 @@ class _add_parcelState extends State<add_parcel> {
       latto = widget.latto;
       longfrom = widget.longfrom;
       latfrom = widget.latfrom;
-      rec_email = widget.email;
+      _textControllerEmail.text = widget.email;
       package_price = widget.price.toString();
-      _textControllerRec_userName.text =
-          widget.rec_userName == "null" ? '' : widget.rec_userName;
-      selectedUserName =
-          widget.rec_userName == "null" ? '' : widget.rec_userName;
+      _textControllerName.text = widget.name == "null" ? '' : widget.name;
+      selectedName = widget.name == "null" ? '' : widget.name;
+      rec_userName = widget.rec_userName == "null" ? '' : widget.rec_userName;
     }
     // = widget.accountSelectedValue == "Have" ? "Document" : widget.shipping;
     shippingType = widget.shipping == "Document" ? "Document" : widget.shipping;
     selectedIdx = widget.package_size == 0 ? 0 : widget.package_size;
-    _textController = TextEditingController(
+    _textController2 = TextEditingController(
       text: widget.shippingto != '' ? widget.shippingto : null,
     );
-    _textController2 = TextEditingController(
+    _textController = TextEditingController(
       text: widget.shippingfrom != '' ? widget.shippingfrom : null,
     );
     _textControllerName.text = widget.name != '' ? widget.name : '';
     _textControllerphone.text =
         widget.phone != 0 ? "0" + widget.phone.toString() : "";
     calculatePackageSizeprice();
+    calaulateTotalPrice();
   }
 
   void calculatePackageSizeprice() {
@@ -212,6 +221,17 @@ class _add_parcelState extends State<add_parcel> {
     }
   }
 
+  void reCalculateDistance(
+      double latFrom, double longFrom, double latTo, double longTo) async {
+    if (latTo != 0 && longTo != 0) {
+      distance = await calculateDistance(latFrom, longFrom, latTo, longTo);
+      setState(() {
+        distance;
+        calaulateTotalPrice();
+      });
+    }
+  }
+
   Future<void> fetchData() async {
     var url =
         urlStarter + "/users/showCustomers?userName=" + userName.toString();
@@ -239,68 +259,19 @@ class _add_parcelState extends State<add_parcel> {
   String customerUserName = GetStorage().read('userName');
   String customerPassword = GetStorage().read('password');
 
-  Future postSendPackageEmail(String endPoint, String doneMsg) async {
-    var url = urlStarter + endPoint;
-    var responce = await http.post(Uri.parse(url),
-        body: jsonEncode({
-          "customerUserName": customerUserName,
-          "customerPassword": customerPassword,
-          "recName": rec_name,
-          "recEmail": rec_email,
-          "phoneNumber": rec_phone,
-          "packagePrice": package_price,
-          "shippingType": shippingType + selectedIdx.toString(),
-          "whoWillPay": paySelectedValue == "The recipient"
-              ? paySelectedValue
-              : "The sender",
-          "distance": distance,
-          "latTo": latto,
-          "longTo": longto,
-          "latFrom": latfrom,
-          "longFrom": longfrom,
-          "locationFromInfo": locationFromInfo,
-          "locationToInfo": locationToInfo
-        }),
-        headers: {
-          'Content-type': 'application/json; charset=UTF-8',
-        });
-    var responceBody = jsonDecode(responce.body);
-    print(responceBody);
-    if (responceBody['message'] == "failed") {
-      List errors = responceBody['error']['errors'];
-      showDialog(
-          context: context,
-          builder: (context) {
-            return show_dialog().aboutDialogErrors(errors, context);
-          });
-    }
-    if (responceBody['message'] == "done") {
-      showDialog(
-          context: context,
-          builder: (context) {
-            return show_dialog().alartDialogPushNamed(
-                "Done!", doneMsg, context, GetStorage().read("userType"));
-          });
-    }
-
-    return responceBody;
-  }
-
   Future postSendPackageUser(String endPoint, String doneMsg) async {
     var url = urlStarter + endPoint;
     var responce = await http.post(Uri.parse(url),
         body: jsonEncode({
           "customerUserName": customerUserName,
           "customerPassword": customerPassword,
-          "rec_userName": selectedUserName,
-          "recName": rec_name,
+          "rec_userName": rec_userName,
+          "recName": selectedName,
           "recEmail": rec_email,
           "phoneNumber": rec_phone,
           "packagePrice": package_price,
           "shippingType": shippingType + selectedIdx.toString(),
-          "whoWillPay": paySelectedValue == "The recipient"
-              ? paySelectedValue
-              : "The sender",
+          "whoWillPay": paySelectedValue,
           "distance": distance,
           "latTo": latto,
           "longTo": longto,
@@ -340,6 +311,30 @@ class _add_parcelState extends State<add_parcel> {
         1000;
   }
 
+  Future<void> fetchLocations() async {
+    var url =
+        urlStarter + "/customer/getMyLocations?userName=" + customerUserName;
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      setState(() {
+        Locations = data['result'];
+      });
+    } else if (response.statusCode == 404) {
+      setState(() {});
+    } else {
+      throw Exception('Failed to load data');
+    }
+    Locations.add({
+      "longTo": 35.297659,
+      "latTo": 32.193192,
+      "location":
+          "residential: روجيب, suburb: إسكان الموظفين, village: روجيب, county: منطقة ب",
+      "name": "Manually set Location",
+      "id": 99999999
+    });
+  }
+
   List<DataItem> items = [
     DataItem(name: 'Small Package', img: "assets/small.jpeg"),
     DataItem(name: 'Meduim Package', img: "assets/meduim.jpeg"),
@@ -366,55 +361,16 @@ class _add_parcelState extends State<add_parcel> {
                 key: formState5,
                 child: Column(
                   children: [
-                    // SizedBox(height: 10),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Text(
-                          'Does the recipient have a Package4u account?',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Radio(
-                          activeColor: primarycolor,
-                          value: "Have",
-                          groupValue: accountSelectedValue,
-                          onChanged: (value) {
-                            setState(() {
-                              accountSelectedValue = value.toString();
-                            });
-                          },
-                        ),
-                        Text("Have"),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Radio(
-                          activeColor: primarycolor,
-                          value: "Doesn't have",
-                          groupValue: accountSelectedValue,
-                          onChanged: (value) {
-                            setState(() {
-                              accountSelectedValue = value.toString();
-                            });
-                          },
-                        ),
-                        Text("Doesn't have"),
-                      ],
-                    ),
+                    SizedBox(height: 10),
                     Visibility(
-                      visible: accountSelectedValue == "Have",
+                      visible: true,
                       child: SearchField(
-                        controller: _textControllerRec_userName,
+                        controller: _textControllerName,
                         onSearchTextChanged: (query) {
+                          rec_userName = '';
                           if (!query.isEmpty) {
                             final filter = suggestions
-                                .where((element) => element['userName']
+                                .where((element) => element['Fname']
                                     .toLowerCase()
                                     .startsWith(query.toLowerCase()))
                                 .toList();
@@ -422,10 +378,14 @@ class _add_parcelState extends State<add_parcel> {
                                 .map((e) => SearchFieldListItem<String>(
                                     e['userName'].toString(),
                                     child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 4.0),
-                                      child: Text(e['userName'].toString(),
-                                          style: TextStyle(fontSize: 16)),
+                                      padding: const EdgeInsets.all(0.0),
+                                      child: ListTile(
+                                        title: Text(e['Fname'] +
+                                            " " +
+                                            e['Lname'].toString()),
+                                        trailing:
+                                            Text(e['userName'].toString()),
+                                      ),
                                     )))
                                 .toList();
                           }
@@ -433,16 +393,17 @@ class _add_parcelState extends State<add_parcel> {
                         },
                         validator: (value) {
                           if (value!.isEmpty)
-                            return "please enter the recipient's username";
+                            return "please enter the recipient's name";
                           return null;
                         },
                         onSaved: (newValue) {
+                          selectedName = newValue.toString();
                           print(newValue);
                         },
                         scrollbarDecoration: ScrollbarDecoration(),
                         searchInputDecoration: theme_helper().text_form_style(
-                            "The recipient's username",
-                            "Enter The recipient's username",
+                            "The recipient's name",
+                            "Enter The recipient's name",
                             Icons.person_outline_sharp),
                         itemHeight: 50,
                         suggestions: []
@@ -459,39 +420,43 @@ class _add_parcelState extends State<add_parcel> {
                         onSuggestionTap: (SearchFieldListItem<String> x) {
                           setState(() {
                             focus.unfocus();
-                            selectedUserName = x.searchKey;
-                            final filter = suggestions
-                                .where((element) => element['userName']
-                                    .toLowerCase()
-                                    .startsWith(selectedUserName.toLowerCase()))
-                                .toList();
+                            selectedName = x.searchKey;
+                            print(selectedName);
+                            final filter = suggestions.where((element) {
+                              return element['userName']
+                                  .toLowerCase()
+                                  .startsWith(selectedName.toLowerCase());
+                            }).toList();
                             rec_name =
                                 filter[0]['Fname'] + " " + filter[0]['Lname'];
                             rec_phone =
                                 "0" + filter[0]['phoneNumber'].toString();
+                            rec_email = filter[0]['email'];
+                            selectedName = rec_name.toString();
                             _textControllerphone.text = rec_phone.toString();
                             _textControllerName.text = rec_name.toString();
-                            rec_email = filter[0]['email'];
+                            _textControllerEmail.text = rec_email.toString();
+                            rec_userName = filter[0]['userName'];
+                            print(rec_userName);
                           });
                         },
                       ),
                     ),
-                    SizedBox(height: 10),
-                    TextFormField(
-                      controller: _textControllerName,
-                      //initialValue: widget.name != '' ? widget.name : null,
-                      decoration: theme_helper().text_form_style(
-                          "The recipient's name",
-                          "Enter The recipient's name",
-                          Icons.abc),
-                      validator: (value) {
-                        if (value!.isEmpty) return "The recipient's name";
-                        return null;
-                      },
-                      onSaved: (newValue) {
-                        rec_name = newValue;
-                      },
-                    ),
+                    // SizedBox(height: 10),
+                    // TextFormField(
+                    //   controller: _textControllerName,
+                    //   decoration: theme_helper().text_form_style(
+                    //       "The recipient's Username",
+                    //       "Enter The recipient's Username",
+                    //       Icons.abc),
+                    //   validator: (value) {
+                    //     if (value!.isEmpty) return "The recipient's Username";
+                    //     return null;
+                    //   },
+                    //   onSaved: (newValue) {
+                    //     rec_name = newValue;
+                    //   },
+                    // ),
                     SizedBox(height: 10),
                     TextFormField(
                       controller: _textControllerphone,
@@ -513,12 +478,13 @@ class _add_parcelState extends State<add_parcel> {
                       },
                     ),
                     Visibility(
-                      visible: accountSelectedValue == "Doesn't have",
+                      visible: true, //accountSelectedValue == "Doesn't have",
                       child: Column(
                         children: [
                           SizedBox(height: 10),
                           TextFormField(
-                            initialValue: rec_email,
+                            controller: _textControllerEmail,
+                            //initialValue: rec_email,
                             keyboardType: TextInputType.emailAddress,
                             decoration: theme_helper().text_form_style(
                                 "The recipient's email",
@@ -543,7 +509,11 @@ class _add_parcelState extends State<add_parcel> {
                     SizedBox(height: 10),
                     TextFormField(
                       initialValue: package_price,
-                      keyboardType: TextInputType.phone,
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                      ],
                       decoration: theme_helper().text_form_style(
                           "package price(or enter 0 if payment done)",
                           "Enter The package price",
@@ -557,35 +527,7 @@ class _add_parcelState extends State<add_parcel> {
                       },
                     ),
                     SizedBox(height: 10),
-                    // DropdownButtonFormField(
-                    //   isExpanded: true,
-                    //   hint: Text('Choose payment method',
-                    //       style: TextStyle(color: Colors.grey)),
-                    //   items: payment.map((value) {
-                    //     return DropdownMenuItem(
-                    //       value: value,
-                    //       child: Text(value),
-                    //     );
-                    //   }).toList(),
-                    //   value: payment_method,
-                    //   decoration: theme_helper().text_form_style(
-                    //     '',
-                    //     '',
-                    //     Icons.location_city,
-                    //   ),
-                    //   onChanged: (value) {
-                    //     setState(() {
-                    //       payment_method = value as String?;
-                    //       print(payment_method);
-                    //     });
-                    //   },
-                    //   validator: (value) {
-                    //     if (value == null) {
-                    //       return "Please select payment method";
-                    //     }
-                    //   },
-                    // ),
-                    // SizedBox(height: 10),
+
                     Row(
                       children: [
                         SizedBox(
@@ -615,7 +557,7 @@ class _add_parcelState extends State<add_parcel> {
                         ),
                         Radio(
                           activeColor: primarycolor,
-                          value: "I'll pay",
+                          value: "The sender",
                           groupValue: paySelectedValue,
                           onChanged: (value) {
                             setState(() {
@@ -704,11 +646,8 @@ class _add_parcelState extends State<add_parcel> {
                                       children: [
                                         Image(
                                           height: 140,
-                                          image: AssetImage(items[index].img),
-                                          // items[index].img,
-                                          // style: TextStyle(
-                                          //   color: Colors.black,
-                                          // ),
+                                          image: AssetImage(
+                                              items[index].img), // ),
                                         ),
                                         Text('${items[index].name}')
                                       ],
@@ -720,6 +659,55 @@ class _add_parcelState extends State<add_parcel> {
                           },
                         ),
                       ),
+                    ),
+                    SizedBox(height: 10),
+                    DropdownButtonFormField(
+                      isExpanded: true,
+                      hint: Text('Choose shipping from location',
+                          style: TextStyle(color: Colors.grey)),
+                      items: Locations.map((value) {
+                        return DropdownMenuItem(
+                          value: value['id'],
+                          child: Text(
+                            value['name'].toString(),
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        );
+                      }).toList(),
+                      value: payment_method,
+                      decoration: theme_helper().text_form_style(
+                        '',
+                        '',
+                        Icons.not_listed_location_outlined,
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          if (99999999 == value) {
+                            isSetLocationAllow = true;
+                          } else {
+                            isSetLocationAllow = false;
+                            Locations.map((value1) {
+                              if (value == value1['id']) {
+                                latfrom = value1['latTo'];
+                                longfrom = value1['longTo'];
+                                locationFromInfo = value1['location'];
+                                _textController.text =
+                                    locationFromInfo.toString();
+                                reCalculateDistance(
+                                    latfrom, longfrom, latto, longto);
+                              }
+                            }).toString();
+                          }
+
+                          print(isSetLocationAllow);
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return "Please choose location";
+                        }
+                        return null;
+                      },
                     ),
                     SizedBox(height: 10),
                     TextFormField(
@@ -734,6 +722,7 @@ class _add_parcelState extends State<add_parcel> {
                       onSaved: (val) {
                         locationFromInfo = val;
                       },
+                      enabled: isSetLocationAllow,
                       onTap: () {
                         Navigator.push(
                             context,
@@ -854,9 +843,6 @@ class _add_parcelState extends State<add_parcel> {
                             style: TextStyle(color: Colors.grey, fontSize: 20),
                           ),
                           Text(
-                            // widget.delv_price != ''
-                            //     ? '${widget.delv_price}\$'
-                            //     : '1000\$'
                             pricePerKm.toStringAsFixed(2),
                             style: TextStyle(color: Colors.grey, fontSize: 20),
                           ),
@@ -973,28 +959,15 @@ class _add_parcelState extends State<add_parcel> {
                             formState5.currentState!.save();
                             if (widget.title == "Edit Package") {
                               print("Edit Package");
-                              if (accountSelectedValue == "Have") {
-                                print("have");
-                                postSendPackageUser(
-                                    "/customer/editPackageUser?packageId=" +
-                                        widget.packageId.toString(),
-                                    "The package is edited successfully");
-                              } else {
-                                postSendPackageEmail(
-                                    "/customer/editPackageEmail?packageId=" +
-                                        widget.packageId.toString(),
-                                    "The package is edited successfully");
-                              }
+                              print("have");
+                              postSendPackageUser(
+                                  "/customer/editPackageUser?packageId=" +
+                                      widget.packageId.toString(),
+                                  "The package is edited successfully");
                             } else {
-                              if (accountSelectedValue == "Have") {
-                                print("have");
-                                postSendPackageUser("/customer/sendPackageUser",
-                                    "The package is created successfully, now it is in review status you can edit it");
-                              } else {
-                                postSendPackageEmail(
-                                    "/customer/sendPackageEmail",
-                                    "The package is created successfully, now it is in review status you can edit it");
-                              }
+                              print("have");
+                              postSendPackageUser("/customer/sendPackageUser",
+                                  "The package is created successfully, now it is in review status you can edit it");
                             }
                           }
                         },
