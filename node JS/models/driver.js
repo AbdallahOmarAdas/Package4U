@@ -32,9 +32,21 @@ const Driver=sequelize.define('driver',{
         type:Sequelize.DOUBLE,
         allowNull:true
     },
-    isAvailable:{
-        type:Sequelize.BOOLEAN,
+    notAvailableDate:{
+        type:Sequelize.DATE,
         allowNull:true
-    }
+    },
+    totalBalance:{
+        type:Sequelize.DOUBLE,
+        allowNull:true
+    },
+    deliverdNumber: {
+        type: Sequelize.INTEGER,
+        allowNull:true
+      },
+      receivedNumber: {
+        type: Sequelize.INTEGER,
+        allowNull:true
+      },
 });
 module.exports=Driver;

@@ -198,3 +198,35 @@ exports.postRejectWorkOnPackageDriver=(req,res,next)=>{
             res.status(500).json({message:'failed'}); 
         });
 }
+
+exports.getSummary=(req,res,next)=>{
+    const driverUserName=req.query.driverUserName;
+    let notReceived=0;
+    let notDeliverd=0;
+    Package.count({
+    where:{driver_userName:driverUserName,status:"Wait Driver"}})
+    .then((count) => {
+        notReceived=count;
+    }).catch((err) => {
+        console.log(err)
+    });
+    Package.count({
+        where:{driver_userName:driverUserName,status:"With Driver"}})
+        .then((count) => {
+            notDeliverd=count;
+        }).catch((err) => {
+            console.log(err)
+        });
+    Driver.findOne({where:{userUserName:driverUserName}}).then((Summary) => {
+        res.status(200).json({
+            balance:Summary.totalBalance,
+            deliverd:Summary.deliverdNumber,
+            received:Summary.receivedNumber,
+            notReceived:notReceived,
+            notDeliverd:notDeliverd,
+        }); 
+    }).catch((err) => {
+        console.log(err)
+        res.status(500).json({message:'failed'}); 
+    });
+}

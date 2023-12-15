@@ -1,9 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/Models/Summary.dart';
 import 'package:flutter_application_1/drivers/content_page_driver.dart';
 import 'package:flutter_application_1/drivers/donePackages.dart';
 import 'package:flutter_application_1/drivers/onGoing.dart';
 import 'package:flutter_application_1/drivers/preparePackages.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:intl/intl.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class HomeDriver extends StatefulWidget {
   @override
@@ -11,11 +17,60 @@ class HomeDriver extends StatefulWidget {
 }
 
 class _HomeDriverState extends State<HomeDriver> {
+  late String _currentDate;
+  late String _currentTime;
+  Summary summary = Summary(
+      balance: 0, deliverd: 0, notDeliverd: 0, notReceived: 0, received: 0);
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+    _updateDateTime();
+    Timer.periodic(Duration(seconds: 1), (Timer timer) {
+      _updateDateTime();
+    });
+  }
+
+  void _updateDateTime() {
+    final now = DateTime.now();
+    final formattedDate = DateFormat('yyyy-MM-dd').format(now);
+    final formattedTime = DateFormat('HH:mm:ss').format(now);
+    setState(() {
+      _currentDate = formattedDate;
+      _currentTime = formattedTime;
+    });
+  }
+
+  Future<void> fetchData() async {
+    var url = urlStarter +
+        "/driver/summary?driverUserName=" +
+        GetStorage().read("userName");
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      setState(() {
+        summary = Summary.fromJson(data);
+      });
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
+
+  void RefreshPage() {
+    fetchData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.grey.shade300,
-        body: SingleChildScrollView(
+        body: Container(
+          // decoration: BoxDecoration(
+          //   image: DecorationImage(
+          //     image: AssetImage('assets/test.jpg'),
+          //     //fit: BoxFit.cover, // You can adjust the BoxFit property as needed
+          //   ),
+          // ),
           child: Column(
             children: [
               Container(
@@ -25,11 +80,115 @@ class _HomeDriverState extends State<HomeDriver> {
                 ),
               ),
               Container(
-                height: 250,
+                height: 300,
+                // color: Colors.amber,
                 width: MediaQuery.of(context).size.width,
-                child: Image(
-                  image: AssetImage("assets/ff.png"),
-                  fit: BoxFit.cover,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      "Summary of today's work",
+                      style: TextStyle(
+                          fontSize: 35,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Text(
+                          _currentDate,
+                          style:
+                              TextStyle(fontSize: 25, color: Colors.grey[700]),
+                        ),
+                        Text(
+                          _currentTime,
+                          style:
+                              TextStyle(fontSize: 25, color: Colors.grey[700]),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          "Today Balance",
+                          style: TextStyle(
+                              fontSize: 25,
+                              color: primarycolor,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          summary.balance.toString(),
+                          style: TextStyle(fontSize: 25, color: primarycolor),
+                        )
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              "Delivered",
+                              style: TextStyle(
+                                  fontSize: 25, color: Colors.green[800]),
+                            ),
+                            Text(
+                              summary.deliverd.toString(),
+                              style: TextStyle(
+                                  fontSize: 25, color: Colors.green[400]),
+                            )
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              "Not Delivered",
+                              style: TextStyle(fontSize: 25, color: Colors.red[800]),
+                            ),
+                            Text(
+                              summary.notDeliverd.toString(),
+                              style: TextStyle(
+                                  fontSize: 25, color: Colors.red[300]),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              "Received",
+                              style: TextStyle(
+                                  fontSize: 25, color: Colors.green[800]),
+                            ),
+                            Text(
+                              summary.received.toString(),
+                              style: TextStyle(
+                                  fontSize: 25, color: Colors.green[400]),
+                            )
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              "Not Received",
+                              style: TextStyle(
+                                  fontSize: 25, color: Colors.red[800]),
+                            ),
+                            Text(
+                              summary.notReceived.toString(),
+                              style: TextStyle(
+                                  fontSize: 25, color: Colors.red[400]),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                  ],
                 ),
               ),
               SizedBox(
@@ -41,7 +200,7 @@ class _HomeDriverState extends State<HomeDriver> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: ((context) => OnGoingPackages())));
+                          builder: ((context) => OnGoingPackages()))).then((value) => RefreshPage());
                 },
                 img: "assets/onGoing.png",
               ),
@@ -54,7 +213,7 @@ class _HomeDriverState extends State<HomeDriver> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: ((context) => PreparePackages())));
+                          builder: ((context) => PreparePackages()))).then((value) => RefreshPage());
                 },
                 img: "assets/box.png",
               ),
@@ -67,7 +226,7 @@ class _HomeDriverState extends State<HomeDriver> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: ((context) => DonePackages())));
+                          builder: ((context) => DonePackages()))).then((value) => RefreshPage());
                 },
                 img: "assets/package-delivered-icon.png",
               ),

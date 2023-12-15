@@ -148,6 +148,8 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
                 " " +
                 packagesList[i]['send_user']['Lname'],
             delivered_price: packagesList[i]['total'],
+            whoWillPay: packagesList[i]['whoWillPay'],
+            pktdistance: packagesList[i]['distance'],
             distance: distance,
             id: packagesList[i]['packageId'],
             username: packagesList[i]['send_userName'],
@@ -176,7 +178,9 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
                 " " +
                 packagesList[i]['rec_user']['Lname'],
             delivered_price: packagesList[i]['total'],
+            whoWillPay: packagesList[i]['whoWillPay'],
             distance: distance,
+            pktdistance: packagesList[i]['distance'],
             id: packagesList[i]['packageId'],
             username: packagesList[i]['rec_userName'],
             context: this.context,
@@ -231,10 +235,12 @@ class Content extends StatefulWidget {
   final int id;
   late String reason;
   final String phone;
+  final String whoWillPay;
   final Position driverPosition;
   final String name;
   final String username;
   final String img;
+  final double pktdistance;
   final double delivered_price;
   final double distance;
   final String delivery_type; // 0 Delivery of a package , 1 Receiving a package
@@ -251,6 +257,8 @@ class Content extends StatefulWidget {
       required this.driverPosition,
       required this.distance,
       required this.phone,
+      required this.pktdistance,
+      required this.whoWillPay,
       this.reason = '',
       required this.locationDescription,
       required this.name,
@@ -460,6 +468,24 @@ class _ContentState extends State<Content> {
                           height: 10,
                         ),
                         Text.rich(TextSpan(
+                            text: 'whoWillPay: ',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey),
+                            children: <InlineSpan>[
+                              TextSpan(
+                                text: widget.whoWillPay,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.red,
+                                ),
+                              )
+                            ])),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text.rich(TextSpan(
                             text: 'Distance: ',
                             style: TextStyle(
                                 fontSize: 15,
@@ -602,8 +628,10 @@ class _ContentState extends State<Content> {
                                         latFrom: widget.driverPosition.latitude,
                                         phone: widget.phone,
                                         id: widget.id,
+                                        pktdistance: widget.pktdistance,
                                         img: widget.img,
                                         longTo: widget.long,
+                                        whoWillPay: widget.whoWillPay,
                                         latTo: widget.lat,
                                         packageType: widget.packageType,
                                         name: widget.name,
