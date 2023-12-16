@@ -19,6 +19,8 @@ class _PreparePackagesState extends State<PreparePackages>
     with SingleTickerProviderStateMixin {
   late List<Content> deliver_order = [];
   late List<Content> receive_order = [];
+  late List<Content> filterdReceive_order = [];
+  late List<Content> filterdDelivered_order = [];
   TabController? myControler;
   List<dynamic> deliverdList = [];
 
@@ -102,6 +104,9 @@ class _PreparePackagesState extends State<PreparePackages>
             long: deliverdList[i]['longTo'],
             locationDescription:
                 deliverdList[i]['locationToInfo'].toString().split(','),
+            whoWillPay: deliverdList[i]['whoWillPay'],
+            showDeliveryPrice:
+                deliverdList[i]['whoWillPay'] == "The recipient" ? true : false,
             refreshData: () {
               postGetPreparePackage();
             },
@@ -128,6 +133,9 @@ class _PreparePackagesState extends State<PreparePackages>
             long: deliverdList[i]['longFrom'],
             locationDescription:
                 deliverdList[i]['locationFromInfo'].toString().split(','),
+            whoWillPay: deliverdList[i]['whoWillPay'],
+            showDeliveryPrice:
+                deliverdList[i]['whoWillPay'] == "The sender" ? true : false,
             refreshData: () {
               setState(() {
                 postGetPreparePackage();
@@ -136,9 +144,15 @@ class _PreparePackagesState extends State<PreparePackages>
           ),
         );
       }
+      filterdDelivered_order = deliver_order;
+      filterdReceive_order = receive_order;
     }
   }
 
+  TextEditingController _searchController = TextEditingController();
+  String? searchText;
+  String? filterBy = "Package Id";
+  List<String> FilterBylist = ["Package Id", "Name", "Username", "Size"];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,32 +175,145 @@ class _PreparePackagesState extends State<PreparePackages>
               )
             ]),
       ),
-      body: TabBarView(controller: myControler, children: [
-        receive_order.length == 0
-            ? Center(
-                child: Text(
-                "You don't have packages to receiver",
-                style: TextStyle(fontSize: 20, color: primarycolor),
-              ))
-            : Padding(
-                padding: const EdgeInsets.all(10),
-                child: ListView(
-                  children: receive_order,
-                ),
+      body: Column(
+        children: [
+          Expanded(
+            child: TabBarView(controller: myControler, children: [
+              receive_order.length == 0
+                  ? Center(
+                      child: Text(
+                      "You don't have packages to receiver",
+                      style: TextStyle(fontSize: 20, color: primarycolor),
+                    ))
+                  : Column(
+                      children: [
+                        filter(receive_order, 1),
+                        Expanded(
+                          child: ListView(
+                            children: filterdReceive_order,
+                          ),
+                        ),
+                      ],
+                    ),
+              deliver_order.length == 0
+                  ? Center(
+                      child: Text(
+                      "You don't have packages to deliver",
+                      style: TextStyle(fontSize: 20, color: primarycolor),
+                    ))
+                  : Column(
+                      children: [
+                        filter(deliver_order, 0),
+                        Expanded(
+                          child: ListView(
+                            children: filterdDelivered_order,
+                          ),
+                        ),
+                      ],
+                    ),
+            ]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container filter(List<Content> receive_order, int type) {
+    return Container(
+      padding: EdgeInsets.only(top: 10, right: 7, left: 7),
+      height: 60,
+      color: Colors.grey[100],
+      child: GridView.builder(
+        itemCount: 2,
+        physics: NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 25,
+            mainAxisSpacing: 2,
+            childAspectRatio: 3),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Container(
+                child: TextFormField(
+              controller: _searchController,
+              onChanged: (value) {
+                //  List<String> FilterBylist = ["Package Id", "Name", "Username", "Size"];
+                List<Content> filterd;
+                filterd = receive_order.where((element) {
+                  switch (filterBy) {
+                    case 'Package Id':
+                      return element.id.toString().startsWith(value);
+                    case 'Name':
+                      return element.name
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(value.toLowerCase());
+                    case 'Username':
+                      return element.username
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(value.toLowerCase());
+                    case 'Size':
+                      return element.packageType
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(value.toLowerCase());
+                    default:
+                      return true;
+                  }
+                }).toList();
+                setState(() {
+                  if (type == 1) {
+                    filterdReceive_order = filterd;
+                  } else if (type == 0) {
+                    filterdDelivered_order = filterd;
+                  }
+                });
+              },
+              decoration: theme_helper().text_form_style_search(
+                'Search',
+                'Enter ${filterBy}',
+                Icons.search,
+                _searchController,
+                () {
+                  _searchController.clear();
+                  setState(() {
+                    if (type == 1) {
+                      filterdReceive_order = receive_order;
+                    } else if (type == 0) {
+                      filterdDelivered_order = deliver_order;
+                    }
+                  });
+                },
               ),
-        deliver_order.length == 0
-            ? Center(
-                child: Text(
-                "You don't have packages to deliver",
-                style: TextStyle(fontSize: 20, color: primarycolor),
-              ))
-            : Padding(
-                padding: const EdgeInsets.all(10),
-                child: ListView(
-                  children: deliver_order,
+            ));
+          } else {
+            return Container(
+              child: DropdownButtonFormField(
+                value: filterBy,
+                isExpanded: true,
+                hint: Text('Filter By'),
+                decoration: theme_helper().text_form_style(
+                  '',
+                  '',
+                  Icons.filter_alt,
                 ),
+                items: FilterBylist.map((value) {
+                  return DropdownMenuItem(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    filterBy = (value as String?)!;
+                  });
+                },
               ),
-      ]),
+            );
+          }
+        },
+      ),
     );
   }
 }
@@ -206,12 +333,15 @@ class Content extends StatefulWidget {
   final Function() refreshData;
   final double lat;
   final double long;
+  final String whoWillPay;
   final List<String> locationDescription;
+  final bool showDeliveryPrice;
 
   Content(
       {super.key,
       required this.id,
       required this.phone,
+      required this.whoWillPay,
       this.reason = '',
       required this.locationDescription,
       required this.name,
@@ -222,6 +352,7 @@ class Content extends StatefulWidget {
       required this.delivery_type,
       required this.refreshData,
       required this.packageType,
+      required this.showDeliveryPrice,
       required this.lat,
       required this.long});
 
@@ -427,22 +558,43 @@ class _ContentState extends State<Content> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text.rich(TextSpan(
-                        text: 'Total Delivery Price: ',
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey),
-                        children: <InlineSpan>[
-                          TextSpan(
-                            text:
-                                ' ${widget.delivered_price.toStringAsFixed(2)}\$',
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(TextSpan(
+                            text: 'Who Will Pay: ',
                             style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.red,
-                            ),
-                          )
-                        ])),
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey),
+                            children: <InlineSpan>[
+                              TextSpan(
+                                text: ' ${widget.whoWillPay}',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.red,
+                                ),
+                              )
+                            ])),
+                        Text.rich(TextSpan(
+                            text: 'Total Delivery Price: ',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey),
+                            children: <InlineSpan>[
+                              TextSpan(
+                                text: widget.showDeliveryPrice
+                                    ? '${widget.delivered_price.toStringAsFixed(2)}\$'
+                                    : '--',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.red,
+                                ),
+                              )
+                            ])),
+                      ],
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [

@@ -24,6 +24,7 @@ const driverAuth = (req, res, next) => {
     .catch(err=>console.log(err));
     
   };
+  router.post(driverAuth);
 router.post('/getDeliverdDriver',                                       
             driverController.getDeliverdDriver);
 router.post('/getPreparePackageDriver',                                       
@@ -40,6 +41,6 @@ router.post('/compleatePackageDriver',
             driverController.postCompleatePackageDriver);
 router.post('/RejectWorkOnPackageDriver',
             driverController.postRejectWorkOnPackageDriver);
-//router.get('/getDeliverdDriver',driverController.getDeliverdDriver)
+router.get('/summary',driverController.getSummary)
 
 module.exports=router;

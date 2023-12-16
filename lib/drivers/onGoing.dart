@@ -18,8 +18,8 @@ class OnGoingPackages extends StatefulWidget {
 }
 
 class _OnGoingPackagesState extends State<OnGoingPackages> {
-  late List<Content> deliver_order = [];
-  late List<Content> receive_order = [];
+  late List<Content> OnGoingOrders = [];
+  late List<Content> filterdOnGoingOrders = [];
   bool isEmptyList = false;
   TabController? myControler;
   List<dynamic> packagesList = [];
@@ -106,8 +106,7 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
     setState(() {
       curruentPosition = curruent;
     });
-    deliver_order = [];
-    receive_order = [];
+    OnGoingOrders = [];
     for (int i = 0; i < packagesList.length; i++) {
       String delivery_type = packagesList[i]['status'];
       double lat = delivery_type == "With Driver"
@@ -137,7 +136,7 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
           break;
       }
       if (delivery_type == "Wait Driver")
-        receive_order.add(
+        OnGoingOrders.add(
           Content(
             delivery_type: delivery_type,
             img: urlStarter +
@@ -148,6 +147,8 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
                 " " +
                 packagesList[i]['send_user']['Lname'],
             delivered_price: packagesList[i]['total'],
+            whoWillPay: packagesList[i]['whoWillPay'],
+            pktdistance: packagesList[i]['distance'],
             distance: distance,
             id: packagesList[i]['packageId'],
             username: packagesList[i]['send_userName'],
@@ -165,7 +166,7 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
           ),
         );
       else {
-        receive_order.add(
+        OnGoingOrders.add(
           Content(
             delivery_type: delivery_type,
             img: urlStarter +
@@ -176,7 +177,9 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
                 " " +
                 packagesList[i]['rec_user']['Lname'],
             delivered_price: packagesList[i]['total'],
+            whoWillPay: packagesList[i]['whoWillPay'],
             distance: distance,
+            pktdistance: packagesList[i]['distance'],
             id: packagesList[i]['packageId'],
             username: packagesList[i]['rec_userName'],
             context: this.context,
@@ -194,10 +197,15 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
         );
       }
     }
-    receive_order.sort((a, b) => a.distance.compareTo(b.distance));
+    OnGoingOrders.sort((a, b) => a.distance.compareTo(b.distance));
+    filterdOnGoingOrders = OnGoingOrders;
     return;
   }
 
+  TextEditingController _searchController = TextEditingController();
+  String? searchText;
+  String? filterBy = "Package Id";
+  List<String> FilterBylist = ["Package Id", "Name", "Username", "Size"];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -206,23 +214,122 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
           backgroundColor: primarycolor,
         ),
         body: Container(
-          child: isEmptyList == true
-              ? Center(
-                  child: Text(
-                  "You don't have packages to receiver",
-                  style: TextStyle(fontSize: 20, color: primarycolor),
-                ))
-              : Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: receive_order.length != 0
-                      ? ListView(
-                          children: receive_order,
-                        )
-                      : Center(
-                          child: CircularProgressIndicator(),
-                        ),
+            child: isEmptyList == true
+                ? Center(
+                    child: Text(
+                    "You don't have packages to receiver",
+                    style: TextStyle(fontSize: 20, color: primarycolor),
+                  ))
+                : Container(
+                    child: OnGoingOrders.length != 0
+                        ? Column(
+                            children: [
+                              filter(OnGoingOrders),
+                              Expanded(
+                                child: ListView(
+                                  children: filterdOnGoingOrders,
+                                ),
+                              )
+                            ],
+                          )
+                        : Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                  )));
+  }
+
+  Container filter(List<Content> order) {
+    return Container(
+      padding: EdgeInsets.only(top: 10, right: 7, left: 7),
+      height: 60,
+      color: Colors.grey[100],
+      child: GridView.builder(
+        itemCount: 2,
+        physics: NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 25,
+            mainAxisSpacing: 2,
+            childAspectRatio: 3),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Container(
+                child: TextFormField(
+              controller: _searchController,
+              onChanged: (value) {
+                List<Content> filterd;
+                filterd = order.where((element) {
+                  switch (filterBy) {
+                    case 'Package Id':
+                      return element.id.toString().startsWith(value);
+                    case 'Name':
+                      return element.name
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(value.toLowerCase());
+                    case 'Username':
+                      return element.username
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(value.toLowerCase());
+                    case 'Size':
+                      return element.packageType
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(value.toLowerCase());
+                    default:
+                      return true;
+                  }
+                }).toList();
+                setState(() {
+                  filterdOnGoingOrders = filterd;
+                  filterdOnGoingOrders
+                      .sort((a, b) => a.distance.compareTo(b.distance));
+                });
+              },
+              decoration: theme_helper().text_form_style_search(
+                'Search',
+                'Enter ${filterBy}',
+                Icons.search,
+                _searchController,
+                () {
+                  _searchController.clear();
+                  setState(() {
+                    filterdOnGoingOrders = OnGoingOrders;
+                    filterdOnGoingOrders
+                        .sort((a, b) => a.distance.compareTo(b.distance));
+                  });
+                },
+              ),
+            ));
+          } else {
+            return Container(
+              child: DropdownButtonFormField(
+                value: filterBy,
+                isExpanded: true,
+                hint: Text('Filter By'),
+                decoration: theme_helper().text_form_style(
+                  '',
+                  '',
+                  Icons.filter_alt,
                 ),
-        ));
+                items: FilterBylist.map((value) {
+                  return DropdownMenuItem(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    filterBy = (value as String?)!;
+                  });
+                },
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 }
 
@@ -231,10 +338,12 @@ class Content extends StatefulWidget {
   final int id;
   late String reason;
   final String phone;
+  final String whoWillPay;
   final Position driverPosition;
   final String name;
   final String username;
   final String img;
+  final double pktdistance;
   final double delivered_price;
   final double distance;
   final String delivery_type; // 0 Delivery of a package , 1 Receiving a package
@@ -251,6 +360,8 @@ class Content extends StatefulWidget {
       required this.driverPosition,
       required this.distance,
       required this.phone,
+      required this.pktdistance,
+      required this.whoWillPay,
       this.reason = '',
       required this.locationDescription,
       required this.name,
@@ -292,6 +403,10 @@ class _ContentState extends State<Content> {
       throw Exception('Failed to load data');
     }
     return;
+  }
+
+  void RefreshPage() {
+    widget.refreshData();
   }
 
   @override
@@ -460,6 +575,24 @@ class _ContentState extends State<Content> {
                           height: 10,
                         ),
                         Text.rich(TextSpan(
+                            text: 'who Will Pay: ',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey),
+                            children: <InlineSpan>[
+                              TextSpan(
+                                text: widget.whoWillPay,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.red,
+                                ),
+                              )
+                            ])),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text.rich(TextSpan(
                             text: 'Distance: ',
                             style: TextStyle(
                                 fontSize: 15,
@@ -556,7 +689,8 @@ class _ContentState extends State<Content> {
                                                           MapModalBottomSheet(
                                                               lat: widget.lat,
                                                               long: widget
-                                                                  .long)));
+                                                                  .long))).then(
+                                                  (value) => RefreshPage());
                                             },
                                           ),
                                         ],
@@ -602,8 +736,10 @@ class _ContentState extends State<Content> {
                                         latFrom: widget.driverPosition.latitude,
                                         phone: widget.phone,
                                         id: widget.id,
+                                        pktdistance: widget.pktdistance,
                                         img: widget.img,
                                         longTo: widget.long,
+                                        whoWillPay: widget.whoWillPay,
                                         latTo: widget.lat,
                                         packageType: widget.packageType,
                                         name: widget.name,

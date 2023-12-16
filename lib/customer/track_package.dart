@@ -31,6 +31,7 @@ class _track_pState extends State<track_p> {
     "Rejected by driver",
     "Deliver Rejected",
     "Receive Rejected",
+    "Complete Receive",
   ];
   bool result = false;
   Future<void> fetchData() async {
@@ -45,20 +46,33 @@ class _track_pState extends State<track_p> {
       if (data['message'] == "done") {
         print("done");
         setState(() {
+          var driver = data['result']['driver'];
+          String recieveDateString = (data['result']['receiveDate'] == null)
+              ? "0000-00-00T00:00:00"
+              : data['result']['receiveDate'];
+          String deliverDateString = (data['result']['deliverDate'] == null)
+              ? "0000-00-00T00:00:00"
+              : data['result']['deliverDate'];
           status = data['result']['status'];
           driverComment = data['result']['driverComment'];
-          rerciveDate = DateFormat('yyyy-MM-ddTHH:mm:ss')
-              .parse(data['result']['receiveDate']);
-          deliverDate = DateFormat('yyyy-MM-ddTHH:mm:ss')
-              .parse(data['result']['deliverDate']);
-          driverName = data['result']['driver']['Fname'] +
-              " " +
-              data['result']['driver']['Lname'];
-          vehicleNumber = data['driver']['vehicleNumber'];
+          rerciveDate =
+              DateFormat('yyyy-MM-ddTHH:mm:ss').parse(recieveDateString);
+          deliverDate =
+              DateFormat('yyyy-MM-ddTHH:mm:ss').parse(deliverDateString);
+          if (driver == null) {
+            driverName = " ";
+            vehicleNumber = " ";
+          } else {
+            driverName = driver['Fname'] + " " + driver['Lname'];
+            vehicleNumber = data['driver']['vehicleNumber'];
+          }
+
           pktIndex = allStatus.indexOf(status);
-          pktIndex == 6 ? _index = 3 : _index = pktIndex;
-          pktIndex == 7 ? _index = 3 : _index = 3;
-          pktIndex == 8 ? _index = 3 : _index = 1;
+          _index = pktIndex;
+          pktIndex == 6 ? _index = 3 : _index;
+          pktIndex == 7 ? _index = 3 : _index;
+          pktIndex == 8 ? _index = 1 : _index;
+          pktIndex == 9 ? _index = 3 : _index;
           result = true;
         });
       } else if (data['message'] == "invalid id") {

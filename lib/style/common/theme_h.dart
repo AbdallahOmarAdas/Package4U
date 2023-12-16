@@ -92,4 +92,47 @@ class theme_helper {
       ],
     );
   }
+
+  InputDecoration text_form_style_search(
+      [String label = "",
+      String hinttext = "",
+      IconData? iconData,
+      TextEditingController? controller,
+      void Function()? onCancel]) {
+    return InputDecoration(
+      prefixIcon: Icon(
+        iconData,
+        color: primarycolor,
+      ),
+      suffixIcon: controller != null && controller.text.isNotEmpty
+          ? IconButton(
+              icon: Icon(Icons.cancel_outlined),
+              color: Colors.red,
+              onPressed: onCancel,
+            )
+          : null,
+      labelStyle: TextStyle(color: Colors.grey),
+      labelText: label,
+      hintText: hinttext,
+      fillColor: Colors.white,
+      focusColor: primarycolor,
+      contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(100),
+        borderSide: BorderSide(color: Colors.grey),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(100),
+        borderSide: BorderSide(color: Colors.grey.shade400),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(100),
+        borderSide: BorderSide(color: Colors.red, width: 2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(100),
+        borderSide: BorderSide(color: Colors.red, width: 2),
+      ),
+    );
+  }
 }

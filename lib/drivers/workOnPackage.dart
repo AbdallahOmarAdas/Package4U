@@ -1,9 +1,6 @@
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/drivers/homeDriver.dart';
-import 'package:flutter_application_1/drivers/onGoing.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:get_storage/get_storage.dart';
@@ -13,7 +10,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
 class MapWorkOnPackage extends StatefulWidget {
-  @override
   final double latTo;
   final double longTo;
   final String package_type;
@@ -25,14 +21,18 @@ class MapWorkOnPackage extends StatefulWidget {
   final String phone;
   final String packageType;
   final double longFrom;
+  final double pktdistance;
   final double latFrom;
+  final String whoWillPay;
 
   MapWorkOnPackage(
       {required this.latTo,
       required this.longTo,
+      required this.pktdistance,
       required this.id,
       required this.name,
       required this.package_type,
+      required this.whoWillPay,
       required this.price,
       required this.img,
       required this.del_price,
@@ -41,6 +41,7 @@ class MapWorkOnPackage extends StatefulWidget {
       required this.longFrom,
       required this.latFrom});
 
+  @override
   State<MapWorkOnPackage> createState() => _MapWorkOnPackageState();
 }
 
@@ -58,9 +59,62 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
 
   final formGlobalKey = GlobalKey<FormState>();
   String? reason;
+  double openingPrice = 5;
+  double totalPrice = 0;
+  double boxSizePrice = 0;
+  double pricePerKm = 1.5;
+  double distancePrice = 0;
+  double bigPackagePrice = 4;
+  int discount = 0;
+
+  var showPriceDetiles = false;
+
+  void calculatePackageSizeprice() {
+    if (widget.packageType == "Document") {
+      boxSizePrice = 0;
+    } else if (widget.packageType == "Package0") {
+      boxSizePrice = 0;
+    } else if (widget.packageType == "Package1") {
+      boxSizePrice = bigPackagePrice / 2;
+    } else if (widget.packageType == "Package2") {
+      boxSizePrice = bigPackagePrice;
+    } else {
+      boxSizePrice = bigPackagePrice;
+    }
+    setState(() {
+      boxSizePrice;
+    });
+  }
+
+  void calaulateTotalPrice() {
+    calculatePackageSizeprice();
+    distancePrice = (widget.pktdistance * pricePerKm);
+    totalPrice = openingPrice + boxSizePrice + distancePrice;
+    totalPrice *= (100 - discount) / 100.0;
+    setState(() {
+      totalPrice;
+    });
+  }
+
+  Future<void> fetchData() async {
+    var url = urlStarter + "/users/cost";
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      setState(() {
+        openingPrice = data['openingPrice'] + 0.0;
+        bigPackagePrice = data['bigPackagePrice'] + 0.0;
+        pricePerKm = data['pricePerKm'] + 0.0;
+        discount = data['discount'];
+      });
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
 
   @override
   void initState() {
+    fetchData();
     langto = widget.longTo;
     Lateto = widget.latTo;
     package_type = widget.package_type;
@@ -80,6 +134,7 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
         BitmapDescriptor.defaultMarkerWithHue(90));
 
     //_getPolyline();
+    calaulateTotalPrice();
   }
 
   late GoogleMapController mapController;
@@ -96,7 +151,9 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
           "driverUserName": GetStorage().read('userName'),
           "driverPassword": GetStorage().read('password'),
           "status": widget.package_type,
-          "packageId": widget.id
+          "packageId": widget.id,
+          "total": widget.del_price,
+          "whoWillPay": widget.whoWillPay
         }),
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
@@ -155,8 +212,12 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
             right: 0.0,
             left: 0.0,
             child: Container(
-              height: package_type == "With Driver" ? 330 : 360,
-              color: Colors.white,
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30))),
+              //height: package_type == "With Driver" ? 330 : 380,
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: SingleChildScrollView(
@@ -164,9 +225,10 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                              height: 100,
+                              height: 120,
                               width: 100,
                               child: CachedNetworkImage(
                                 imageUrl: widget.img,
@@ -255,26 +317,87 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                                       )
                                     ])),
                                 SizedBox(height: 5),
+                                Text.rich(TextSpan(
+                                    text: "who Will Pay: ",
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.grey),
+                                    children: <InlineSpan>[
+                                      TextSpan(
+                                        text: widget.whoWillPay,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    ])),
+                                SizedBox(height: 5),
                                 Row(
                                   children: [
                                     Container(
-                                      child: MaterialButton(
-                                        shape: RoundedRectangleBorder(
+                                        height: 38,
+                                        decoration: BoxDecoration(
+                                            color: primarycolor,
+                                            shape: BoxShape.rectangle,
                                             borderRadius:
-                                                BorderRadius.circular(25.0)),
-                                        color: primarycolor,
-                                        child: Icon(
-                                          Icons.phone,
-                                          color: Colors.white,
+                                                BorderRadius.circular(20.0)),
+                                        child: TextButton.icon(
+                                            label: Text(
+                                              'Call ',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 19),
+                                            ),
+                                            icon: Icon(
+                                              Icons.phone,
+                                              color: Colors.white,
+                                            ),
+                                            onPressed: () {
+                                              launch('tel:${phone}');
+                                            })),
+                                    SizedBox(
+                                      width: 17,
+                                    ),
+                                    Visibility(
+                                      visible: ((widget.whoWillPay ==
+                                                  "The sender") &&
+                                              (package_type ==
+                                                  "Wait Driver")) ||
+                                          (((widget.whoWillPay ==
+                                                  "The recipient") &&
+                                              (package_type == "With Driver"))),
+                                      child: Container(
+                                        height: 38,
+                                        decoration: BoxDecoration(
+                                            color: primarycolor,
+                                            shape: BoxShape.rectangle,
+                                            borderRadius:
+                                                BorderRadius.circular(20.0)),
+                                        child: TextButton.icon(
+                                          label: Text(
+                                            showPriceDetiles
+                                                ? 'Hide  '
+                                                : 'Show',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 19),
+                                          ),
+                                          icon: Icon(
+                                            Icons.monetization_on,
+                                            color: Colors.white,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              showPriceDetiles =
+                                                  !showPriceDetiles;
+                                            });
+                                          },
                                         ),
-                                        onPressed: () {
-                                          launch('tel:${phone}');
-                                        },
                                       ),
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: 5),
+                                //SizedBox(height: 5),
                               ],
                             ),
                           ),
@@ -283,27 +406,194 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                       Divider(
                         thickness: 5,
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Delivery Price : ',
-                            style: TextStyle(fontSize: 15, color: Colors.grey),
-                          ),
-                          Text(
-                            '${del_price.toStringAsFixed(2)} \$',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
+                      Visibility(
+                        visible: (((widget.whoWillPay == "The sender") &&
+                                    (package_type == "Wait Driver")) ||
+                                (((widget.whoWillPay == "The recipient")) &&
+                                    (package_type == "With Driver"))) &&
+                            !showPriceDetiles,
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Delivery Price : ',
+                                  style: TextStyle(
+                                      fontSize: 15, color: Colors.grey),
+                                ),
+                                Text(
+                                  '${del_price.toStringAsFixed(2)} \$',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                      Visibility(
+                          visible: showPriceDetiles,
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(10),
+                                color: Colors.white,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '+ Opening price:',
+                                      style: priceStyle(),
+                                    ),
+                                    Text(
+                                      openingPrice.toString() + '\$',
+                                      style: priceStyle(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.all(10),
+                                color: Colors.white,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '+ Package size price:',
+                                      style: priceStyle(),
+                                    ),
+                                    Text(
+                                      boxSizePrice.toString() + '\$',
+                                      style: priceStyle(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.all(10),
+                                color: Colors.white,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '   Delivery Price/Km:',
+                                      style: priceStyle(),
+                                    ),
+                                    Text(
+                                      pricePerKm.toStringAsFixed(2),
+                                      style: priceStyle(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.all(10),
+                                color: Colors.white,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '   Distance:',
+                                      style: priceStyle(),
+                                    ),
+                                    widget.pktdistance > 0
+                                        ? Text(
+                                            '${widget.pktdistance.toStringAsFixed(2)} km',
+                                            style: priceStyle(),
+                                          )
+                                        : Text('---'),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.all(10),
+                                color: Colors.white,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '+ Distance delivery price:',
+                                      style: priceStyle(),
+                                    ),
+                                    widget.pktdistance > 0
+                                        ? Text(
+                                            '${distancePrice.toStringAsFixed(2)}\$',
+                                            style: priceStyle(),
+                                          )
+                                        : Text(
+                                            '---',
+                                            style: priceStyle(),
+                                          ),
+                                  ],
+                                ),
+                              ),
+                              Visibility(
+                                visible: discount > 0,
+                                child: Container(
+                                  padding: EdgeInsets.all(10),
+                                  color: Colors.white,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        '% Discount:',
+                                        style: priceStyle(),
+                                      ),
+                                      Text('${discount}%', style: priceStyle()),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.all(10),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.attach_money_sharp),
+                                        SizedBox(
+                                          width: 5,
+                                        ),
+                                        Text(
+                                          'Total Price:  ',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                              fontSize: 20),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      totalPrice.toStringAsFixed(2) + "\$",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontSize: 20),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )),
                       SizedBox(
                         height: 10,
                       ),
                       Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Container(
                             child: MaterialButton(
@@ -364,11 +654,7 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                                             27.0), // Adjust the radius as needed
                                       ),
                                       title: Text("Confirm the operation"),
-                                      content: Text(
-                                        widget.package_type == "With Driver"
-                                            ? 'You acknowledge that you received ${widget.del_price.toStringAsFixed(2)} \$ from the customer?'
-                                            : 'Do you acknowledge that you received the package from the customer?',
-                                      ),
+                                      content: Text(confirmMessage()),
                                       titleTextStyle: TextStyle(
                                           color: Colors.white, fontSize: 25),
                                       contentTextStyle: TextStyle(
@@ -382,15 +668,10 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                                                 color: Colors.white,
                                                 fontSize: 18),
                                           ),
-                                          onPressed: () {
-                                            postCompleatePackageDriver();
+                                          onPressed: () async {
+                                            await postCompleatePackageDriver();
                                             Navigator.of(context).pop();
-                                            Navigator.pushReplacement(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      HomeDriver(),
-                                                ));
+                                            Navigator.of(context).pop();
                                           },
                                         ),
                                         TextButton(
@@ -541,6 +822,10 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
     );
   }
 
+  TextStyle priceStyle() {
+    return TextStyle(color: Colors.grey, fontSize: 15);
+  }
+
   void _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
   }
@@ -565,5 +850,17 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
       // Handle the case where the URL can't be launched
       throw 'Could not launch $url';
     }
+  }
+
+  String confirmMessage() {
+    if (((widget.whoWillPay == "The sender") &&
+            (package_type == "Wait Driver")) ||
+        ((widget.whoWillPay == "The recipient") &&
+            (package_type == "With Driver")))
+      return "You acknowledge that you received ${widget.del_price.toStringAsFixed(2)} \$ from the customer?";
+    else if ((package_type == "Wait Driver"))
+      return 'Do you acknowledge that you received the package from the customer?';
+    else
+      return 'Do you acknowledge that you deliver the package to the customer?';
   }
 }
