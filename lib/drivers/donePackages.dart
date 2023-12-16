@@ -46,6 +46,9 @@ class _DonePackagesState extends State<DonePackages>
         deliverdList = data['result'];
         _buildMy_deliverd_Orders();
       });
+    } else if (response.statusCode == 404) {
+      deliverdList = [];
+      _buildMy_deliverd_Orders();
     } else {
       throw Exception('Failed to load data');
     }
@@ -53,8 +56,11 @@ class _DonePackagesState extends State<DonePackages>
   }
 
   void _buildMy_deliverd_Orders() {
+    delivered_order = [];
+    received_order = [];
     for (int i = 0; i < deliverdList.length; i++) {
-      int delivery_type = deliverdList[i]['status'] == "In Warehouse" ? 1 : 0;
+      int delivery_type =
+          deliverdList[i]['status'] == "Complete Receive" ? 1 : 0;
 
       String pktType = '';
       switch (deliverdList[i]['shippingType']) {

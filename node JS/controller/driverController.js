@@ -9,11 +9,12 @@ const Package=require('../models/package');
 exports.getDeliverdDriver=(req,res,next)=>{
     const driverUserName=req.body.driverUserName;
     Package.findAll({include:[{model:User,as:"rec_user"},{model:User,as:"send_user"}],
-        where:{driver_userName:driverUserName,status:['Delivered' , 'In Warehouse']}})
+        where:{driver_userName:driverUserName,status:['Delivered' , 'Complete Receive']}})
         .then((result) => {
             if(result.length!=0){
                 return res.status(200).json({message:'done',result}); 
-                }
+ 
+            }
                 else{
                     return res.status(404).json(); 
                 }
@@ -147,16 +148,46 @@ exports.postCancelOnGoingPackageDriver=(req,res,next)=>{
 exports.postCompleatePackageDriver=(req,res,next)=>{
     const driverUserName=req.body.driverUserName;
     const status=req.body.status;
+    const total=req.body.total;
+    const whoWillPay=req.body.whoWillPay;
     const packageId=req.body.packageId;
     let newStatus;
+    let balanceIncVal=0;
+    if(whoWillPay=="The sender" && status=="Wait Driver"){
+        balanceIncVal=total;
+    }
+    if(whoWillPay=="The recipient" && status=="With Driver"){
+        balanceIncVal=total;
+    }
     if(status=="Wait Driver"){
-        newStatus="In Warehouse"
+        newStatus="Complete Receive"
     }
     else{
         newStatus="Delivered"
     }
+    Driver.update(
+        (newStatus=="Delivered")
+        ?{
+            status: newStatus,
+            totalBalance:Sequelize.literal(`totalBalance + ${balanceIncVal}`),
+            deliverdNumber:Sequelize.literal(`deliverdNumber + ${1}`),
+            deliverDate:Sequelize.fn('NOW') 
+        }
+        :{
+            status: newStatus,
+            totalBalance:Sequelize.literal(`totalBalance + ${balanceIncVal}`),
+            receivedNumber:Sequelize.literal(`receivedNumber + ${1}`),
+            receiveDate:Sequelize.fn('NOW') 
+        },
+        {
+        where:{userUserName:driverUserName}})
+        .then((result) => {
+        }).catch((err) => {
+            console.log(err)
+        });
     Package.update((newStatus=="Delivered")?{
         status: newStatus,
+
         deliverDate:Sequelize.fn('NOW') 
         }:{
             status: newStatus,

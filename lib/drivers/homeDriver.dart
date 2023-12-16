@@ -19,6 +19,7 @@ class HomeDriver extends StatefulWidget {
 class _HomeDriverState extends State<HomeDriver> {
   late String _currentDate;
   late String _currentTime;
+  late Timer _timer;
   Summary summary = Summary(
       balance: 0, deliverd: 0, notDeliverd: 0, notReceived: 0, received: 0);
   @override
@@ -26,9 +27,16 @@ class _HomeDriverState extends State<HomeDriver> {
     super.initState();
     fetchData();
     _updateDateTime();
-    Timer.periodic(Duration(seconds: 1), (Timer timer) {
+    _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
       _updateDateTime();
     });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _timer.cancel();
+    super.dispose();
   }
 
   void _updateDateTime() {
@@ -118,7 +126,7 @@ class _HomeDriverState extends State<HomeDriver> {
                               fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          summary.balance.toString(),
+                          summary.balance.toStringAsFixed(2),
                           style: TextStyle(fontSize: 25, color: primarycolor),
                         )
                       ],
@@ -144,7 +152,8 @@ class _HomeDriverState extends State<HomeDriver> {
                           children: [
                             Text(
                               "Not Delivered",
-                              style: TextStyle(fontSize: 25, color: Colors.red[800]),
+                              style: TextStyle(
+                                  fontSize: 25, color: Colors.red[800]),
                             ),
                             Text(
                               summary.notDeliverd.toString(),
@@ -198,9 +207,10 @@ class _HomeDriverState extends State<HomeDriver> {
                 label: 'My packages for today',
                 btn: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: ((context) => OnGoingPackages()))).then((value) => RefreshPage());
+                          context,
+                          MaterialPageRoute(
+                              builder: ((context) => OnGoingPackages())))
+                      .then((value) => RefreshPage());
                 },
                 img: "assets/onGoing.png",
               ),
@@ -211,9 +221,10 @@ class _HomeDriverState extends State<HomeDriver> {
                 label: 'Prepare today packages',
                 btn: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: ((context) => PreparePackages()))).then((value) => RefreshPage());
+                          context,
+                          MaterialPageRoute(
+                              builder: ((context) => PreparePackages())))
+                      .then((value) => RefreshPage());
                 },
                 img: "assets/box.png",
               ),
@@ -224,9 +235,10 @@ class _HomeDriverState extends State<HomeDriver> {
                 label: 'Completed packages',
                 btn: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: ((context) => DonePackages()))).then((value) => RefreshPage());
+                          context,
+                          MaterialPageRoute(
+                              builder: ((context) => DonePackages())))
+                      .then((value) => RefreshPage());
                 },
                 img: "assets/package-delivered-icon.png",
               ),

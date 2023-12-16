@@ -302,6 +302,10 @@ class _ContentState extends State<Content> {
     return;
   }
 
+  void RefreshPage() {
+    widget.refreshData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -468,7 +472,7 @@ class _ContentState extends State<Content> {
                           height: 10,
                         ),
                         Text.rich(TextSpan(
-                            text: 'whoWillPay: ',
+                            text: 'who Will Pay: ',
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -582,7 +586,8 @@ class _ContentState extends State<Content> {
                                                           MapModalBottomSheet(
                                                               lat: widget.lat,
                                                               long: widget
-                                                                  .long)));
+                                                                  .long))).then(
+                                                  (value) => RefreshPage());
                                             },
                                           ),
                                         ],

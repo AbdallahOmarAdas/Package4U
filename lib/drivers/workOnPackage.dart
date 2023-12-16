@@ -154,7 +154,9 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
           "driverUserName": GetStorage().read('userName'),
           "driverPassword": GetStorage().read('password'),
           "status": widget.package_type,
-          "packageId": widget.id
+          "packageId": widget.id,
+          "total": widget.del_price,
+          "whoWillPay": widget.whoWillPay
         }),
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
@@ -319,7 +321,7 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                                     ])),
                                 SizedBox(height: 5),
                                 Text.rich(TextSpan(
-                                    text: "whoWillPay: ",
+                                    text: "who Will Pay: ",
                                     style: TextStyle(
                                         fontSize: 12, color: Colors.grey),
                                     children: <InlineSpan>[
@@ -655,11 +657,7 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                                             27.0), // Adjust the radius as needed
                                       ),
                                       title: Text("Confirm the operation"),
-                                      content: Text(
-                                        widget.package_type == "With Driver"
-                                            ? 'You acknowledge that you received ${widget.del_price.toStringAsFixed(2)} \$ from the customer?'
-                                            : 'Do you acknowledge that you received the package from the customer?',
-                                      ),
+                                      content: Text(confirmMessage()),
                                       titleTextStyle: TextStyle(
                                           color: Colors.white, fontSize: 25),
                                       contentTextStyle: TextStyle(
@@ -673,15 +671,10 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                                                 color: Colors.white,
                                                 fontSize: 18),
                                           ),
-                                          onPressed: () {
-                                            postCompleatePackageDriver();
+                                          onPressed: () async {
+                                            await postCompleatePackageDriver();
                                             Navigator.of(context).pop();
-                                            Navigator.pushReplacement(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      home_page_driver(),
-                                                ));
+                                            Navigator.of(context).pop();
                                           },
                                         ),
                                         TextButton(
@@ -860,5 +853,17 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
       // Handle the case where the URL can't be launched
       throw 'Could not launch $url';
     }
+  }
+
+  String confirmMessage() {
+    if (((widget.whoWillPay == "The sender") &&
+            (package_type == "Wait Driver")) ||
+        ((widget.whoWillPay == "The recipient") &&
+            (package_type == "With Driver")))
+      return "You acknowledge that you received ${widget.del_price.toStringAsFixed(2)} \$ from the customer?";
+    else if ((package_type == "Wait Driver"))
+      return 'Do you acknowledge that you received the package from the customer?';
+    else
+      return 'Do you acknowledge that you deliver the package to the customer?';
   }
 }
