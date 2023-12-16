@@ -2,9 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/customer/change_password.dart';
 import 'package:flutter_application_1/customer/edit_profile.dart';
-import 'package:flutter_application_1/customer/home.dart';
-import 'package:flutter_application_1/customer/service.dart';
-import 'package:flutter_application_1/drivers/content_page_driver.dart';
 import 'package:flutter_application_1/drivers/homeDriver.dart';
 import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
@@ -20,18 +17,7 @@ class _home_page_driverState extends State<home_page_driver> {
   String? email;
   String? userName;
   var imgUrl;
-  int _index = 0;
 
-  void _bottomBar(int index) {
-    setState(() {
-      _index = index;
-    });
-  }
-
-  final List<Widget> _pages = [
-    home(),
-    service(),
-  ];
   @override
   void initState() {
     // TODO: implement initState

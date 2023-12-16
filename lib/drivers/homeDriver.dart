@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/Models/Summary.dart';
-import 'package:flutter_application_1/drivers/content_page_driver.dart';
 import 'package:flutter_application_1/drivers/donePackages.dart';
 import 'package:flutter_application_1/drivers/onGoing.dart';
 import 'package:flutter_application_1/drivers/preparePackages.dart';
@@ -34,7 +33,6 @@ class _HomeDriverState extends State<HomeDriver> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     _timer.cancel();
     super.dispose();
   }
@@ -72,25 +70,19 @@ class _HomeDriverState extends State<HomeDriver> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.grey.shade300,
-        body: Container(
-          // decoration: BoxDecoration(
-          //   image: DecorationImage(
-          //     image: AssetImage('assets/test.jpg'),
-          //     //fit: BoxFit.cover, // You can adjust the BoxFit property as needed
-          //   ),
-          // ),
+        body: SingleChildScrollView(
           child: Column(
             children: [
               Container(
                 height: 60,
                 decoration: BoxDecoration(
-                  color: primarycolor,
-                ),
+                    color: primarycolor,
+                    borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(50),
+                        bottomRight: Radius.circular(50))),
               ),
               Container(
                 height: 300,
-                // color: Colors.amber,
-                width: MediaQuery.of(context).size.width,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -116,6 +108,12 @@ class _HomeDriverState extends State<HomeDriver> {
                         ),
                       ],
                     ),
+                    Divider(
+                      endIndent: 12,
+                      indent: 12,
+                      thickness: 3,
+                      height: 20,
+                    ),
                     Column(
                       children: [
                         Text(
@@ -130,6 +128,12 @@ class _HomeDriverState extends State<HomeDriver> {
                           style: TextStyle(fontSize: 25, color: primarycolor),
                         )
                       ],
+                    ),
+                    Divider(
+                      endIndent: 100,
+                      indent: 100,
+                      thickness: 3,
+                      height: 20,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -163,6 +167,11 @@ class _HomeDriverState extends State<HomeDriver> {
                           ],
                         )
                       ],
+                    ),
+                    Divider(
+                      endIndent: 50,
+                      indent: 50,
+                      thickness: 3,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -201,6 +210,12 @@ class _HomeDriverState extends State<HomeDriver> {
                 ),
               ),
               SizedBox(
+                height: 20,
+              ),
+              Divider(
+                endIndent: 12,
+                indent: 12,
+                thickness: 3,
                 height: 20,
               ),
               content(
@@ -242,19 +257,6 @@ class _HomeDriverState extends State<HomeDriver> {
                 },
                 img: "assets/package-delivered-icon.png",
               ),
-              // SizedBox(
-              //   height: 20,
-              // ),
-              // content(
-              //   label: 'packages',
-              //   btn: () {
-              //     Navigator.push(
-              //         context,
-              //         MaterialPageRoute(
-              //             builder: ((context) => content_page_driver())));
-              //   },
-              //   img: "assets/package-delivered-icon.png",
-              // ),
             ],
           ),
         ));
@@ -305,12 +307,10 @@ class content extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  // fontFamily:
                 ),
               ),
               Expanded(
-                child:
-                    Container(), // This empty container takes up available space
+                child: Container(),
               ),
               Icon(
                 Icons.east,

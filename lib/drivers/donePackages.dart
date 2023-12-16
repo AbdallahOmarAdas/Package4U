@@ -16,6 +16,8 @@ class _DonePackagesState extends State<DonePackages>
     with SingleTickerProviderStateMixin {
   late List<content_delivered> delivered_order = [];
   late List<content_delivered> received_order = [];
+  late List<content_delivered> filterdReceived_order = [];
+  late List<content_delivered> filterdDelivered_order = [];
   TabController? myControler;
   List<dynamic> deliverdList = [];
   var payment_type = 0;
@@ -94,8 +96,11 @@ class _DonePackagesState extends State<DonePackages>
             delivered_price: deliverdList[i]['total'],
             id: deliverdList[i]['packageId'],
             username: deliverdList[i]['rec_userName'],
+            whoWillPay: deliverdList[i]['whoWillPay'],
             context: this.context,
             packageType: pktType,
+            showDeliveryPrice:
+                deliverdList[i]['whoWillPay'] == "The recipient" ? true : false,
           ),
         );
       } else {
@@ -112,14 +117,23 @@ class _DonePackagesState extends State<DonePackages>
             delivered_price: deliverdList[i]['total'],
             id: deliverdList[i]['packageId'],
             username: deliverdList[i]['send_userName'],
+            whoWillPay: deliverdList[i]['whoWillPay'],
             context: this.context,
             packageType: pktType,
+            showDeliveryPrice:
+                deliverdList[i]['whoWillPay'] == "The sender" ? true : false,
           ),
         );
       }
     }
+    filterdDelivered_order = delivered_order;
+    filterdReceived_order = received_order;
   }
 
+  TextEditingController _searchController = TextEditingController();
+  String? searchText;
+  String? filterBy = "Package Id";
+  List<String> FilterBylist = ["Package Id", "Name", "Username", "Size"];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -149,25 +163,128 @@ class _DonePackagesState extends State<DonePackages>
                 "You have not received any package yet",
                 style: TextStyle(fontSize: 20, color: primarycolor),
               ))
-            : Padding(
-                padding: const EdgeInsets.all(10),
-                child: ListView(
-                  children: received_order,
-                ),
-              ),
+            : Column(children: [
+                filter(received_order, 1),
+                Expanded(
+                  child: ListView(
+                    children: filterdReceived_order,
+                  ),
+                )
+              ]),
         delivered_order.length == 0
             ? Center(
                 child: Text(
                 "You have not delivered any packages yet",
                 style: TextStyle(fontSize: 20, color: primarycolor),
               ))
-            : Padding(
-                padding: const EdgeInsets.all(10),
-                child: ListView(
-                  children: delivered_order,
-                ),
-              ),
+            : Column(children: [
+                filter(delivered_order, 0),
+                Expanded(
+                  child: ListView(
+                    children: filterdDelivered_order,
+                  ),
+                )
+              ])
       ]),
+    );
+  }
+
+  Container filter(List<content_delivered> receive_order, int type) {
+    return Container(
+      padding: EdgeInsets.only(top: 10, right: 7, left: 7),
+      height: 60,
+      color: Colors.grey[100],
+      child: GridView.builder(
+        itemCount: 2,
+        physics: NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 25,
+            mainAxisSpacing: 2,
+            childAspectRatio: 3),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Container(
+                child: TextFormField(
+              controller: _searchController,
+              onChanged: (value) {
+                //  List<String> FilterBylist = ["Package Id", "Name", "Username", "Size"];
+                List<content_delivered> filterd;
+                filterd = receive_order.where((element) {
+                  switch (filterBy) {
+                    case 'Package Id':
+                      return element.id.toString().startsWith(value);
+                    case 'Name':
+                      return element.name
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(value.toLowerCase());
+                    case 'Username':
+                      return element.username
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(value.toLowerCase());
+                    case 'Size':
+                      return element.packageType
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(value.toLowerCase());
+                    default:
+                      return true;
+                  }
+                }).toList();
+                setState(() {
+                  if (type == 1) {
+                    filterdReceived_order = filterd;
+                  } else if (type == 0) {
+                    filterdDelivered_order = filterd;
+                  }
+                });
+              },
+              decoration: theme_helper().text_form_style_search(
+                'Search',
+                'Enter ${filterBy}',
+                Icons.search,
+                _searchController,
+                () {
+                  _searchController.clear();
+                  setState(() {
+                    if (type == 1) {
+                      filterdReceived_order = receive_order;
+                    } else if (type == 0) {
+                      filterdDelivered_order = delivered_order;
+                    }
+                  });
+                },
+              ),
+            ));
+          } else {
+            return Container(
+              child: DropdownButtonFormField(
+                value: filterBy,
+                isExpanded: true,
+                hint: Text('Filter By'),
+                decoration: theme_helper().text_form_style(
+                  '',
+                  '',
+                  Icons.filter_alt,
+                ),
+                items: FilterBylist.map((value) {
+                  return DropdownMenuItem(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    filterBy = (value as String?)!;
+                  });
+                },
+              ),
+            );
+          }
+        },
+      ),
     );
   }
 }
@@ -181,18 +298,21 @@ class content_delivered extends StatefulWidget {
   final int delivery_type; // 0 Delivery of a package , 1 Receiving a package
   final BuildContext context;
   final String packageType;
+  final String whoWillPay;
+  final bool showDeliveryPrice;
 
-  const content_delivered({
-    super.key,
-    required this.id,
-    required this.name,
-    required this.username,
-    required this.context,
-    required this.img,
-    required this.delivered_price,
-    required this.delivery_type,
-    required this.packageType,
-  });
+  const content_delivered(
+      {super.key,
+      required this.id,
+      required this.name,
+      required this.username,
+      required this.context,
+      required this.img,
+      required this.delivered_price,
+      required this.delivery_type,
+      required this.packageType,
+      required this.showDeliveryPrice,
+      required this.whoWillPay});
 
   @override
   State<content_delivered> createState() => _content_deliveredState();
@@ -313,7 +433,7 @@ class _content_deliveredState extends State<content_delivered> {
                               ])),
                           SizedBox(height: 5),
                           Visibility(
-                            visible: widget.delivery_type == 0,
+                            visible: widget.showDeliveryPrice,
                             child: Text.rich(TextSpan(
                                 text: 'Delivery price : ',
                                 style:
@@ -321,7 +441,7 @@ class _content_deliveredState extends State<content_delivered> {
                                 children: <InlineSpan>[
                                   TextSpan(
                                     text:
-                                        '${widget.delivered_price.toStringAsFixed(2)}',
+                                        '${widget.delivered_price.toStringAsFixed(2)}\$',
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.black,
@@ -331,6 +451,23 @@ class _content_deliveredState extends State<content_delivered> {
                                 ])),
                           ),
                           SizedBox(height: 5),
+                          Visibility(
+                            visible: widget.showDeliveryPrice,
+                            child: Text.rich(TextSpan(
+                                text: 'who paid: ',
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
+                                children: <InlineSpan>[
+                                  TextSpan(
+                                    text: '${widget.whoWillPay}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                ])),
+                          ),
                         ],
                       ),
                     ),
