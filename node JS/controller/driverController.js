@@ -5,6 +5,7 @@ const { validationResult } = require('express-validator');
 const fs = require('fs');
 const path = require('path');
 const Package=require('../models/package');
+//Driver.belongsTo(User, { as: 'driver' });
 
 exports.getDeliverdDriver=(req,res,next)=>{
     const driverUserName=req.body.driverUserName;
@@ -256,6 +257,25 @@ exports.getSummary=(req,res,next)=>{
             notReceived:notReceived,
             notDeliverd:notDeliverd,
         }); 
+    }).catch((err) => {
+        console.log(err)
+        res.status(500).json({message:'failed'}); 
+    });
+}
+//Driver.belongsTo(User, { as: 'driver1' });
+
+exports.GetDriverListManager=(req,res,next)=>{
+    Driver.findAll({include:[{model:User,as:"user"}]}).then((drivers) => {
+        //console.log(drivers)
+        const driverList = drivers.map((driver) => ({
+            late: driver.latitude,
+            long: driver.longitude,
+            username: driver.userUserName,
+            img: driver.userUserName+driver.user.url,
+            name: driver.user.Fname + ' ' + driver.user.Lname,
+        }));
+
+        res.status(200).json(driverList);
     }).catch((err) => {
         console.log(err)
         res.status(500).json({message:'failed'}); 

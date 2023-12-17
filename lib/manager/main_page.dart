@@ -1,10 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/customer/change_password.dart';
 import 'package:flutter_application_1/customer/edit_profile.dart';
-import 'package:flutter_application_1/customer/home.dart';
-import 'package:flutter_application_1/customer/service.dart';
 import 'package:flutter_application_1/manager/creat_driver.dart';
 import 'package:flutter_application_1/manager/creat_employee.dart';
 import 'package:flutter_application_1/manager/editCompany.dart';

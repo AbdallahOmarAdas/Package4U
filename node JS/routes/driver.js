@@ -42,5 +42,6 @@ router.post('/compleatePackageDriver',
 router.post('/RejectWorkOnPackageDriver',
             driverController.postRejectWorkOnPackageDriver);
 router.get('/summary',driverController.getSummary)
+router.get('/driverListManager',driverController.GetDriverListManager)
 
 module.exports=router;
