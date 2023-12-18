@@ -1,16 +1,22 @@
-
 import 'dart:async';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 class TrackDriverLocation extends StatefulWidget {
   final double Late;
   final double long;
   final String name;
+  final String userName;
 
-  TrackDriverLocation({required this.Late, required this.long, required this.name});
+  TrackDriverLocation(
+      {required this.Late,
+      required this.long,
+      required this.name,
+      required this.userName});
 
   @override
   State<TrackDriverLocation> createState() => _TrackDriverLocationState();
@@ -20,29 +26,47 @@ class _TrackDriverLocationState extends State<TrackDriverLocation> {
   late double late;
   late double long;
   late String name;
+  late String username;
   GoogleMapController? mapController;
   late Timer timer;
   List<Marker> markers = [];
+
+  Future<void> fetchLocation() async {
+    var url = urlStarter + "/driver/driverLocation?driverUserName=" + username;
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      setState(() {
+        late = data['late'];
+        long = data['long'];
+      });
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
 
   void initState() {
     long = widget.long;
     late = widget.Late;
     name = widget.name;
+    username = widget.userName;
     _addMarker(LatLng(late, long), name);
 
     initial();
     super.initState();
     //update every   10 seconds
-    timer = Timer.periodic(Duration(seconds: 10), (Timer t) {
+    timer = Timer.periodic(Duration(seconds: 3), (Timer t) async {
+      await fetchLocation();
       setState(() {
         //set new value
-        late = 32.173161;
-        long = 35.060353;
+        // late = 32.173161;
+        // long = 35.060353;
+
         _addMarker(LatLng(late, long), name);
 
         mapController!
             .animateCamera(CameraUpdate.newLatLng(LatLng(late, long)));
-        setState(() {});
+        //setState(() {});
       });
     });
   }

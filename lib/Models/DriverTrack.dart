@@ -10,7 +10,7 @@ class Driver {
     required this.long,
     required this.name,
     required this.username,
-    required this.img,
+    this.img = "",
   });
   factory Driver.fromJson(Map<String, dynamic> json) {
     return Driver(

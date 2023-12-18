@@ -19,6 +19,7 @@ class _HomeDriverState extends State<HomeDriver> {
   late String _currentDate;
   late String _currentTime;
   late Timer _timer;
+  late Timer _LocationTimer;
   Summary summary = Summary(
       balance: 0, deliverd: 0, notDeliverd: 0, notReceived: 0, received: 0);
   @override
@@ -29,11 +30,33 @@ class _HomeDriverState extends State<HomeDriver> {
     _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
       _updateDateTime();
     });
+    _LocationTimer = Timer.periodic(Duration(seconds: 10), (Timer timer) {
+      PostEditLocation();
+    });
+  }
+
+  Future PostEditLocation() async {
+    var url = urlStarter + "/driver/EditLocation";
+    print("helo");
+    var response = await http.post(Uri.parse(url),
+        body: jsonEncode({
+          "driverUserName": GetStorage().read('userName'),
+          "driverPassword": GetStorage().read('password'),
+          "longitude": 35.22277943971602,
+          "latitude": 32.227273475776364
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        });
+    if (response.statusCode != 200) throw Exception('Failed to load data');
+
+    return;
   }
 
   @override
   void dispose() {
     _timer.cancel();
+    _LocationTimer.cancel();
     super.dispose();
   }
 
@@ -82,14 +105,14 @@ class _HomeDriverState extends State<HomeDriver> {
                         bottomRight: Radius.circular(50))),
               ),
               Container(
-                height: 300,
+                height: 350,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Text(
                       "Summary of today's work",
                       style: TextStyle(
-                          fontSize: 35,
+                          fontSize: 30,
                           color: Colors.black,
                           fontWeight: FontWeight.bold),
                     ),

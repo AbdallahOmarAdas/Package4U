@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/Models/DriverTrack.dart';
+import 'package:flutter_application_1/manager/TrackDriverLocation.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
 import 'package:lottie/lottie.dart';
@@ -21,6 +23,7 @@ class _track_pState extends State<track_p> {
   String? driverComment;
   DateTime? rerciveDate;
   DateTime? deliverDate;
+  Driver? _driver;
   List allStatus = [
     "Under review",
     "Accepted",
@@ -65,6 +68,11 @@ class _track_pState extends State<track_p> {
           } else {
             driverName = driver['Fname'] + " " + driver['Lname'];
             vehicleNumber = data['driver']['vehicleNumber'];
+            _driver = new Driver(
+                late: data['driver']['latitude'],
+                long: data['driver']['longitude'],
+                username: driver['userName'],
+                name: driverName.toString());
           }
 
           pktIndex = allStatus.indexOf(status);
@@ -213,31 +221,12 @@ class _track_pState extends State<track_p> {
                             return Text('');
                           },
                           currentStep: _index,
-                          // onStepCancel: () {
-                          //   if (_index > 0) {
-                          //     setState(() {
-                          //       _index -= 1;
-                          //     });
-                          //   }
-                          // },
-                          // onStepContinue: () {
-                          //   if (_index <= 2) {
-                          //     setState(() {
-                          //       _index += 1;
-                          //     });
-                          //   }
-                          // },
                           onStepTapped: (int index) {
                             print(index);
                             setState(() {
                               _index = index;
                             });
                           },
-                          // stepIconBuilder: (context, state) {
-                          //   if (_index > pktIndex)
-                          //     return Icon(Icons.disabled_visible_sharp,
-                          //         color: Colors.white);
-                          // },
                           steps: <Step>[
                             Step(
                               isActive: _index >= 0 && 0 <= pktIndex,
@@ -270,12 +259,11 @@ class _track_pState extends State<track_p> {
                             ),
                             Step(
                               isActive: _index >= 2 && 2 <= pktIndex,
-                              state: 2 <= pktIndex
+                              state: 2 == pktIndex
                                   ? StepState.complete
                                   : StepState.disabled,
                               title: const Text('Wait Driver'),
                               content: Container(
-                                //alignment: Alignment.bottomLeft,
                                 child: Column(
                                   children: [
                                     const Text(
@@ -283,7 +271,29 @@ class _track_pState extends State<track_p> {
                                     Text("Driver Name: " +
                                         driverName.toString()),
                                     Text("Vehicle Number: " +
-                                        vehicleNumber.toString())
+                                        vehicleNumber.toString()),
+                                    TextButton.icon(
+                                        label: Text(
+                                          "Track Location",
+                                          style: TextStyle(color: primarycolor),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      TrackDriverLocation(
+                                                          name: _driver!.name,
+                                                          userName:
+                                                              _driver!.username,
+                                                          Late: _driver!.late,
+                                                          long:
+                                                              _driver!.long)));
+                                        },
+                                        icon: Icon(
+                                          Icons.track_changes,
+                                          color: primarycolor,
+                                        )),
                                   ],
                                 ),
                               ),
@@ -292,7 +302,7 @@ class _track_pState extends State<track_p> {
                             Step(
                               isActive:
                                   _index >= 4 && 4 <= pktIndex && pktIndex != 6,
-                              state: 4 <= pktIndex && pktIndex != 6
+                              state: 4 == pktIndex && pktIndex != 6
                                   ? StepState.complete
                                   : StepState.disabled,
                               title: const Text('With Driver'),
@@ -313,7 +323,17 @@ class _track_pState extends State<track_p> {
                                           style: TextStyle(color: primarycolor),
                                         ),
                                         onPressed: () {
-                                          print("with driver");
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      TrackDriverLocation(
+                                                          name: _driver!.name,
+                                                          userName:
+                                                              _driver!.username,
+                                                          Late: _driver!.late,
+                                                          long:
+                                                              _driver!.long)));
                                         },
                                         icon: Icon(
                                           Icons.track_changes,
@@ -342,7 +362,6 @@ class _track_pState extends State<track_p> {
                               ),
                             )
                           ],
-
                           connectorColor: MaterialStateColor.resolveWith(
                               (states) {
                             if (states.contains(MaterialState.disabled)) {
