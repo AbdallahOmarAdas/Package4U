@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/customer/main_page.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
 import 'package:flutter_application_1/style/header/header.dart';
 import 'package:http/http.dart' as http;
@@ -148,9 +147,8 @@ class _chang_passState extends State<chang_pass> {
                           borderSide: BorderSide(color: Colors.red, width: 2)),
                     ),
                     validator: (value) {
-                      if (value!.isEmpty) return "Enter  old password";
-
-                      // if (test != value) return "dosen\'t match";
+                      if (value!.isEmpty) return "Enter old password";
+                      return null;
                     },
                     onSaved: (newvalue) {
                       oldPass = newvalue;
@@ -169,6 +167,7 @@ class _chang_passState extends State<chang_pass> {
                           !_hasPasswordOneNumber ||
                           !_hasPasswordOneCapitalchar)
                         return "Please follow the password writing rules";
+                      return null;
                     },
                     onSaved: (newvalue) {
                       pass = newvalue;
