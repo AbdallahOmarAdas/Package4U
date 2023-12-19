@@ -5,6 +5,7 @@ import 'package:flutter_application_1/drivers/donePackages.dart';
 import 'package:flutter_application_1/drivers/onGoing.dart';
 import 'package:flutter_application_1/drivers/preparePackages.dart';
 import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
@@ -18,6 +19,8 @@ class HomeDriver extends StatefulWidget {
 class _HomeDriverState extends State<HomeDriver> {
   late String _currentDate;
   late String _currentTime;
+  late double late;
+  late double long;
   late Timer _timer;
   late Timer _LocationTimer;
   Summary summary = Summary(
@@ -30,8 +33,19 @@ class _HomeDriverState extends State<HomeDriver> {
     _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
       _updateDateTime();
     });
-    _LocationTimer = Timer.periodic(Duration(seconds: 10), (Timer timer) {
+    _LocationTimer = Timer.periodic(Duration(seconds: 10), (Timer timer) async {
+      await _getCurrentLocation();
       PostEditLocation();
+    });
+  }
+
+  Future<void> _getCurrentLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    setState(() {
+      late = position.latitude;
+      long = position.longitude;
     });
   }
 
@@ -42,8 +56,8 @@ class _HomeDriverState extends State<HomeDriver> {
         body: jsonEncode({
           "driverUserName": GetStorage().read('userName'),
           "driverPassword": GetStorage().read('password'),
-          "longitude": 35.22277943971602,
-          "latitude": 32.227273475776364
+          "longitude": long,
+          "latitude": late,
         }),
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
