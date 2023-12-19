@@ -54,19 +54,12 @@ class _TrackDriverLocationState extends State<TrackDriverLocation> {
 
     initial();
     super.initState();
-    //update every   10 seconds
     timer = Timer.periodic(Duration(seconds: 3), (Timer t) async {
       await fetchLocation();
       setState(() {
-        //set new value
-        // late = 32.173161;
-        // long = 35.060353;
-
         _addMarker(LatLng(late, long), name);
-
         mapController!
             .animateCamera(CameraUpdate.newLatLng(LatLng(late, long)));
-        //setState(() {});
       });
     });
   }
