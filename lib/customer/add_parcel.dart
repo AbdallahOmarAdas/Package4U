@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_application_1/customer/set_location.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
-import 'package:flutter_application_1/style/header/header.dart';
-import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
+import 'package:Package4U/customer/set_location.dart';
+import 'package:Package4U/style/common/theme_h.dart';
+import 'package:Package4U/style/header/header.dart';
+import 'package:Package4U/style/showDialogShared/show_dialog.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:searchfield/searchfield.dart';
 import 'package:http/http.dart' as http;

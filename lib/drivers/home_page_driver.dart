@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/customer/change_password.dart';
-import 'package:flutter_application_1/customer/edit_profile.dart';
-import 'package:flutter_application_1/drivers/homeDriver.dart';
-import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:Package4U/customer/change_password.dart';
+import 'package:Package4U/customer/edit_profile.dart';
+import 'package:Package4U/drivers/homeDriver.dart';
+import 'package:Package4U/sign_in_up_pages/sign_in.dart';
+import 'package:Package4U/style/common/theme_h.dart';
 import 'package:get_storage/get_storage.dart';
 
 class home_page_driver extends StatefulWidget {

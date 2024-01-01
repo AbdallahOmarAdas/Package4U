@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
-import 'package:flutter_application_1/style/header/header.dart';
+import 'package:Package4U/style/common/theme_h.dart';
+import 'package:Package4U/style/header/header.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:get_storage/get_storage.dart';
-import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
+import 'package:Package4U/style/showDialogShared/show_dialog.dart';
 
 class chang_pass extends StatefulWidget {
   @override

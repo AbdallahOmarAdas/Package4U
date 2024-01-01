@@ -47,7 +47,10 @@ const User=sequelize.define('users',{
     url:{
         type:Sequelize.STRING,
         allowNull:true
-    
+    },
+    NotificationToken:{
+        type:Sequelize.STRING,
+        allowNull:true
     }
 });
 module.exports=User;

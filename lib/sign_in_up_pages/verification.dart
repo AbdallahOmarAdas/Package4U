@@ -1,9 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/sign_in_up_pages/forget_pass.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
-import 'package:flutter_application_1/style/header/header.dart';
-import 'package:flutter_application_1/sign_in_up_pages/new_password.dart';
+import 'package:Package4U/sign_in_up_pages/forget_pass.dart';
+import 'package:Package4U/style/common/theme_h.dart';
+import 'package:Package4U/style/header/header.dart';
+import 'package:Package4U/sign_in_up_pages/new_password.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:otp_text_field/otp_field.dart';
 import 'package:otp_text_field/otp_field_style.dart';

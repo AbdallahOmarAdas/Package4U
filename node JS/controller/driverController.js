@@ -201,6 +201,7 @@ exports.postCompleatePackageDriver = (req, res, next) => {
   if (whoWillPay == "The recipient" && status == "With Driver") {
     balanceIncVal = total;
   }
+  
   if (status == "Wait Driver") {
     newStatus = "Complete Receive";
   } else {

@@ -122,5 +122,6 @@ router.get('/getNotPendingPackages',customerController.notPendingPackages)
 router.get('/getPendingPackagesToMe',customerController.PendingPackagesToMe)    
 router.get('/getNotPendingPackagesToMe',customerController.notPendingPackagesToMe)
 router.get('/packageState',customerController.getPackageState)
-router.get('/getMyLocations',customerController.getMyLocations)                           
+router.get('/getMyLocations',customerController.getMyLocations)      
+router.get('/getMyNotifications',customerController.GetMyNotifications)                           
 module.exports=router;

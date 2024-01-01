@@ -4,12 +4,13 @@
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
-        android:label="flutter_application_1"
+        android:label="Package4U"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        
-         <meta-data android:name="com.google.android.geo.API_KEY"
-               android:value="AIzaSyB9ipQehNyA6U_SXPLcwTq0x201dcJxKoQ"/>
+          <meta-data
+    android:name="com.google.firebase.messaging.default_notification_channel_id"
+    android:value="@string/default_notification_channel_id"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

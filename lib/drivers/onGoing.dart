@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/drivers/mapModalBottomsheet.dart';
-import 'package:flutter_application_1/drivers/workOnPackage.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:Package4U/drivers/mapModalBottomsheet.dart';
+import 'package:Package4U/drivers/workOnPackage.dart';
+import 'package:Package4U/style/common/theme_h.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
