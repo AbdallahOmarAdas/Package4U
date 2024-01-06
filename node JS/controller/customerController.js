@@ -14,7 +14,7 @@ const { Sequelize } = require("sequelize");
 const notification = require("../util/notifications");
 const { log } = require("console");
 //User.hasOne(Package);
-const user = Package.belongsTo(User, {
+exports.user = Package.belongsTo(User, {
   foreignKey: "rec_userName",
   onDelete: "CASCADE",
   as: "rec_user",
@@ -38,12 +38,12 @@ User.hasMany(Package, { foreignKey: "driver_userName" });
 const userLocation = Locations.belongsTo(User, { foreignKey: "userName" });
 User.hasMany(Locations, { foreignKey: "userName" });
 
-function generateRandomNumber() {
+ exports.generateRandomNumber =function generateRandomNumber(){
   const min = 100000; // Smallest 5-digit number
   const max = 999990; // Largest 5-digit number
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-function calaulateTotalPrice(shippingType, distance) {
+exports.calaulateTotalPrice = function calaulateTotalPrice(shippingType, distance) {
   var totalPrice;
   const jsonData = require("../json/cost");
   let boxSizePrice;
@@ -100,7 +100,7 @@ exports.sendPackageEmail = (req, res, next) => {
   if (!error.isEmpty()) {
     return res.status(422).json({ message: "failed", error });
   }
-  const total = calaulateTotalPrice(shippingType, distance);
+  const total = exports.calaulateTotalPrice(shippingType, distance);
   Package.create(
     {
       send_userName: customerUserName,
@@ -123,7 +123,7 @@ exports.sendPackageEmail = (req, res, next) => {
       total: total,
     },
     {
-      include: [user, user2],
+      include: [exports.user, user2],
     }
   )
     .then((result) => {
@@ -205,7 +205,7 @@ exports.sendPackageUser = (req, res, next) => {
   if (!error.isEmpty()) {
     return res.status(422).json({ message: "failed", error });
   }
-  const total = calaulateTotalPrice(shippingType, distance);
+  const total = exports.calaulateTotalPrice(shippingType, distance);
   if (rec_userName != "") {
     Package.create(
       {
@@ -227,9 +227,11 @@ exports.sendPackageUser = (req, res, next) => {
         whoWillPay: whoWillPay,
         packagePrice: packagePrice,
         total: total,
+        toCity:"Nablus",
+        fromCity:"Jenin"
       },
       {
-        include: [user, user2],
+        include: [exports.user, user2],
       }
     )
       .then((result) => {
@@ -249,7 +251,7 @@ exports.sendPackageUser = (req, res, next) => {
       });
   } else {
     let packageSize;
-    let pass = "c" + generateRandomNumber() + "f";
+    let pass = "c" + exports.generateRandomNumber() + "f";
     if (shippingType == "Package2") {
       packageSize = "Large size box";
     } else if (shippingType == "Package1") {
@@ -265,7 +267,7 @@ exports.sendPackageUser = (req, res, next) => {
         rec_user: {
           Fname: recName,
           Lname: " ",
-          userName: "E" + generateRandomNumber() + "fop",
+          userName: "E" + exports.generateRandomNumber() + "fop",
           password: pass,
           email: recEmail,
           phoneNumber: phoneNumber,
@@ -288,9 +290,11 @@ exports.sendPackageUser = (req, res, next) => {
         whoWillPay: whoWillPay,
         packagePrice: packagePrice,
         total: total,
+        toCity:"Nablus",
+        fromCity:"Jenin"
       },
       {
-        include: [user],
+        include: [exports.user],
       }
     )
       .then((result) => {
@@ -496,7 +500,7 @@ exports.editPackageUser = (req, res, next) => {
   if (!error.isEmpty()) {
     return res.status(422).json({ message: "failed", error });
   }
-  const total = calaulateTotalPrice(shippingType, distance);
+  const total = exports.calaulateTotalPrice(shippingType, distance);
   if (rec_userName != "") {
     Package.update(
       {
@@ -525,7 +529,7 @@ exports.editPackageUser = (req, res, next) => {
         },
       },
       {
-        include: [user, user2],
+        include: [exports.user, user2],
       }
     )
       .then((result) => {
@@ -538,7 +542,7 @@ exports.editPackageUser = (req, res, next) => {
       });
   } else {
     let packageSize;
-    let pass = "c" + generateRandomNumber() + "f";
+    let pass = "c" + exports.generateRandomNumber() + "f";
     if (shippingType == "Package2") {
       packageSize = "Large size box";
     } else if (shippingType == "Package1") {
@@ -553,7 +557,7 @@ exports.editPackageUser = (req, res, next) => {
         user: {
           Fname: recName,
           Lname: " ",
-          userName: "E" + generateRandomNumber() + "fop",
+          userName: "E" + exports.generateRandomNumber() + "fop",
           password: pass,
           email: recEmail,
           phoneNumber: phoneNumber,
@@ -584,7 +588,7 @@ exports.editPackageUser = (req, res, next) => {
         },
       },
       {
-        include: [user],
+        include: [exports.user],
       }
     )
       .then((result) => {
@@ -682,7 +686,7 @@ exports.editPackageEmail = (req, res, next) => {
   if (!error.isEmpty()) {
     return res.status(422).json({ message: "failed", error });
   }
-  const total = calaulateTotalPrice(shippingType, distance);
+  const total = exports.calaulateTotalPrice(shippingType, distance);
   Package.update(
     {
       rec_userName: null,
@@ -710,7 +714,7 @@ exports.editPackageEmail = (req, res, next) => {
       },
     },
     {
-      include: [user, user2],
+      include: [exports.user, user2],
     }
   )
     .then((result) => {

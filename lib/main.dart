@@ -1,4 +1,6 @@
+import 'package:Package4U/customer/track_package.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/customer/from_me.dart';
 import 'package:Package4U/customer/main_page.dart';
@@ -10,12 +12,39 @@ import 'package:Package4U/sign_in_up_pages/sign_in.dart';
 import 'package:Package4U/style/common/theme_h.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  //await Firebase.initializeApp();
+  //Navigator.pushNamed("customerHome");
+  print(message.notification!.title.toString() +
+      "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
+  print("Handling a background message: ${message.messageId}");
+}
+
+Future<void> _onMessageOpenApp(RemoteMessage message) async {
+  // Handle the message when the app is opened by clicking on a notification
+  print('onMessageOpenedApp: $message');
+  print(
+      "##################################################################################################################################");
+  // Add your custom logic here
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
   await Firebase.initializeApp();
   await onGetCurrentLocationPressed();
+  await FirebaseMessaging.instance.requestPermission();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenApp);
+  FirebaseMessaging.onMessage.listen((event) {
+    print(
+        "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+  });
   runApp(LoginUiApp());
 }
 
@@ -55,12 +84,26 @@ class LoginUiApp extends StatefulWidget {
 
 class _LoginUiAppState extends State<LoginUiApp> {
   String? userType;
+
+  Future<void> _firebaseMessagingBackgroundHandler(
+      RemoteMessage message) async {
+    // If you're going to use other Firebase services in the background, such as Firestore,
+    // make sure you call `initializeApp` before using other Firebase services.
+    
+    Navigator.pushNamed(context, '/customerHome');
+    print(message.notification!.title.toString() +
+        "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+    print("Handling a background message: ${message.messageId}");
+  }
+
   @override
-  void initState() {
+  void initState(){
     // TODO: implement initState
     super.initState();
+    Firebase.initializeApp();
     userType = GetStorage().read("userType");
     print("userType:" + userType.toString());
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   }
 
   HomeReturn() {

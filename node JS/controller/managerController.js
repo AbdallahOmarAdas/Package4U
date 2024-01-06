@@ -46,7 +46,10 @@ exports.postAddDriver=(req,res,next)=>{
         },fromCity:fromCity,
          toCity:toCity,
         workingDays:workingDays,
-        vehicleNumber:vehicleNumber
+        vehicleNumber:vehicleNumber,
+        totalBalance:0,
+        deliverdNumber:0,
+        receivedNumber:0
     },{
         include:   [user]
     }).then((result) => { 

@@ -1,5 +1,7 @@
 import 'package:Package4U/customer/nofificationsHistory.dart';
+import 'package:Package4U/customer/track_package.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/customer/change_password.dart';
 import 'package:Package4U/customer/edit_profile.dart';
@@ -99,14 +101,38 @@ class _home_page_customerState extends State<home_page_customer> {
                 color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
           ),
           actions: [
-            IconButton(
+            TextButton.icon(
                 onPressed: () {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: ((context) => NotificationHistory())));
                 },
-                icon: Icon(Icons.notifications_on_rounded))
+                icon: Icon(
+                  Icons.notifications_on_rounded,
+                  color: Colors.white,
+                  size: 35,
+                ),
+                label: Container(
+                  padding: EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.all(Radius.circular(12))),
+                  child: Text(
+                    "11",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ))
+            // IconButton(
+            //     onPressed: () {
+            //       Navigator.push(
+            //           context,
+            //           MaterialPageRoute(
+            //               builder: ((context) => NotificationHistory())));
+            //     },
+            //     icon: Stack(
+            //       children: [Icon(Icons.notifications_on_rounded), Text("11")],
+            //     ))
           ],
         ),
         drawer: Drawer(

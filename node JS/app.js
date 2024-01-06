@@ -1,5 +1,6 @@
 const express = require("express");
 const CORS = require("cors");
+const schedule = require("node-schedule");
 const feedRoutes = require("./routes/feeds");
 const usersRoutes = require("./routes/users");
 const driverRoutes = require("./routes/driver");
@@ -16,6 +17,7 @@ const Token = require("./models/token");
 const Notification = require("./models/nofification");
 const Customer = require("./models/customer");
 const Driver = require("./models/driver");
+const DailyReport = require("./models/dailyReport");
 const path = require("path");
 const Sequelize = require("sequelize");
 const app = express();
@@ -54,7 +56,29 @@ app.use("/image", (req, res, next) => {
     .status(200)
     .sendFile(path.join(__dirname, "user_images", "__@@__33&default.jpg"));
 });
+const createDailyRecord = async () => {
+  try {
+    // Create a new instance of the DailyRecord model
+    const dailyReport = await DailyReport.create({
+      dateTime: new Date(), // Set the date to the current date
+      comment: "",
+      totalBalance: 0,
+      packageReceivedNumber: 0,
+      packageDeliveredNum: 0,
+    });
 
+    console.log("Daily record created:", dailyReport.toJSON());
+  } catch (error) {
+    console.error("Error creating daily record:", error);
+  }
+};
+schedule.scheduleJob("1 0 * * *", () => {
+  try {
+    createDailyRecord();
+  } catch (error) {
+    console.error("Error in scheduled job:", error);
+  }
+});
 sequelize
   .sync({ force: false })
   .then((result) => {
@@ -64,3 +88,12 @@ sequelize
   .catch((err) => {
     console.log(err);
   });
+// notification.SendPackageNotification("Under review", 28);
+// // notification.SendNotification(
+// //   "notification.titlePindingToCustomer",
+// //   "A new package has been created for you. The package is currently under review",
+// //   "This Packade for you",
+// //
+// //   "abdallahC",
+// //
+// // );

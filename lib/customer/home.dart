@@ -14,10 +14,19 @@ class home extends StatefulWidget {
 
 class _homeState extends State<home> {
   final FocusNode _textFieldFocus = FocusNode();
+
+  // Navigator.push(
+  //                                 context,
+  //                                 MaterialPageRoute(
+  //                                     builder: ((context) => track_p(
+  //                                           isSearchBox: false,
+  //                                           packageId: 1,
+  //                                         ))));
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
   }
 
   @override
@@ -59,7 +68,10 @@ class _homeState extends State<home> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: ((context) => track_p())));
+                                      builder: ((context) => track_p(
+                                            isSearchBox: true,
+                                            packageId: 0,
+                                          ))));
                             },
                             decoration: InputDecoration(
                               hintText: 'Enter 6 digits tracking number',

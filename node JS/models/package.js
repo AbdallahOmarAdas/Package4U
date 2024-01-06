@@ -79,5 +79,13 @@ const Package=sequelize.define('package',{
         type:Sequelize.DOUBLE,
         allowNull:false
     },
+    toCity:{
+        type:Sequelize.STRING,
+        allowNull:true
+    },
+    fromCity:{
+        type:Sequelize.STRING,
+        allowNull:true
+    },
 });
 module.exports=Package;

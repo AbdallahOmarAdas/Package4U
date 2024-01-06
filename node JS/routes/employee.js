@@ -38,5 +38,14 @@ router.post(employeeAuth);
 router.get("/getNewOrders", employeeController.newPackages);
 router.post("/acceptPackage", employeeController.PostAcceptPackage);
 router.post("/rejectPackage", employeeController.PostRejectPackage);
-
+router.get("/GetDriverListEmployee", employeeController.GetDriverListEmployee);
+router.post("/editDriverWorkingDays", employeeController.PostEditDriverWorkingDays);
+router.post("/addVacationDriver", employeeController.postAddVacationDriver);
+router.post("/editDriverWorkingCity", employeeController.postEditDriverWorkingCity);
+router.post("/editDriverVehicleNumber", employeeController.postEditDriverVehicleNumber);
+router.get("/getDistributionOrders", employeeController.getDistributionOrders);
+router.get("/getDriversBalance", employeeController.GetDriversBalance);
+router.post("/receiveDriverBalance", employeeController.postReceiveDriverBalance);
+router.post("/editPackage", employeeController.PostEditPackage);
+router.post("/createOrder", employeeController.sendPackage);
 module.exports = router;
