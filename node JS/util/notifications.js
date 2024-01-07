@@ -68,12 +68,14 @@ exports.SendPackageNotification = (status, packageId) => {
       const dataToSend1 = preperData(
         title,
         body,
-        result.rec_user.NotificationToken
+        result.rec_user.NotificationToken,
+        packageId
       );
       const dataToSend2 = preperData(
         title,
         body,
-        result.send_user.NotificationToken
+        result.send_user.NotificationToken,
+        packageId
       );
       const config1 = prpereConfig(dataToSend1);
       const config2 = prpereConfig(dataToSend2);
@@ -108,21 +110,21 @@ exports.SendNotification = (title, body, note, status, sendTo, packageId) => {
     .then((result) => {
       token = result.NotificationToken;
       let data = JSON.stringify({
-        "notification": {
-          "title": title,
-          "text": " ",
-          "body": body,
+        notification: {
+          title: title,
+          text: " ",
+          body: body,
           // click_action: "FLUTTER_NOTIFICATION_CLICK",,
-          "click_action": "FLUTTER_NOTIFICATION_CLICK", // This is important for opening the app
+          click_action: "FLUTTER_NOTIFICATION_CLICK", // This is important for opening the app
           //'default_notification_channel_id': 'default_channel_id',
           //click_action: "OPEN_ACTIVITY_1",
         },
-         "data": {
-        //   key: "value",
-        "click_action": "FLUTTER_NOTIFICATION_CLICK",
-        //   // click_action: "FLUTTER_NOTIFICATION_CLICK",
-        //   // default_notification_channel_id: "com.example.Package4U",
-         },
+        data: {
+          //   key: "value",
+          click_action: "FLUTTER_NOTIFICATION_CLICK",
+          //   // click_action: "FLUTTER_NOTIFICATION_CLICK",
+          //   // default_notification_channel_id: "com.example.Package4U",
+        },
         to: token,
       });
       let config = {
@@ -168,17 +170,16 @@ exports.SendNotification = (title, body, note, status, sendTo, packageId) => {
       console.log(err);
     });
 };
-
-function preperData(title, body, token) {
+function preperData(title, body, token, packageID) {
   let data = JSON.stringify({
     notification: {
       title: title,
       text: " ",
       body: body,
-      "click_action": "FLUTTER_NOTIFICATION_CLICK",
+      click_action: "FLUTTER_NOTIFICATION_CLICK",
     },
     data: {
-      key: "value",
+      packageId: packageID,
     },
     to: token,
   });

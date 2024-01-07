@@ -15,31 +15,23 @@ const { Sequelize } = require("sequelize");
 const notification = require("../util/notifications");
 const { log } = require("console");
 const { Op, fn } = require("sequelize");
-const emailTemplate = (recName,  result2, result,packageSize, pass) => {
+const emailTemplate = (recName, result2, result, packageSize, pass) => {
   return `
   <html>
     <body>
       <p>Hello ${recName},</p>
       <p>${
         result2.Fname + " " + result2.Lname
-      } has created a new package with number: ${
-result.packageId
-} for you, 
+      } has created a new package with number: ${result.packageId} for you, 
       you can track the status of the package by downloading Package4U application and writing the attached package number, and also you can edit delivery location.</p>
       <p>We create an account for you with username: ${
         result.rec_userName
       } and password: ${pass}, you can change your information and password once you sign in to your account.</p>
       <p><strong>Package details:</strong></p>
       <ol>
-        <li>The one who will pay to the driver is: ${
-          result.whoWillPay
-        }</li>
-        <li>The price of the package is: ${
-          result.packagePrice
-        }</li>
-        <li>Total delivery price is: ${result.total.toFixed(
-          2
-        )}</li>
+        <li>The one who will pay to the driver is: ${result.whoWillPay}</li>
+        <li>The price of the package is: ${result.packagePrice}</li>
+        <li>Total delivery price is: ${result.total.toFixed(2)}</li>
         <li>Package Type: ${packageSize}</li>
         <li>Delivery place:${result.locationFromInfo}</li>
       </ol>
@@ -57,6 +49,40 @@ const trans = nodemailer.createTransport({
     pass: "layoiychrtedcpvx",
   },
 });
+
+const updateDilyCreatePackage = async (receivedNumber, deliverdNumber, totalBalance) => {
+  console.log(new Date());
+  await DailyReport.update(
+    {
+      packageReceivedNumber: sequelize.literal(
+        `packageReceivedNumber + ${receivedNumber}`
+      ),
+      packageDeliveredNum: sequelize.literal(
+        `packageDeliveredNum + ${deliverdNumber}`
+      ),
+      totalBalance: sequelize.literal(`totalBalance + ${totalBalance}`),
+    },
+    {
+      where: {
+        [Op.and]: [
+          fn("DATE", fn("NOW")),
+          sequelize.where(
+            fn("DATE", sequelize.col("dateTime")),
+            "=",
+            fn("DATE", new Date())
+          ),
+        ],
+      },
+    }
+  )
+    .then((result) => {
+      console.log("DailyReport done create new package");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  }
+
 exports.newPackages = (req, res, next) => {
   console.log("Get newPackages");
   Package.findAll({
@@ -362,16 +388,21 @@ exports.PostEditPackage = (req, res, next) => {
 };
 
 exports.sendPackage = (req, res, next) => {
-  const customerUserName = req.body.customerUserName;
   const rec_userName = req.body.rec_userName;
   const recName = req.body.recName;
   const recEmail = req.body.recEmail;
+  const send_userName = req.body.send_userName;
+  const senderName = req.body.senderName;
+  const senderEmail = req.body.senderEmail;
   const phoneNumber = req.body.phoneNumber;
+  const senderPhoneNumber = req.body.senderPhoneNumber;
   const packagePrice = req.body.packagePrice;
   const shippingType = req.body.shippingType;
   const whoWillPay = req.body.whoWillPay;
   const distance = req.body.distance;
   const latTo = req.body.latTo;
+  const toCity= req.body.toCity;
+  const fromCity= req.body.fromCity;
   const longTo = req.body.longTo;
   const latFrom = req.body.latFrom;
   const longFrom = req.body.longFrom;
@@ -383,9 +414,25 @@ exports.sendPackage = (req, res, next) => {
     return res.status(422).json({ message: "failed", error });
   }
   const total = Customer.calaulateTotalPrice(shippingType, distance);
-  if (rec_userName != "") {
+  let packageSize;
+  let pass = "c" + Customer.generateRandomNumber() + "f";
+  if (shippingType == "Package2") {
+    packageSize = "Large size box";
+  } else if (shippingType == "Package1") {
+    packageSize = "Meduim size box";
+  } else if (shippingType == "Package0") {
+    packageSize = "Small size box";
+  } else {
+    packageSize = "Document";
+  }
+  let res_new_username= "C" + Customer.generateRandomNumber() + "fop"
+  let send_new_username= "C" + Customer.generateRandomNumber() + "fop"
+  let rec_pass = "c" + Customer.generateRandomNumber() + "f";
+  let send_pass = "c" + Customer.generateRandomNumber() + "f";
+  if(whoWillPay=="The sender")updateDilyCreatePackage(1,0,total);
+  if (rec_userName != "" && send_userName != "") {
     Package.create({
-      send_userName: customerUserName,
+      send_userName: send_userName,
       rec_userName: rec_userName,
       status: "In Warehouse",
       whoWillPay: whoWillPay,
@@ -403,8 +450,8 @@ exports.sendPackage = (req, res, next) => {
       whoWillPay: whoWillPay,
       packagePrice: packagePrice,
       total: total,
-      toCity: "Nablus",
-      fromCity: "Jenin",
+      toCity: toCity,
+      fromCity: fromCity,
     })
       .then((result) => {
         res.status(201).json({ message: "done" });
@@ -413,26 +460,73 @@ exports.sendPackage = (req, res, next) => {
         res.status(500).json({ message: "failed" });
         console.log(err);
       });
-  } else {
-    let packageSize;
-    let pass = "c" + Customer.generateRandomNumber() + "f";
-    if (shippingType == "Package2") {
-      packageSize = "Large size box";
-    } else if (shippingType == "Package1") {
-      packageSize = "Meduim size box";
-    } else if (shippingType == "Package0") {
-      packageSize = "Small size box";
-    } else {
-      packageSize = "Document";
-    }
+  } 
+  else if(rec_userName != "" && send_userName == ""){
     Package.create(
       {
-        send_userName: customerUserName,
+        send_user: {
+          Fname: senderName,
+          Lname: " ",
+          userName: send_new_username,
+          password: send_pass,
+          email: senderEmail,
+          phoneNumber: senderPhoneNumber,
+          userType: "customer",
+          url: ".jpg",
+        },
+        rec_userName: rec_userName,
+        status: "In Warehouse",
+        whoWillPay: whoWillPay,
+        shippingType: shippingType,
+        recName: recName,
+        recEmail: recEmail,
+        recPhone: phoneNumber,
+        locationFromInfo: locationFromInfo,
+        locationToInfo: locationToInfo,
+        distance: distance,
+        latTo: latTo,
+        longTo: longTo,
+        latFrom: latFrom,
+        longFrom: longFrom,
+        whoWillPay: whoWillPay,
+        packagePrice: packagePrice,
+        total: total,
+        toCity: toCity,
+        fromCity: fromCity,
+      },
+      {
+        include: [Customer.user, Customer.user2],
+      }
+    )
+      .then((result) => {
+        User.findOne({ where: { username: rec_userName } })
+          .then((result2) => {
+            const info = trans.sendMail({
+              from: "Package4U <support@Package4U.ps>",
+              to: recEmail,
+              subject: "There's a package for you",
+              html: emailTemplate(recName, result2, result, packageSize, pass),
+            });
+            console.log("email send");
+          })
+          .catch((err) => console.log(err));
+        res.status(201).json({ message: "done" });
+      })
+      .catch((err) => {
+        res.status(500).json({ message: "failed" });
+        console.log(err);
+      });
+
+  }
+  else if(rec_userName == "" && send_userName != ""){
+    Package.create(
+      {
+        send_userName: send_userName,
         rec_user: {
           Fname: recName,
           Lname: " ",
-          userName: "E" + Customer.generateRandomNumber() + "fop",
-          password: pass,
+          userName: res_new_username,
+          password: rec_pass,
           email: recEmail,
           phoneNumber: phoneNumber,
           userType: "customer",
@@ -454,22 +548,88 @@ exports.sendPackage = (req, res, next) => {
         whoWillPay: whoWillPay,
         packagePrice: packagePrice,
         total: total,
-        toCity: "Nablus",
-        fromCity: "Jenin",
+        toCity: toCity,
+        fromCity: fromCity,
       },
       {
-        include: [Customer.user],
+        include: [Customer.user, Customer.user2],
       }
     )
       .then((result) => {
-        User.findOne({ where: { username: customerUserName } })
+        User.findOne({ where: { username: res_new_username } })
           .then((result2) => {
-
             const info = trans.sendMail({
               from: "Package4U <support@Package4U.ps>",
               to: recEmail,
               subject: "There's a package for you",
-              html: emailTemplate(recName,result2,result, packageSize, pass),
+              html: emailTemplate(recName, result2, result, packageSize, pass),
+            });
+            console.log("email send");
+          })
+          .catch((err) => console.log(err));
+        res.status(201).json({ message: "done" });
+      })
+      .catch((err) => {
+        res.status(500).json({ message: "failed" });
+        console.log(err);
+      });
+
+  }
+  else {
+
+    Package.create(
+      {
+        send_user: {
+          Fname: senderName,
+          Lname: " ",
+          userName: send_new_username,
+          password: send_pass,
+          email: senderEmail,
+          phoneNumber: senderPhoneNumber,
+          userType: "customer",
+          url: ".jpg",
+        },
+        rec_user: {
+          Fname: recName,
+          Lname: " ",
+          userName: res_new_username,
+          password: rec_pass,
+          email: recEmail,
+          phoneNumber: phoneNumber,
+          userType: "customer",
+          url: ".jpg",
+        },
+        status: "In Warehouse",
+        whoWillPay: whoWillPay,
+        shippingType: shippingType,
+        recName: recName,
+        recEmail: recEmail,
+        recPhone: phoneNumber,
+        locationFromInfo: locationFromInfo,
+        locationToInfo: locationToInfo,
+        distance: distance,
+        latTo: latTo,
+        longTo: longTo,
+        latFrom: latFrom,
+        longFrom: longFrom,
+        whoWillPay: whoWillPay,
+        packagePrice: packagePrice,
+        total: total,
+        toCity: toCity,
+        fromCity: fromCity,
+      },
+      {
+        include: [Customer.user, Customer.user2],
+      }
+    )
+      .then((result) => {
+        User.findOne({ where: { username: res_new_username } })
+          .then((result2) => {
+            const info = trans.sendMail({
+              from: "Package4U <support@Package4U.ps>",
+              to: recEmail,
+              subject: "There's a package for you",
+              html: emailTemplate(recName, result2, result, packageSize, pass),
             });
             console.log("email send");
           })

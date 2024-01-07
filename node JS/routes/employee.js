@@ -23,29 +23,39 @@ const employeeAuth = (req, res, next) => {
       if (result) {
         next();
       } else {
-        res
-          .status(403)
-          .json({
-            message: "failed",
-            message2: "This operation is allowed only for employee",
-          });
+        res.status(403).json({
+          message: "failed",
+          message2: "This operation is allowed only for employee",
+        });
       }
     })
     .catch((err) => console.log(err));
 };
-router.post(employeeAuth);
+router.use(employeeAuth);
 
 router.get("/getNewOrders", employeeController.newPackages);
 router.post("/acceptPackage", employeeController.PostAcceptPackage);
 router.post("/rejectPackage", employeeController.PostRejectPackage);
 router.get("/GetDriverListEmployee", employeeController.GetDriverListEmployee);
-router.post("/editDriverWorkingDays", employeeController.PostEditDriverWorkingDays);
+router.post(
+  "/editDriverWorkingDays",
+  employeeController.PostEditDriverWorkingDays
+);
 router.post("/addVacationDriver", employeeController.postAddVacationDriver);
-router.post("/editDriverWorkingCity", employeeController.postEditDriverWorkingCity);
-router.post("/editDriverVehicleNumber", employeeController.postEditDriverVehicleNumber);
+router.post(
+  "/editDriverWorkingCity",
+  employeeController.postEditDriverWorkingCity
+);
+router.post(
+  "/editDriverVehicleNumber",
+  employeeController.postEditDriverVehicleNumber
+);
 router.get("/getDistributionOrders", employeeController.getDistributionOrders);
 router.get("/getDriversBalance", employeeController.GetDriversBalance);
-router.post("/receiveDriverBalance", employeeController.postReceiveDriverBalance);
+router.post(
+  "/receiveDriverBalance",
+  employeeController.postReceiveDriverBalance
+);
 router.post("/editPackage", employeeController.PostEditPackage);
 router.post("/createOrder", employeeController.sendPackage);
 module.exports = router;

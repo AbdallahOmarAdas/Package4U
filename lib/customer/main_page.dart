@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:Package4U/customer/nofificationsHistory.dart';
 import 'package:Package4U/customer/track_package.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -12,7 +14,8 @@ import 'package:Package4U/customer/technicalReport.dart';
 import 'package:Package4U/customer/to_me.dart';
 import 'package:Package4U/sign_in_up_pages/sign_in.dart';
 import 'package:Package4U/style/common/theme_h.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:get_storage/get_storage.dart';
 
 class home_page_customer extends StatefulWidget {
@@ -21,18 +24,67 @@ class home_page_customer extends StatefulWidget {
 }
 
 class _home_page_customerState extends State<home_page_customer> {
+  Future<void> _onMessageOpenApp(RemoteMessage message) async {
+    String packageId = message.data['packageId'];
+    int? intValuePackageId = int.tryParse(packageId);
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: ((context) => track_p(
+                  isSearchBox: false,
+                  packageId: intValuePackageId!,
+                ))));
+    print('onMessageOpenedApp: $message');
+  }
+
+  Future<int> fetchNotificationCount() async {
+    var url = urlStarter +
+        "/customer/getNotificationCount?customerUserName=" +
+        GetStorage().read("userName");
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      return data;
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
+
   int _index = 0;
   String customerName = GetStorage().read("Fname");
   String userName = GetStorage().read("userName");
   String email = GetStorage().read("email");
+  int storedNotificationCount = GetStorage().read("notificationCount");
+  int newNotificationCount = 0;
+  late Timer _timer;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    fetchNotificationCount().then((value) {
+      storedNotificationCount = value;
+      GetStorage().write("notificationCount", value);
+    });
+    newNotificationCount = storedNotificationCount;
+    FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenApp);
     imgUrl = urlStarter +
         '/image/' +
         GetStorage().read("userName") +
         GetStorage().read("url");
+    _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
+      fetchNotificationCount().then((value) {
+        setState(() {
+          newNotificationCount = value;
+          storedNotificationCount = GetStorage().read("notificationCount");
+        });
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 
   var imgUrl = urlStarter +
@@ -101,38 +153,41 @@ class _home_page_customerState extends State<home_page_customer> {
                 color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
           ),
           actions: [
-            TextButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: ((context) => NotificationHistory())));
-                },
-                icon: Icon(
+            ElevatedButton(
+              style: ButtonStyle(
+                  elevation: MaterialStateProperty.all<double>(0),
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(primarycolor)),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: ((context) => NotificationHistory(
+                              newNotificationCount: newNotificationCount,
+                            ))));
+              },
+              child: Stack(alignment: Alignment.center, children: [
+                Icon(
                   Icons.notifications_on_rounded,
                   color: Colors.white,
                   size: 35,
                 ),
-                label: Container(
-                  padding: EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.all(Radius.circular(12))),
-                  child: Text(
-                    "11",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ))
-            // IconButton(
-            //     onPressed: () {
-            //       Navigator.push(
-            //           context,
-            //           MaterialPageRoute(
-            //               builder: ((context) => NotificationHistory())));
-            //     },
-            //     icon: Stack(
-            //       children: [Icon(Icons.notifications_on_rounded), Text("11")],
-            //     ))
+                newNotificationCount > storedNotificationCount
+                    ? Container(
+                        margin: EdgeInsets.only(left: 25, bottom: 20),
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(12))),
+                        child: Text(
+                          "${newNotificationCount - storedNotificationCount}",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      )
+                    : Container(),
+              ]),
+            ),
           ],
         ),
         drawer: Drawer(

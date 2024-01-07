@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:Package4U/Models/Notification.dart';
+import 'package:Package4U/customer/track_package.dart';
 import 'package:Package4U/style/common/theme_h.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
@@ -7,7 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
 class NotificationHistory extends StatefulWidget {
-  const NotificationHistory({super.key});
+  final int newNotificationCount;
+  const NotificationHistory({super.key, required this.newNotificationCount});
 
   @override
   State<NotificationHistory> createState() => _NotificationHistoryState();
@@ -19,6 +21,7 @@ class _NotificationHistoryState extends State<NotificationHistory> {
   @override
   void initState() {
     super.initState();
+    GetStorage().write("notificationCount", widget.newNotificationCount);
     time = DateTime.now();
     fetchData();
   }
@@ -47,7 +50,6 @@ class _NotificationHistoryState extends State<NotificationHistory> {
             .toList();
         notificationsList
             .sort((a, b) => b.Date.toString().compareTo(a.Date.toString()));
-        print("today is " + DateTime.now().toString());
         if (!(notificationsList.length > 0 &&
             isSameTodayDay(notificationsList[0].Date))) {
           printedEarlier = true;
@@ -77,127 +79,138 @@ class _NotificationHistoryState extends State<NotificationHistory> {
           ? Center(
               child: CircularProgressIndicator(),
             )
-          : Container(
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  notificationsList.length > 0 &&
-                          isSameTodayDay(notificationsList[0].Date)
-                      ? Container(
-                          padding: EdgeInsets.only(left: 5, top: 10),
-                          child: Text('Today', style: TodayErlierStyle()),
-                        )
-                      //  : Container(),
-                      : notificationsList.length != 0
-                          ? Container(
-                              padding: EdgeInsets.only(left: 5, top: 10),
-                              child: Text(
-                                'Earlier',
-                                style: TodayErlierStyle(),
-                                textAlign: TextAlign.left,
-                              ),
-                            )
-                          : Center(
-                              child: Text(
-                                "You don't have any notifications",
-                                style: TextStyle(
-                                    color: primarycolor,
-                                    fontSize: 23,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                  notificationsList.length == 0
-                      ? Container()
-                      : Expanded(
-                          child: ListView.separated(
-                            itemCount: notificationsList.length,
-                            separatorBuilder:
-                                (BuildContext context, int index) {
-                              final current = notificationsList[index].Date;
-                              final previous =
-                                  index + 1 <= notificationsList.length
-                                      ? notificationsList[index + 1].Date
-                                      : current;
-
-                              if (isSameDay(current, previous)) {
-                                return Container(); // No separator if notifications are on the same day
-                              } else if (!printedEarlier) {
-                                print(index);
-                                printedEarlier = true;
-                                return Container(
-                                  padding: EdgeInsets.only(
-                                      left: 5, top: 10, bottom: 5),
-                                  child: Text(
-                                    "Earlier",
-                                    style: TodayErlierStyle(),
-                                  ),
-                                ); // Add a separator if notifications are on different days
-                              } else {
-                                return Container();
-                              }
-                            },
-                            itemBuilder: (BuildContext context, int index) {
-                              final notification = notificationsList[index];
-                              final timeAgo = getTimeAgo(notification.Date);
-                              final formattedDate =
-                                  DateFormat.yMMMd().format(notification.Date);
-
-                              return Container(
-                                //padding: EdgeInsets.only(bottom: 30),
-                                child: ListTile(
-                                  contentPadding: EdgeInsets.only(
-                                      left: 3.0,
-                                      right: 8.0,
-                                      top: 0.0,
-                                      bottom: 0.0),
-                                  minVerticalPadding: 30,
-                                  horizontalTitleGap: 1.5,
-                                  leading: Container(
-                                    child: CircleAvatar(
-                                      radius: 30,
-                                      backgroundColor: Colors.transparent,
-                                      backgroundImage: AssetImage(statusIcon[
-                                          notificationsList[index].Status]),
-                                    ),
-                                  ),
-                                  title: Text(notification.Title),
-                                  subtitle: Container(
-                                    padding: EdgeInsets.only(left: 5),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        Text(notification.Body),
-                                        Text(notificationsList[index].Note)
-                                      ],
-                                    ),
-                                  ),
-                                  trailing: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(timeAgo),
-                                      SizedBox(height: 4),
-                                      Text(formattedDate,
-                                          style: TextStyle(fontSize: 12)),
-                                    ],
-                                  ),
-                                  onTap: () {
-                                    print(index);
-                                  },
+          : notificationsList.length == 0
+              ? Center(
+                  child: Text(
+                  "You don't have any notifications",
+                  style: TextStyle(
+                      color: primarycolor,
+                      fontSize: 23,
+                      fontWeight: FontWeight.bold),
+                ))
+              : SingleChildScrollView(
+                  child: Container(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        notificationsList.length > 0 &&
+                                isSameTodayDay(notificationsList[0].Date)
+                            ? Container(
+                                padding: EdgeInsets.only(left: 5, top: 10),
+                                child: Text('Today', style: TodayErlierStyle()),
+                              )
+                            //  : Container(),
+                            : Container(
+                                padding: EdgeInsets.only(left: 5, top: 10),
+                                child: Text(
+                                  'Earlier',
+                                  style: TodayErlierStyle(),
+                                  textAlign: TextAlign.left,
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                ],
-              ),
-            ),
+                              ),
+                        notificationsList.length == 0
+                            ? Container()
+                            : ListView.separated(
+                                physics: NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: notificationsList.length,
+                                separatorBuilder:
+                                    (BuildContext context, int index) {
+                                  final current = notificationsList[index].Date;
+                                  final previous =
+                                      index + 1 <= notificationsList.length
+                                          ? notificationsList[index + 1].Date
+                                          : current;
+
+                                  if (isSameDay(current, previous)) {
+                                    return Container(); // No separator if notifications are on the same day
+                                  } else if (!printedEarlier) {
+                                    printedEarlier = true;
+                                    return Container(
+                                      padding: EdgeInsets.only(
+                                          left: 5, top: 10, bottom: 5),
+                                      child: Text(
+                                        "Earlier",
+                                        style: TodayErlierStyle(),
+                                      ),
+                                    ); // Add a separator if notifications are on different days
+                                  } else {
+                                    return Container();
+                                  }
+                                },
+                                itemBuilder: (BuildContext context, int index) {
+                                  final notification = notificationsList[index];
+                                  final timeAgo = getTimeAgo(notification.Date);
+                                  final formattedDate = DateFormat.yMMMd()
+                                      .format(notification.Date);
+
+                                  return Container(
+                                    //padding: EdgeInsets.only(bottom: 30),
+                                    child: ListTile(
+                                      contentPadding: EdgeInsets.only(
+                                          left: 3.0,
+                                          right: 8.0,
+                                          top: 0.0,
+                                          bottom: 0.0),
+                                      minVerticalPadding: 30,
+                                      horizontalTitleGap: 1.5,
+                                      leading: Container(
+                                        child: CircleAvatar(
+                                          radius: 30,
+                                          backgroundColor: Colors.transparent,
+                                          backgroundImage: AssetImage(
+                                              statusIcon[
+                                                  notificationsList[index]
+                                                      .Status]),
+                                        ),
+                                      ),
+                                      title: Text(notification.Title),
+                                      subtitle: Container(
+                                        padding: EdgeInsets.only(left: 5),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.max,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          children: [
+                                            Text(notification.Body),
+                                            Text(notificationsList[index].Note)
+                                          ],
+                                        ),
+                                      ),
+                                      trailing: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(timeAgo),
+                                          SizedBox(height: 4),
+                                          Text(formattedDate,
+                                              style: TextStyle(fontSize: 12)),
+                                        ],
+                                      ),
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: ((context) => track_p(
+                                                      isSearchBox: false,
+                                                      packageId: notification
+                                                          .PackageId,
+                                                    ))));
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                      ],
+                    ),
+                  ),
+                ),
     );
   }
 
@@ -228,7 +241,6 @@ class _NotificationHistoryState extends State<NotificationHistory> {
   }
 
   String getTimeAgo(DateTime dateTime) {
-    print(dateTime.toUtc());
     DateTime now = DateTime.now();
     now = DateTime(
         now.year, now.month, now.day, now.hour, now.minute, now.second);
@@ -236,9 +248,6 @@ class _NotificationHistoryState extends State<NotificationHistory> {
         dateTime.hour, dateTime.minute, dateTime.second);
     final difference = now.difference(dateTime.toUtc()).abs();
 
-    print("now" + now.toString());
-    print("pac" + dateTime.toString());
-    print("=========================================");
     if (difference.inSeconds < 60) {
       return '${difference.inSeconds} seconds ago';
     } else if (difference.inMinutes < 60) {

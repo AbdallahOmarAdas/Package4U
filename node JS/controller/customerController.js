@@ -21,7 +21,7 @@ exports.user = Package.belongsTo(User, {
 });
 User.hasMany(Package, { foreignKey: "rec_userName" });
 
-const user2 = Package.belongsTo(User, {
+exports.user2 = Package.belongsTo(User, {
   foreignKey: "send_userName",
   onDelete: "CASCADE",
   as: "send_user",
@@ -123,7 +123,7 @@ exports.sendPackageEmail = (req, res, next) => {
       total: total,
     },
     {
-      include: [exports.user, user2],
+      include: [exports.user, exports.user2],
     }
   )
     .then((result) => {
@@ -231,7 +231,7 @@ exports.sendPackageUser = (req, res, next) => {
         fromCity:"Jenin"
       },
       {
-        include: [exports.user, user2],
+        include: [exports.user, exports.user2],
       }
     )
       .then((result) => {
@@ -529,7 +529,7 @@ exports.editPackageUser = (req, res, next) => {
         },
       },
       {
-        include: [exports.user, user2],
+        include: [exports.user, exports.user2],
       }
     )
       .then((result) => {
@@ -714,7 +714,7 @@ exports.editPackageEmail = (req, res, next) => {
       },
     },
     {
-      include: [exports.user, user2],
+      include: [exports.user, exports.user2],
     }
   )
     .then((result) => {
@@ -891,3 +891,16 @@ exports.GetMyNotifications = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
+exports.getNotificationCount=(req,res,next)=>{
+  const customerUserName=req.query.customerUserName;
+  Notification.count({
+    where: { noti_userName: customerUserName },
+  }).then((count) => {
+    return res.status(200).json(count);
+  }).catch((error) => {
+    console.log(error);
+      res.status(500).json({ message: "failed" });
+  });
+
+}

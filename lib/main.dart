@@ -38,13 +38,13 @@ void main() async {
   await Firebase.initializeApp();
   await onGetCurrentLocationPressed();
   await FirebaseMessaging.instance.requestPermission();
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenApp);
-  FirebaseMessaging.onMessage.listen((event) {
-    print(
-        "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-  });
+  // FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenApp);
+  // FirebaseMessaging.onMessage.listen((event) {
+  //   print(
+  //       "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+  // });
   runApp(LoginUiApp());
 }
 
@@ -89,7 +89,7 @@ class _LoginUiAppState extends State<LoginUiApp> {
       RemoteMessage message) async {
     // If you're going to use other Firebase services in the background, such as Firestore,
     // make sure you call `initializeApp` before using other Firebase services.
-    
+
     Navigator.pushNamed(context, '/customerHome');
     print(message.notification!.title.toString() +
         "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
@@ -97,21 +97,22 @@ class _LoginUiAppState extends State<LoginUiApp> {
   }
 
   @override
-  void initState(){
+  void initState() {
     // TODO: implement initState
     super.initState();
     Firebase.initializeApp();
     userType = GetStorage().read("userType");
     print("userType:" + userType.toString());
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   }
 
   HomeReturn() {
     if (userType == null)
       return sign_in();
-    else if (userType == "customer")
+    else if (userType == "customer") {
+      GetStorage().write("notificationCount", 0);
       return home_page_customer();
-    else if (userType == "manager")
+    } else if (userType == "manager")
       return home_page_manager();
     else if (userType == "driver") return home_page_driver();
   }

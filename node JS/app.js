@@ -22,11 +22,11 @@ const path = require("path");
 const Sequelize = require("sequelize");
 const app = express();
 const admin = require("firebase-admin");
-const serviceAccount = require("./package4u-326de-firebase-adminsdk-4qrk9-3884981a46.json");
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
-const messaging = admin.messaging();
+//const serviceAccount = require("./package4u-326de-firebase-adminsdk-4qrk9-3884981a46.json");
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+// });
+//const messaging = admin.messaging();
 //app.use(bodyParser.urlencoded());//used in html form x-www-form-urlencoded
 app.use(bodyParser.json());
 app.use(CORS());
@@ -88,7 +88,7 @@ sequelize
   .catch((err) => {
     console.log(err);
   });
-// notification.SendPackageNotification("Under review", 28);
+notification.SendPackageNotification("Under review", 28);
 // // notification.SendNotification(
 // //   "notification.titlePindingToCustomer",
 // //   "A new package has been created for you. The package is currently under review",
