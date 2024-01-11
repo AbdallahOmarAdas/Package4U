@@ -1,13 +1,14 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/customer/main_page.dart';
-import 'package:flutter_application_1/drivers/home_page_driver.dart';
-import 'package:flutter_application_1/employee/main_page.dart';
-import 'package:flutter_application_1/manager/main_page.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
-import 'package:flutter_application_1/sign_in_up_pages/forget_pass.dart';
-import 'package:flutter_application_1/sign_in_up_pages/regstration.dart';
-import 'package:flutter_application_1/style/header/header.dart';
+import 'package:Package4U/customer/main_page.dart';
+import 'package:Package4U/drivers/home_page_driver.dart';
+import 'package:Package4U/employee/main_page.dart';
+import 'package:Package4U/manager/main_page.dart';
+import 'package:Package4U/style/common/theme_h.dart';
+import 'package:Package4U/sign_in_up_pages/forget_pass.dart';
+import 'package:Package4U/sign_in_up_pages/regstration.dart';
+import 'package:Package4U/style/header/header.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:get_storage/get_storage.dart';
@@ -19,6 +20,8 @@ class sign_in extends StatefulWidget {
 
 class _sign_inState extends State<sign_in> {
   bool passwordVisible = false;
+  String? _token;
+  var _firebaseMessaging = FirebaseMessaging.instance;
   GlobalKey<FormState> formState = GlobalKey();
   var responceBody;
   String? userName;
@@ -26,12 +29,11 @@ class _sign_inState extends State<sign_in> {
   String? password;
   bool isLoginFaild = false;
   Future postSignin() async {
+    print(_token);
     var url = urlStarter + "/users/signin";
     var responce = await http.post(Uri.parse(url),
-        body: jsonEncode({
-          "userName": userName,
-          "password": password,
-        }),
+        body: jsonEncode(
+            {"userName": userName, "password": password, "token": _token}),
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
         });
@@ -90,6 +92,12 @@ class _sign_inState extends State<sign_in> {
   void initState() {
     super.initState();
     GetStorage().erase();
+    _firebaseMessaging.getToken().then((token) {
+      print("=================================================");
+      _token = token;
+      print(token);
+      print("=================================================");
+    });
   }
 
   bool isValidEmail(String email) {

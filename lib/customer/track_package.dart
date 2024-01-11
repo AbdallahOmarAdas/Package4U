@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/Models/DriverTrack.dart';
-import 'package:flutter_application_1/manager/TrackDriverLocation.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
-import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
+import 'package:Package4U/Models/DriverTrack.dart';
+import 'package:Package4U/manager/TrackDriverLocation.dart';
+import 'package:Package4U/style/common/theme_h.dart';
+import 'package:Package4U/style/showDialogShared/show_dialog.dart';
 import 'package:lottie/lottie.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
 class track_p extends StatefulWidget {
+  final bool isSearchBox;
+  final int packageId;
+
+  const track_p(
+      {super.key, required this.isSearchBox, required this.packageId});
+
   @override
   State<track_p> createState() => _track_pState();
 }
@@ -25,18 +31,20 @@ class _track_pState extends State<track_p> {
   DateTime? deliverDate;
   Driver? _driver;
   List allStatus = [
-    "Under review",
-    "Accepted",
-    "Wait Driver",
-    "In Warehouse",
-    "With Driver",
-    "Delivered",
-    "Rejected by driver",
-    "Deliver Rejected",
-    "Receive Rejected",
-    "Complete Receive",
+    "Under review", //0
+    "Accepted", //1
+    "Wait Driver", //2
+    "In Warehouse", //3
+    "With Driver", //4
+    "Delivered", //5
+    "Rejected by driver", //6
+    "Deliver Rejected", //7
+    "Receive Rejected", //8
+    "Complete Receive", //8
+    "Rejected by employee" //10
   ];
   bool result = false;
+  bool isAllowdExpand = true;
   Future<void> fetchData() async {
     var url = urlStarter +
         "/customer/packageState?packageId=" +
@@ -68,6 +76,7 @@ class _track_pState extends State<track_p> {
           } else {
             driverName = driver['Fname'] + " " + driver['Lname'];
             vehicleNumber = data['driver']['vehicleNumber'];
+            print(data['driver']['latitude']);
             _driver = new Driver(
                 late: data['driver']['latitude'],
                 long: data['driver']['longitude'],
@@ -81,7 +90,9 @@ class _track_pState extends State<track_p> {
           pktIndex == 7 ? _index = 3 : _index;
           pktIndex == 8 ? _index = 1 : _index;
           pktIndex == 9 ? _index = 3 : _index;
+          pktIndex == 10 ? _index = 1 : _index;
           result = true;
+          if (pktIndex == 6 || pktIndex == 10) isAllowdExpand = false;
         });
       } else if (data['message'] == "invalid id") {
         print("invalid id");
@@ -103,9 +114,13 @@ class _track_pState extends State<track_p> {
   void initState() {
     _focusNode.requestFocus();
     super.initState();
-    // status = "In Warehouse";
-    // pktIndex = allStatus.indexOf(status);
-    // pktIndex == 6 ? _index = 3 : _index = pktIndex;
+    if (widget.isSearchBox) {
+      result = false;
+    } else {
+      result = true;
+      tracking_number = widget.packageId.toString();
+      fetchData();
+    }
   }
 
   final formState2 = GlobalKey<FormState>();
@@ -240,26 +255,12 @@ class _track_pState extends State<track_p> {
                                     const Text('This Package is under review.'),
                               ),
                             ),
+                            AcceptState(),
                             Step(
-                              isActive: _index >= 1 && 1 <= pktIndex,
-                              state: 1 <= pktIndex
-                                  ? StepState.complete
-                                  : StepState.disabled,
-                              title: const Text('Accepted'),
-                              content: Container(
-                                alignment: Alignment.centerLeft,
-                                child: Column(
-                                  children: [
-                                    const Text(
-                                        'Detailes: This package has been approved for delivery'),
-                                    Text('Date: ' + rerciveDate.toString()),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Step(
-                              isActive: _index >= 2 && 2 <= pktIndex,
-                              state: 2 == pktIndex
+                              isActive: _index >= 2 &&
+                                  2 <= pktIndex &&
+                                  isAllowdExpand,
+                              state: 2 == pktIndex && isAllowdExpand
                                   ? StepState.complete
                                   : StepState.disabled,
                               title: const Text('Wait Driver'),
@@ -300,9 +301,10 @@ class _track_pState extends State<track_p> {
                             ),
                             driverState(),
                             Step(
-                              isActive:
-                                  _index >= 4 && 4 <= pktIndex && pktIndex != 6,
-                              state: 4 == pktIndex && pktIndex != 6
+                              isActive: _index >= 4 &&
+                                  4 <= pktIndex &&
+                                  isAllowdExpand,
+                              state: 4 == pktIndex && isAllowdExpand
                                   ? StepState.complete
                                   : StepState.disabled,
                               title: const Text('With Driver'),
@@ -344,9 +346,10 @@ class _track_pState extends State<track_p> {
                               ),
                             ),
                             Step(
-                              isActive:
-                                  _index >= 5 && 5 <= pktIndex && pktIndex != 6,
-                              state: 5 <= pktIndex && pktIndex != 6
+                              isActive: _index >= 5 &&
+                                  5 <= pktIndex &&
+                                  isAllowdExpand,
+                              state: 5 <= pktIndex && isAllowdExpand
                                   ? StepState.complete
                                   : StepState.disabled,
                               title: const Text('Delivered'),
@@ -401,8 +404,7 @@ class _track_pState extends State<track_p> {
               const Text(
                   'Detailes: The driver refused to receive the package from you'),
               Text(" "),
-              Text(
-                  "Driver Comment: The customer requested to change the package delivery location"),
+              Text("Driver Comment: " + driverComment.toString()),
               Text("Driver Name: " + driverName.toString()),
             ],
           ),
@@ -411,12 +413,49 @@ class _track_pState extends State<track_p> {
     }
     return Step(
       isActive: _index >= 3 && 3 <= pktIndex,
-      state: 3 <= pktIndex ? StepState.complete : StepState.disabled,
+      state: 3 <= pktIndex && isAllowdExpand
+          ? StepState.complete
+          : StepState.disabled,
       title: const Text('In Warehouse'),
       content: Container(
         alignment: Alignment.centerLeft,
         child: const Text(
             'Detailes: This package is in our warehouse waiting to be distributed to drivers'),
+      ),
+    );
+  }
+
+  Step AcceptState() {
+    if (10 == pktIndex) {
+      return Step(
+        isActive: true,
+        state: StepState.error,
+        title: const Text('Rejected'),
+        content: Container(
+          alignment: Alignment.centerLeft,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Detailes: Your package delivery has been refused'),
+              Text(" "),
+              Text("Reason: " + driverComment.toString())
+            ],
+          ),
+        ),
+      );
+    }
+    return Step(
+      isActive: _index >= 1 && 1 <= pktIndex,
+      state: 1 <= pktIndex ? StepState.complete : StepState.disabled,
+      title: const Text('Accepted'),
+      content: Container(
+        alignment: Alignment.centerLeft,
+        child: Column(
+          children: [
+            const Text('Detailes: This package has been approved for delivery'),
+            Text('Date: ' + rerciveDate.toString()),
+          ],
+        ),
       ),
     );
   }

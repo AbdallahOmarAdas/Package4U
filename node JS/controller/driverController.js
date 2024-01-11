@@ -201,6 +201,7 @@ exports.postCompleatePackageDriver = (req, res, next) => {
   if (whoWillPay == "The recipient" && status == "With Driver") {
     balanceIncVal = total;
   }
+  
   if (status == "Wait Driver") {
     newStatus = "Complete Receive";
   } else {
@@ -360,7 +361,7 @@ exports.PostEditLocation = (req, res) => {
   const body = req.body;
   Driver.update(
     {
-      latitude: body.latitude+0.05001000001602,
+      latitude: body.latitude+0.00001000001602,
       longitude: body.longitude+0.00110000001602,
     },
     {

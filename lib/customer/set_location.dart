@@ -1,8 +1,6 @@
 import 'package:flutter/services.dart';
-import 'package:flutter_application_1/customer/add_parcel.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:Package4U/style/common/theme_h.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:flutter/material.dart';
 import 'package:open_street_map_search_and_pick/open_street_map_search_and_pick.dart';
 

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/customer/change_password.dart';
-import 'package:flutter_application_1/customer/edit_profile.dart';
-import 'package:flutter_application_1/customer/home.dart';
-import 'package:flutter_application_1/customer/service.dart';
-import 'package:flutter_application_1/sign_in_up_pages/sign_in.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:Package4U/customer/change_password.dart';
+import 'package:Package4U/customer/edit_profile.dart';
+import 'package:Package4U/customer/home.dart';
+import 'package:Package4U/customer/service.dart';
+import 'package:Package4U/sign_in_up_pages/sign_in.dart';
+import 'package:Package4U/style/common/theme_h.dart';
 
 class home_page_employee extends StatefulWidget {
   @override

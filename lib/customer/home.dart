@@ -1,10 +1,11 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/customer/addLocations.dart';
-import 'package:flutter_application_1/customer/add_parcel.dart';
-import 'package:flutter_application_1/customer/call.dart';
-import 'package:flutter_application_1/customer/claculatePrice.dart';
-import 'package:flutter_application_1/customer/track_package.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:Package4U/customer/addLocations.dart';
+import 'package:Package4U/customer/add_parcel.dart';
+import 'package:Package4U/customer/call.dart';
+import 'package:Package4U/customer/claculatePrice.dart';
+import 'package:Package4U/customer/track_package.dart';
+import 'package:Package4U/style/common/theme_h.dart';
 
 class home extends StatefulWidget {
   @override
@@ -13,6 +14,20 @@ class home extends StatefulWidget {
 
 class _homeState extends State<home> {
   final FocusNode _textFieldFocus = FocusNode();
+
+  // Navigator.push(
+  //                                 context,
+  //                                 MaterialPageRoute(
+  //                                     builder: ((context) => track_p(
+  //                                           isSearchBox: false,
+  //                                           packageId: 1,
+  //                                         ))));
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +68,10 @@ class _homeState extends State<home> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: ((context) => track_p())));
+                                      builder: ((context) => track_p(
+                                            isSearchBox: true,
+                                            packageId: 0,
+                                          ))));
                             },
                             decoration: InputDecoration(
                               hintText: 'Enter 6 digits tracking number',

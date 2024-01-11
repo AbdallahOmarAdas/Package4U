@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_1/customer/add_parcel.dart';
-import 'package:flutter_application_1/customer/main_page.dart';
-import 'package:flutter_application_1/manager/creat_employee.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
-import 'package:flutter_application_1/style/showDialogShared/show_dialog.dart';
+import 'package:Package4U/customer/add_parcel.dart';
+import 'package:Package4U/customer/main_page.dart';
+import 'package:Package4U/manager/creat_employee.dart';
+import 'package:Package4U/style/common/theme_h.dart';
+import 'package:Package4U/style/showDialogShared/show_dialog.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:get_storage/get_storage.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
-import 'package:flutter_application_1/style/header/header.dart';
+import 'package:Package4U/style/common/theme_h.dart';
+import 'package:Package4U/style/header/header.dart';
 import 'package:get_storage/get_storage.dart';
 
 class SendTechnicalReport extends StatefulWidget {

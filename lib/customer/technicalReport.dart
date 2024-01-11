@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/customer/sendTechnicalReport.dart';
-import 'package:flutter_application_1/customer/set_location.dart';
-import 'package:flutter_application_1/style/common/theme_h.dart';
+import 'package:Package4U/customer/sendTechnicalReport.dart';
+import 'package:Package4U/customer/set_location.dart';
+import 'package:Package4U/style/common/theme_h.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
