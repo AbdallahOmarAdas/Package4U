@@ -72,35 +72,24 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  String PackageTypeToString(String packageType) {
+    switch (packageType) {
+      case 'Package0':
+        return 'Small Package';
+      case 'Package1':
+        return 'Medium Package';
+      case 'Package2':
+        return 'Large Package';
+      case 'Document0':
+        return 'Document';
+      default:
+        return 'Document';
+    }
+  }
+
   List<content> _buildMy_p_Orders() {
     List<content> pending_orders = [];
     for (int i = 0; i < pindingList.length; i++) {
-      String whoPay =
-          pindingList[i]['rec_userName'] == null ? "Doesn't have" : "Have";
-      int pktSize = 0;
-      String pktType = '';
-      switch (pindingList[i]['shippingType']) {
-        case 'Package0':
-          pktSize = 0;
-          pktType = 'Package';
-          break;
-        case 'Package1':
-          pktSize = 1;
-          pktType = 'Package';
-          break;
-        case 'Package2':
-          pktSize = 2;
-          pktType = 'Package';
-          break;
-        case 'Document0':
-          pktSize = 0;
-          pktType = 'Document';
-          break;
-        default:
-          pktSize = 0;
-          pktType = 'Document';
-          break;
-      }
       String fromTxt = pindingList[i]['locationFromInfo'];
       List fromTxt2 = fromTxt.split(",");
       String toTxt = pindingList[i]['locationToInfo'];
@@ -117,7 +106,9 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
           from: fromTxt2[0] + ", " + fromTxt2[1],
           to: toTxt2[0] + ", " + toTxt2[1],
           flag: false,
+          packageType: PackageTypeToString(pindingList[i]['shippingType']),
           context: this.context,
+          whoWillPay: pindingList[i]['whoWillPay'],
           btn_edit: () {},
           refreshData: () {
             fetchData();
@@ -150,7 +141,9 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
           to: toTxt2[0] + ", " + toTxt2[1],
           flag: true,
           context: this.context,
+          whoWillPay: AcceptedList[i]['whoWillPay'],
           Status: AcceptedList[i]['status'],
+          packageType: PackageTypeToString(AcceptedList[i]['shippingType']),
           btn_edit: () {},
           refreshData: () {
             fetchData();
@@ -174,7 +167,7 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
           controller: _tabController,
           tabs: [
             Tab(text: 'Pending Orders'),
-            Tab(text: 'Deliverd Orders'),
+            Tab(text: 'Accepted Orders'),
           ],
         ),
       ),
@@ -206,6 +199,8 @@ class content extends StatefulWidget {
   final String from;
   final String to;
   final String sender_name;
+  final String whoWillPay;
+  final String packageType;
   final bool flag; // pendding or deliverd
   final String Status;
   final BuildContext context;
@@ -221,6 +216,8 @@ class content extends StatefulWidget {
       required this.price,
       required this.from,
       required this.to,
+      required this.whoWillPay,
+      required this.packageType,
       required this.flag,
       required this.context,
       required this.refreshData,
@@ -546,7 +543,7 @@ class _contentState extends State<content> {
                                     return Container(
                                       height:
                                           MediaQuery.of(context).size.height /
-                                              2,
+                                              1.9,
                                       child: Padding(
                                         padding: const EdgeInsets.all(20.0),
                                         child: Column(
@@ -568,14 +565,15 @@ class _contentState extends State<content> {
                                             Row(
                                               children: [
                                                 Text.rich(TextSpan(
-                                                    text: 'Package ID :',
+                                                    text: 'Package Type :',
                                                     style: TextStyle(
                                                         fontSize: 20,
                                                         fontWeight:
                                                             FontWeight.bold),
                                                     children: <InlineSpan>[
                                                       TextSpan(
-                                                        text: ' ${widget.id}',
+                                                        text:
+                                                            ' ${widget.packageType}',
                                                         style: TextStyle(
                                                             fontSize: 18,
                                                             color: Colors.red,
@@ -588,7 +586,7 @@ class _contentState extends State<content> {
                                             SizedBox(height: 20),
                                             Text.rich(TextSpan(
                                                 text:
-                                                    'Total Delivery Price : :',
+                                                    'Total Delivery Price :',
                                                 style: TextStyle(
                                                     fontSize: 20,
                                                     fontWeight:
@@ -597,6 +595,24 @@ class _contentState extends State<content> {
                                                   TextSpan(
                                                     text:
                                                         ' ${widget.price.toStringAsFixed(2)}\$',
+                                                    style: TextStyle(
+                                                        fontSize: 18,
+                                                        color: Colors.red,
+                                                        fontStyle:
+                                                            FontStyle.italic),
+                                                  )
+                                                ])),
+                                            SizedBox(height: 20),
+                                            Text.rich(TextSpan(
+                                                text: 'Who will pay :',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                                children: <InlineSpan>[
+                                                  TextSpan(
+                                                    text:
+                                                        ' ${widget.whoWillPay}',
                                                     style: TextStyle(
                                                         fontSize: 18,
                                                         color: Colors.red,
@@ -671,25 +687,6 @@ class _contentState extends State<content> {
                                                 children: <InlineSpan>[
                                                   TextSpan(
                                                     text: ' ${widget.from}',
-                                                    style: TextStyle(
-                                                        fontSize: 18,
-                                                        color: Colors.red,
-                                                        fontStyle:
-                                                            FontStyle.italic),
-                                                  )
-                                                ])),
-                                            SizedBox(
-                                              height: 20,
-                                            ),
-                                            Text.rich(TextSpan(
-                                                text: 'Status :',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                                children: <InlineSpan>[
-                                                  TextSpan(
-                                                    text: ' ${widget.Status}',
                                                     style: TextStyle(
                                                         fontSize: 18,
                                                         color: Colors.red,

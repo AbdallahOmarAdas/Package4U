@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:Package4U/customer/add_parcel.dart';
-import 'package:Package4U/customer/main_page.dart';
-import 'package:Package4U/manager/creat_employee.dart';
 import 'package:Package4U/style/common/theme_h.dart';
 import 'package:Package4U/style/showDialogShared/show_dialog.dart';
 import 'package:http/http.dart' as http;
@@ -60,8 +58,6 @@ class _from_meState extends State<from_me> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    String customerUserName = GetStorage().read('userName');
-    String customerPassword = GetStorage().read('password');
     userName = GetStorage().read('userName');
     fetchData();
     fetchDataAccepted();
@@ -72,6 +68,21 @@ class _from_meState extends State<from_me> with TickerProviderStateMixin {
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  String PackageTypeToString(String packageType) {
+    switch (packageType) {
+      case 'Package0':
+        return 'Small Package';
+      case 'Package1':
+        return 'Medium Package';
+      case 'Package2':
+        return 'Large Package';
+      case 'Document0':
+        return 'Document';
+      default:
+        return 'Document';
+    }
   }
 
   List<content> _buildMy_p_Orders() {
@@ -116,9 +127,13 @@ class _from_meState extends State<from_me> with TickerProviderStateMixin {
           phone: pindingList[i]['recPhone'],
           from: fromTxt2[0] + ", " + fromTxt2[1],
           to: toTxt2[0] + ", " + toTxt2[1],
+          toCity: pindingList[i]['toCity'],
+          fromCity: pindingList[i]['fromCity'],
           flag: false,
           context: this.context,
           Status: pindingList[i]['status'],
+          whoWillPay: pindingList[i]['whoWillPay'],
+          packageType: PackageTypeToString(pindingList[i]['shippingType']),
           btn_edit: () {
             Navigator.push(
               context,
@@ -174,6 +189,10 @@ class _from_meState extends State<from_me> with TickerProviderStateMixin {
           flag: true,
           context: this.context,
           Status: AcceptedList[i]['status'],
+          toCity: AcceptedList[i]['toCity'],
+          fromCity: AcceptedList[i]['fromCity'],
+          whoWillPay: AcceptedList[i]['whoWillPay'],
+          packageType: PackageTypeToString(AcceptedList[i]['shippingType']),
           btn_edit: () {},
         ),
       );
@@ -250,8 +269,12 @@ class content extends StatelessWidget {
   final String from;
   final String to;
   final String name;
+  final String whoWillPay;
   final bool flag; // pendding or accepted
+  final String fromCity;
+  final String toCity;
   final String Status;
+  final String packageType;
   final BuildContext context;
   final Function() btn_edit;
 
@@ -266,6 +289,10 @@ class content extends StatelessWidget {
       required this.to,
       required this.flag,
       required this.context,
+      required this.packageType,
+      required this.fromCity,
+      required this.toCity,
+      required this.whoWillPay,
       this.Status = ''});
 
   @override
@@ -381,7 +408,7 @@ class content extends StatelessWidget {
                               fontSize: 20, fontWeight: FontWeight.bold),
                           children: <InlineSpan>[
                             TextSpan(
-                              text: ' ${from}',
+                              text: ' ${fromCity}',
                               style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.red,
@@ -533,7 +560,7 @@ class content extends StatelessWidget {
                                     return Container(
                                       height:
                                           MediaQuery.of(context).size.height /
-                                              2.0,
+                                              1.9,
                                       child: Padding(
                                         padding: const EdgeInsets.all(20.0),
                                         child: Column(
@@ -555,14 +582,14 @@ class content extends StatelessWidget {
                                             Row(
                                               children: [
                                                 Text.rich(TextSpan(
-                                                    text: 'Package ID :',
+                                                    text: 'Package Type :',
                                                     style: TextStyle(
                                                         fontSize: 20,
                                                         fontWeight:
                                                             FontWeight.bold),
                                                     children: <InlineSpan>[
                                                       TextSpan(
-                                                        text: ' ${id}',
+                                                        text: ' ${packageType}',
                                                         style: TextStyle(
                                                             fontSize: 18,
                                                             color: Colors.red,
@@ -583,6 +610,23 @@ class content extends StatelessWidget {
                                                   TextSpan(
                                                     text:
                                                         ' ${price.toStringAsFixed(2)}\$',
+                                                    style: TextStyle(
+                                                        fontSize: 18,
+                                                        color: Colors.red,
+                                                        fontStyle:
+                                                            FontStyle.italic),
+                                                  )
+                                                ])),
+                                            SizedBox(height: 10),
+                                            Text.rich(TextSpan(
+                                                text: 'Who will pay :',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                                children: <InlineSpan>[
+                                                  TextSpan(
+                                                    text: ' ${whoWillPay}',
                                                     style: TextStyle(
                                                         fontSize: 18,
                                                         color: Colors.red,
@@ -661,26 +705,7 @@ class content extends StatelessWidget {
                                                         fontStyle:
                                                             FontStyle.italic),
                                                   )
-                                                ])),
-                                            SizedBox(
-                                              height: 10,
-                                            ),
-                                            Text.rich(TextSpan(
-                                                text: 'Status :',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                                children: <InlineSpan>[
-                                                  TextSpan(
-                                                    text: ' ${Status}',
-                                                    style: TextStyle(
-                                                        fontSize: 18,
-                                                        color: Colors.red,
-                                                        fontStyle:
-                                                            FontStyle.italic),
-                                                  )
-                                                ])),
+                                                ]))
                                           ],
                                         ),
                                       ),

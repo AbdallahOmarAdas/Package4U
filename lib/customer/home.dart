@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/customer/addLocations.dart';
 import 'package:Package4U/customer/add_parcel.dart';
@@ -14,20 +13,6 @@ class home extends StatefulWidget {
 
 class _homeState extends State<home> {
   final FocusNode _textFieldFocus = FocusNode();
-
-  // Navigator.push(
-  //                                 context,
-  //                                 MaterialPageRoute(
-  //                                     builder: ((context) => track_p(
-  //                                           isSearchBox: false,
-  //                                           packageId: 1,
-  //                                         ))));
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-
-  }
 
   @override
   Widget build(BuildContext context) {
