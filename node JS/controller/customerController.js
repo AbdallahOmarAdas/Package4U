@@ -62,128 +62,7 @@ exports.calaulateTotalPrice = function calaulateTotalPrice(shippingType, distanc
   return totalPrice;
 }
 
-// notification.SendNotification(
-//   "Package status changed",
-//   "your backage now in wherhous",
-//   "this bakade from you to abdallah",
-//   "Accepted",
-//   "omar",
-//   42
-// );
-exports.sendPackageEmail = (req, res, next) => {
-  const customerUserName = req.body.customerUserName;
-  const recName = req.body.recName;
-  const recEmail = req.body.recEmail;
-  const phoneNumber = req.body.phoneNumber;
-  const packagePrice = req.body.packagePrice;
-  const shippingType = req.body.shippingType;
-  const whoWillPay = req.body.whoWillPay;
-  const distance = req.body.distance;
-  const latTo = req.body.latTo;
-  const longTo = req.body.longTo;
-  const latFrom = req.body.latFrom;
-  const longFrom = req.body.longFrom;
-  const locationFromInfo = req.body.locationFromInfo;
-  const locationToInfo = req.body.locationToInfo;
-  const error = validationResult(req);
-  let packageSize;
-  if (shippingType == "Package2") {
-    packageSize = "Large size box";
-  } else if (shippingType == "Package1") {
-    packageSize = "Meduim size box";
-  } else if (shippingType == "Package0") {
-    packageSize = "Small size box";
-  } else {
-    packageSize = "Document";
-  }
 
-  if (!error.isEmpty()) {
-    return res.status(422).json({ message: "failed", error });
-  }
-  const total = exports.calaulateTotalPrice(shippingType, distance);
-  Package.create(
-    {
-      send_userName: customerUserName,
-      rec_userName: null,
-      status: "Under review",
-      whoWillPay: whoWillPay,
-      shippingType: shippingType,
-      recName: recName,
-      recEmail: recEmail,
-      recPhone: phoneNumber,
-      locationFromInfo: locationFromInfo,
-      locationToInfo: locationToInfo,
-      distance: distance,
-      latTo: latTo,
-      longTo: longTo,
-      latFrom: latFrom,
-      longFrom: longFrom,
-      whoWillPay: whoWillPay,
-      packagePrice: packagePrice,
-      total: total,
-    },
-    {
-      include: [exports.user, exports.user2],
-    }
-  )
-    .then((result) => {
-      User.findOne({ where: { username: customerUserName } })
-        .then((result2) => {
-          const emailTemplate = (recName) => {
-            return `
-                  <html>
-                    <body>
-                      <p>Hello ${recName},</p>
-                      <p>${
-                        result2.Fname + " " + result2.Lname
-                      } has created a new package with number: ${
-              result.packageId
-            } for you, 
-                      you can track the status of the package by downloading Package4U application and writing the attached package number.</p>
-                      <p><strong>Package details:</strong></p>
-                      <ol>
-                        <li>The one who will pay to the driver is: ${
-                          result.whoWillPay
-                        }</li>
-                        <li>The price of the package is: ${
-                          result.packagePrice
-                        }</li>
-                        <li>Total delivery price is: ${result.total.toFixed(
-                          2
-                        )}</li>
-                        <li>Package Type: ${packageSize}</li>
-                        <li>Delivery place:${result.locationFromInfo}</li>
-                      </ol>
-                      <p>We will contact you when this package is ready for delivery, and we will also contact you if the package details are modified.</p>
-                      <p>Thank you</p>
-                    </body>
-                  </html>
-                `;
-          };
-
-          const trans = nodemailer.createTransport({
-            service: "Gmail",
-            auth: {
-              user: "abood.adas.2001@gmail.com",
-              pass: "layoiychrtedcpvx",
-            },
-          });
-          const info = trans.sendMail({
-            from: "Package4U <support@Package4U.ps>",
-            to: recEmail,
-            subject: "There's a package for you",
-            html: emailTemplate(recName),
-          });
-          console.log("email send");
-        })
-        .catch((err) => console.log(err));
-      res.status(201).json({ message: "done" });
-    })
-    .catch((err) => {
-      res.status(500).json({ message: "failed" });
-      console.log(err);
-    });
-};
 exports.sendPackageUser = (req, res, next) => {
   const customerUserName = req.body.customerUserName;
   const rec_userName = req.body.rec_userName;
@@ -197,6 +76,8 @@ exports.sendPackageUser = (req, res, next) => {
   const latTo = req.body.latTo;
   const longTo = req.body.longTo;
   const latFrom = req.body.latFrom;
+  const toCity = req.body.toCity;
+  const fromCity = req.body.fromCity;
   const longFrom = req.body.longFrom;
   const locationFromInfo = req.body.locationFromInfo;
   const locationToInfo = req.body.locationToInfo;
@@ -227,8 +108,8 @@ exports.sendPackageUser = (req, res, next) => {
         whoWillPay: whoWillPay,
         packagePrice: packagePrice,
         total: total,
-        toCity:"Nablus",
-        fromCity:"Jenin"
+        toCity: toCity,
+        fromCity: fromCity
       },
       {
         include: [exports.user, exports.user2],
@@ -290,8 +171,8 @@ exports.sendPackageUser = (req, res, next) => {
         whoWillPay: whoWillPay,
         packagePrice: packagePrice,
         total: total,
-        toCity:"Nablus",
-        fromCity:"Jenin"
+        toCity: toCity,
+        fromCity: fromCity
       },
       {
         include: [exports.user],
@@ -493,6 +374,8 @@ exports.editPackageUser = (req, res, next) => {
   const longTo = req.body.longTo;
   const latFrom = req.body.latFrom;
   const longFrom = req.body.longFrom;
+  const toCity = req.body.toCity;
+  const fromCity = req.body.fromCity;
   const locationFromInfo = req.body.locationFromInfo;
   const locationToInfo = req.body.locationToInfo;
   const error = validationResult(req);
@@ -520,6 +403,8 @@ exports.editPackageUser = (req, res, next) => {
         whoWillPay: whoWillPay,
         packagePrice: packagePrice,
         total: total,
+        toCity: toCity,
+        fromCity: fromCity
       },
       {
         where: {
@@ -533,7 +418,6 @@ exports.editPackageUser = (req, res, next) => {
       }
     )
       .then((result) => {
-        j;
         res.status(201).json({ message: "done" });
       })
       .catch((err) => {
@@ -579,6 +463,8 @@ exports.editPackageUser = (req, res, next) => {
         whoWillPay: whoWillPay,
         packagePrice: packagePrice,
         total: total,
+        toCity: toCity,
+        fromCity: fromCity
       },
       {
         where: {

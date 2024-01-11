@@ -52,6 +52,7 @@ class _sign_inState extends State<sign_in> {
       GetStorage().write("town", responceBody['user']['town']);
       GetStorage().write("street", responceBody['user']['street']);
       GetStorage().write("url", responceBody['user']['url']);
+      GetStorage().write("notificationCount", 0);
       if (responceBody['user']['userType'] == "customer")
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => home_page_customer()));

@@ -71,7 +71,7 @@ class _home_page_customerState extends State<home_page_customer> {
         '/image/' +
         GetStorage().read("userName") +
         GetStorage().read("url");
-    _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
+    _timer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
       fetchNotificationCount().then((value) {
         setState(() {
           newNotificationCount = value;

@@ -47,7 +47,6 @@ class _creat_driverState extends State<creat_driver> {
           "phoneNumber": phone,
           "vehicleNumber": vehicle_n,
           "toCity": tocity,
-          "fromCity": fromcity,
           "workingDays": workingday
         }),
         headers: {
@@ -106,7 +105,6 @@ class _creat_driverState extends State<creat_driver> {
   ];
   GlobalKey<FormState> formState4 = GlobalKey();
 
-  String? fromcity;
   String? tocity;
   String? vehicle_n;
   String? workingday;
@@ -158,6 +156,7 @@ class _creat_driverState extends State<creat_driver> {
                                     if (value!.isEmpty) {
                                       return "Please enter First name";
                                     }
+                                    return null;
                                   },
                                   initialValue: fname,
                                   decoration: theme_helper().text_form_style(
@@ -179,6 +178,7 @@ class _creat_driverState extends State<creat_driver> {
                                     if (value!.isEmpty) {
                                       return "Please enter username";
                                     }
+                                    return null;
                                   },
                                   initialValue: lname,
                                   decoration: theme_helper().text_form_style(
@@ -201,6 +201,7 @@ class _creat_driverState extends State<creat_driver> {
                               if (value!.isEmpty) {
                                 return "Please enter username";
                               }
+                              return null;
                             },
                             initialValue: username,
                             decoration: theme_helper().text_form_style(
@@ -224,6 +225,7 @@ class _creat_driverState extends State<creat_driver> {
                               if (!isValidEmail(value)) {
                                 return 'Please enter a valid email address';
                               }
+                              return null;
                             },
                             initialValue: email,
                             decoration: theme_helper().text_form_style(
@@ -245,6 +247,7 @@ class _creat_driverState extends State<creat_driver> {
                               if (!res.isEmpty) {
                                 return res;
                               }
+                              return null;
                             },
                             initialValue: phone,
                             decoration: theme_helper().text_form_style(
@@ -256,70 +259,33 @@ class _creat_driverState extends State<creat_driver> {
                           SizedBox(
                             height: 20,
                           ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: DropdownButtonFormField(
-                                  value: fromcity,
-                                  isExpanded: true,
-                                  hint: Text('From City'),
-                                  validator: (value) {
-                                    if (value == null) {
-                                      return "Please select city";
-                                    }
-                                  },
-                                  decoration: theme_helper().text_form_style(
-                                    '',
-                                    '',
-                                    Icons.location_city,
-                                  ),
-                                  items: citylist.map((value) {
-                                    return DropdownMenuItem(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      fromcity = (value as String?)!;
-                                      print(fromcity);
-                                    });
-                                  },
-                                ),
-                              ),
-                              SizedBox(
-                                width: 5,
-                              ),
-                              Expanded(
-                                child: DropdownButtonFormField(
-                                  value: tocity,
-                                  hint: Text('To City'),
-                                  isExpanded: true,
-                                  items: citylist.map((value) {
-                                    return DropdownMenuItem(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
-                                  validator: (value) {
-                                    if (value == null) {
-                                      return "Please select city";
-                                    }
-                                  },
-                                  decoration: theme_helper().text_form_style(
-                                    '',
-                                    '',
-                                    Icons.location_city,
-                                  ),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      tocity = (value as String?)!;
-                                      print(tocity);
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
+                          DropdownButtonFormField(
+                            value: tocity,
+                            hint: Text('Working City'),
+                            isExpanded: true,
+                            items: citylist.map((value) {
+                              return DropdownMenuItem(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            validator: (value) {
+                              if (value == null) {
+                                return "Please select city";
+                              }
+                              return null;
+                            },
+                            decoration: theme_helper().text_form_style(
+                              '',
+                              '',
+                              Icons.location_city,
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                tocity = (value as String?)!;
+                                print(tocity);
+                              });
+                            },
                           ),
                           SizedBox(
                             height: 20,
@@ -332,6 +298,7 @@ class _creat_driverState extends State<creat_driver> {
                               if (value!.isEmpty) {
                                 return "Enter vehicle number";
                               }
+                              return null;
                             },
                             decoration: theme_helper().text_form_style(
                               'vehicle number',

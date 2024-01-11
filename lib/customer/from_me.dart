@@ -118,6 +118,7 @@ class _from_meState extends State<from_me> with TickerProviderStateMixin {
           to: toTxt2[0] + ", " + toTxt2[1],
           flag: false,
           context: this.context,
+          Status: pindingList[i]['status'],
           btn_edit: () {
             Navigator.push(
               context,
@@ -143,6 +144,8 @@ class _from_meState extends State<from_me> with TickerProviderStateMixin {
                         latto: pindingList[i]['latTo'],
                         longfrom: pindingList[i]['longFrom'],
                         longto: pindingList[i]['longTo'],
+                        ToCity: pindingList[i]['toCity'],
+                        FromCity: pindingList[i]['fromCity'],
                       )),
             );
           },
@@ -530,7 +533,7 @@ class content extends StatelessWidget {
                                     return Container(
                                       height:
                                           MediaQuery.of(context).size.height /
-                                              2.3,
+                                              2.0,
                                       child: Padding(
                                         padding: const EdgeInsets.all(20.0),
                                         child: Column(
@@ -651,7 +654,7 @@ class content extends StatelessWidget {
                                                         FontWeight.bold),
                                                 children: <InlineSpan>[
                                                   TextSpan(
-                                                    text: ' ${from}',
+                                                    text: ' ${to}',
                                                     style: TextStyle(
                                                         fontSize: 18,
                                                         color: Colors.red,

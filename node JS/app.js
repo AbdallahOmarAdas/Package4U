@@ -88,7 +88,7 @@ sequelize
   .catch((err) => {
     console.log(err);
   });
-notification.SendPackageNotification("Under review", 28);
+//notification.SendPackageNotification("Under review", 28);
 // // notification.SendNotification(
 // //   "notification.titlePindingToCustomer",
 // //   "A new package has been created for you. The package is currently under review",

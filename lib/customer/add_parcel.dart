@@ -45,6 +45,8 @@ class add_parcel extends StatefulWidget {
   final double longfrom;
   final double latto;
   final double longto;
+  final String FromCity;
+  final String ToCity;
 
   add_parcel({
     Key? key,
@@ -55,6 +57,8 @@ class add_parcel extends StatefulWidget {
     this.phone = 0,
     this.distance = 0,
     this.email = '',
+    this.FromCity = '',
+    this.ToCity = '',
     this.price = 0,
     this.accountSelectedValue = "Have",
     this.paySelectedValue = "The recipient",
@@ -96,6 +100,8 @@ class _add_parcelState extends State<add_parcel> {
   String? package_price;
   String textFromChild = '';
   double distancePrice = 0;
+  String? fromcity;
+  String? tocity;
   GlobalKey<FormState> formState5 = GlobalKey();
   TextEditingController _textController = TextEditingController();
   TextEditingController myController = TextEditingController();
@@ -117,6 +123,15 @@ class _add_parcelState extends State<add_parcel> {
     'Card',
     'Paypal',
     'Cash delivery',
+  ];
+  List citylist = [
+    'Nablus',
+    'Tulkarm',
+    'Ramallah',
+    'Jenin',
+    'Qalqilya',
+    'Salfit',
+    'Hebron'
   ];
   late int selectedValue;
 
@@ -145,6 +160,8 @@ class _add_parcelState extends State<add_parcel> {
       _textControllerName.text = widget.name == "null" ? '' : widget.name;
       selectedName = widget.name == "null" ? '' : widget.name;
       rec_userName = widget.rec_userName == "null" ? '' : widget.rec_userName;
+      tocity = widget.ToCity;
+      fromcity = widget.FromCity;
     }
     // = widget.accountSelectedValue == "Have" ? "Document" : widget.shipping;
     shippingType = widget.shipping == "Document" ? "Document" : widget.shipping;
@@ -278,7 +295,9 @@ class _add_parcelState extends State<add_parcel> {
           "latFrom": latfrom,
           "longFrom": longfrom,
           "locationFromInfo": locationFromInfo,
-          "locationToInfo": locationToInfo
+          "locationToInfo": locationToInfo,
+          "toCity": tocity,
+          "fromCity": fromcity
         }),
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
@@ -661,6 +680,76 @@ class _add_parcelState extends State<add_parcel> {
                       ),
                     ),
                     SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField(
+                            value: fromcity,
+                            isExpanded: true,
+                            hint: Text('Shipping from city'),
+                            validator: (value) {
+                              if (value == null) {
+                                return "Please select city";
+                              }
+                              return null;
+                            },
+                            decoration: theme_helper().text_form_style(
+                              '',
+                              '',
+                              Icons.location_city,
+                            ),
+                            items: citylist.map((value) {
+                              return DropdownMenuItem(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                fromcity = (value as String?)!;
+                                print(fromcity);
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        Expanded(
+                          child: DropdownButtonFormField(
+                            value: tocity,
+                            hint: Text('shipping to city'),
+                            isExpanded: true,
+                            items: citylist.map((value) {
+                              return DropdownMenuItem(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            validator: (value) {
+                              if (value == null) {
+                                return "Please select city";
+                              }
+                              return null;
+                            },
+                            decoration: theme_helper().text_form_style(
+                              '',
+                              '',
+                              Icons.location_city,
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                tocity = (value as String?)!;
+                                print(tocity);
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
                     DropdownButtonFormField(
                       isExpanded: true,
                       hint: Text('Choose shipping from location',
