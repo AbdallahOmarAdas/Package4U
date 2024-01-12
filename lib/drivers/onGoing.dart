@@ -241,8 +241,12 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
   Container filter(List<Content> order) {
     return Container(
       padding: EdgeInsets.only(top: 10, right: 7, left: 7),
+      decoration: BoxDecoration(
+        borderRadius:
+            BorderRadiusDirectional.vertical(bottom: Radius.circular(20)),
+        color: Colors.grey[100],
+      ),
       height: 60,
-      color: Colors.grey[100],
       child: GridView.builder(
         itemCount: 2,
         physics: NeverScrollableScrollPhysics(),
