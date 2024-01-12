@@ -319,7 +319,7 @@ exports.PendingPackagesToMe = (req, res, next) => {
     include: [
       {
         model: User,
-        as: "rec_user",
+        as: "send_user",
         attributes: ["Fname", "Lname", "phoneNumber", "email"],
         //as: user // Alias for the included model (optional)
       },
@@ -339,7 +339,7 @@ exports.notPendingPackagesToMe = (req, res, next) => {
     include: [
       {
         model: User,
-        as: "rec_user",
+        as: "send_user",
         attributes: ["Fname", "Lname", "phoneNumber", "email"],
         //as: user // Alias for the included model (optional)
       },

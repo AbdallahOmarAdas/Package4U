@@ -94,15 +94,15 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
       List fromTxt2 = fromTxt.split(",");
       String toTxt = pindingList[i]['locationToInfo'];
       List toTxt2 = toTxt.split(",");
-      String nameFull = pindingList[i]['rec_user']['Fname'] +
+      String nameFull = pindingList[i]['send_user']['Fname'] +
           " " +
-          pindingList[i]['rec_user']['Lname'];
+          pindingList[i]['send_user']['Lname'];
       pending_orders.add(
         content(
           id: pindingList[i]['packageId'],
           sender_name: nameFull,
           price: pindingList[i]['total'],
-          sender_phone: pindingList[i]['rec_user']['phoneNumber'],
+          sender_phone: pindingList[i]['send_user']['phoneNumber'],
           from: fromTxt2[0] + ", " + fromTxt2[1],
           to: toTxt2[0] + ", " + toTxt2[1],
           flag: false,
@@ -117,7 +117,7 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
         ),
       );
     }
-
+    filterdPindingPackages = pending_orders;
     return pending_orders;
   }
 
@@ -128,15 +128,15 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
       List fromTxt2 = fromTxt.split(",");
       String toTxt = AcceptedList[i]['locationToInfo'];
       List toTxt2 = toTxt.split(",");
-      String nameFull = AcceptedList[i]['rec_user']['Fname'] +
+      String nameFull = AcceptedList[i]['send_user']['Fname'] +
           " " +
-          AcceptedList[i]['rec_user']['Lname'];
+          AcceptedList[i]['send_user']['Lname'];
       accepted_orders.add(
         content(
           id: AcceptedList[i]['packageId'],
           sender_name: nameFull,
           price: AcceptedList[i]['total'],
-          sender_phone: AcceptedList[i]['rec_user']['phoneNumber'],
+          sender_phone: AcceptedList[i]['send_user']['phoneNumber'],
           from: fromTxt2[0] + ", " + fromTxt2[1],
           to: toTxt2[0] + ", " + toTxt2[1],
           flag: true,
@@ -152,9 +152,16 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
         ),
       );
     }
-
+    filterdAcceptedPackages = accepted_orders;
     return accepted_orders;
   }
+
+  TextEditingController _searchController = TextEditingController();
+  late List<content> filterdPindingPackages = [];
+  late List<content> filterdAcceptedPackages = [];
+  String? searchText;
+  String? filterBy = "Package Id";
+  List<String> FilterBylist = ["Package Id", "Sender Name", "Size"];
 
   @override
   Widget build(BuildContext context) {
@@ -174,19 +181,122 @@ class _to_meState extends State<to_me> with TickerProviderStateMixin {
       body: TabBarView(
         controller: _tabController,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: ListView(
-              children: pending_orders,
-            ),
+          Column(
+            children: [
+              filter(pending_orders, "pinding"),
+              Expanded(
+                child: ListView(
+                  children: filterdPindingPackages,
+                ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: ListView(
-              children: accepted_orders,
-            ),
+          Column(
+            children: [
+              filter(accepted_orders, "accepted"),
+              Expanded(
+                child: ListView(
+                  children: filterdAcceptedPackages,
+                ),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Container filter(List<content> order, String listType) {
+    return Container(
+      padding: EdgeInsets.only(top: 10, right: 7, left: 7),
+      decoration: BoxDecoration(
+        borderRadius:
+            BorderRadiusDirectional.vertical(bottom: Radius.circular(20)),
+        color: Colors.grey[100],
+      ),
+      height: 60,
+      child: GridView.builder(
+        itemCount: 2,
+        physics: NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 25,
+            mainAxisSpacing: 2,
+            childAspectRatio: 3),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Container(
+                child: TextFormField(
+              controller: _searchController,
+              onChanged: (value) {
+                List<content> filterd;
+                filterd = order.where((element) {
+                  switch (filterBy) {
+                    case 'Package Id':
+                      return element.id.toString().startsWith(value);
+                    case 'Sender Name':
+                      return element.sender_name
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(value.toLowerCase());
+                    case 'Size':
+                      return element.packageType
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(value.toLowerCase());
+                    default:
+                      return true;
+                  }
+                }).toList();
+                setState(() {
+                  if (listType == "pinding")
+                    filterdPindingPackages = filterd;
+                  else
+                    filterdAcceptedPackages = filterd;
+                });
+              },
+              decoration: theme_helper().text_form_style_search(
+                'Search',
+                'Enter ${filterBy}',
+                Icons.search,
+                _searchController,
+                () {
+                  _searchController.clear();
+                  setState(() {
+                    if (listType == "pinding")
+                      filterdPindingPackages = pending_orders;
+                    else
+                      filterdAcceptedPackages = accepted_orders;
+                  });
+                },
+              ),
+            ));
+          } else {
+            return Container(
+              child: DropdownButtonFormField(
+                value: filterBy,
+                isExpanded: true,
+                hint: Text('Filter By'),
+                decoration: theme_helper().text_form_style(
+                  '',
+                  '',
+                  Icons.filter_alt,
+                ),
+                items: FilterBylist.map((value) {
+                  return DropdownMenuItem(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    filterBy = (value as String?)!;
+                  });
+                },
+              ),
+            );
+          }
+        },
       ),
     );
   }
@@ -303,7 +413,6 @@ class _contentState extends State<content> {
   late double latto = 0;
   late double longto;
   late String location = '';
-  TextEditingController _textController = TextEditingController();
   List Locations = [];
   void getlocationto(String text, double lat, double long) async {
     String modifiedString = text.replaceAll("','", ",");
@@ -585,8 +694,7 @@ class _contentState extends State<content> {
                                             ),
                                             SizedBox(height: 20),
                                             Text.rich(TextSpan(
-                                                text:
-                                                    'Total Delivery Price :',
+                                                text: 'Total Delivery Price :',
                                                 style: TextStyle(
                                                     fontSize: 20,
                                                     fontWeight:
