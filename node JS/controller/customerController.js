@@ -240,6 +240,7 @@ exports.sendPackageUser = (req, res, next) => {
       });
   }
 };
+
 exports.PendingPackages = (req, res, next) => {
   const userName = req.query.userName;
   Package.findAll({
@@ -252,6 +253,7 @@ exports.PendingPackages = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.notPendingPackages = (req, res, next) => {
   const userName = req.query.userName;
   Package.findAll({
@@ -313,6 +315,7 @@ exports.postEditPackageLocation = (req, res, next) => {
       res.status(500).json({ message: "failed1" });
     });
 };
+
 exports.PendingPackagesToMe = (req, res, next) => {
   const userName = req.query.userName;
   Package.findAll({
@@ -333,6 +336,7 @@ exports.PendingPackagesToMe = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.notPendingPackagesToMe = (req, res, next) => {
   const userName = req.query.userName;
   Package.findAll({
@@ -731,6 +735,7 @@ exports.postAddNewLocation = (req, res, next) => {
       console.log(err);
     });
 };
+
 exports.postDeleteLocation = (req, res, next) => {
   const customerUserName = req.body.customerUserName;
   const id = req.body.id;
@@ -744,6 +749,7 @@ exports.postDeleteLocation = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.getTechnicalReports = (req, res, next) => {
   const customerUserName = req.body.customerUserName;
   Technical.findAll({

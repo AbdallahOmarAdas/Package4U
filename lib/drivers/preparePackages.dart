@@ -774,6 +774,7 @@ class _ContentState extends State<Content> {
                                         widget.reason = newValue!;
                                       },
                                       maxLines: 5,
+                                      maxLength: 80,
                                       validator: (val) {
                                         if (val!.isEmpty)
                                           return "Please Enter Reason";

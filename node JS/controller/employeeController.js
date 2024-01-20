@@ -11,10 +11,11 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
 const sequelize = require("../util/database");
-const { Sequelize } = require("sequelize");
+const { Sequelize, where } = require("sequelize");
 const notification = require("../util/notifications");
 const { log } = require("console");
 const { Op, fn } = require("sequelize");
+
 const emailTemplate = (recName, result2, result, packageSize, pass) => {
   return `
   <html>
@@ -50,7 +51,21 @@ const trans = nodemailer.createTransport({
   },
 });
 
-const updateDilyCreatePackage = async (receivedNumber, deliverdNumber, totalBalance) => {
+function getPackageTo(status) {
+  if (
+    status == "In Warehouse" ||
+    status == "With Driver" ||
+    status == "Delivered"
+  )
+    return 1;
+  return 0;
+}
+
+const updateDilyCreatePackage = async (
+  receivedNumber,
+  deliverdNumber,
+  totalBalance
+) => {
   console.log(new Date());
   await DailyReport.update(
     {
@@ -81,7 +96,7 @@ const updateDilyCreatePackage = async (receivedNumber, deliverdNumber, totalBala
     .catch((err) => {
       console.log(err);
     });
-  }
+};
 
 exports.newPackages = (req, res, next) => {
   console.log("Get newPackages");
@@ -104,6 +119,115 @@ exports.newPackages = (req, res, next) => {
       res.status(200).json({ message: "done", result: result });
     })
     .catch((err) => {
+      res.status(500).json({ message: "failed" });
+    });
+};
+
+exports.getAssignPackageToDriver = (req, res, next) => {
+  console.log("getAssignPackageToDriver");
+  Package.findAll({
+    include: [
+      {
+        model: User,
+        as: "rec_user",
+        attributes: ["Fname", "Lname", "userName", "url"],
+      },
+      {
+        model: User,
+        as: "send_user",
+        attributes: ["Fname", "Lname", "userName", "url"],
+      },
+    ],
+    where: {
+      status: ["Accepted", "In Warehouse"],
+      driver_userName: { [Op.eq]: null },
+    },
+  })
+    .then((result) => {
+      if (result.length != 0) {
+        const packageList = result.map((result) => ({
+          packageId: result.packageId,
+          username:
+            result.status == "Accepted"
+              ? result.send_userName
+              : result.rec_userName,
+          img:
+            result.status == "Accepted"
+              ? "/image/" + result.send_user.userName + result.send_user.url
+              : "/image/" + result.rec_user.userName + result.rec_user.url,
+          name:
+            result.status == "Accepted"
+              ? result.send_user.Fname + " " + result.send_user.Lname
+              : result.rec_user.Fname + " " + result.rec_user.Lname,
+          city: result.status == "Accepted" ? result.fromCity : result.toCity,
+          packageType: result.status == "Accepted" ? 1 : 0,
+          packageSize: result.shippingType,
+        }));
+
+        res.status(200).json(packageList);
+      } else {
+        return res.status(404).json();
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ message: "failed" });
+    });
+};
+
+exports.getAllPackages = (req, res, next) => {
+  console.log("getAllPackages");
+  Package.findAll({
+    include: [
+      {
+        model: User,
+        as: "rec_user",
+        attributes: ["Fname", "Lname", "userName", "url"],
+      },
+      {
+        model: User,
+        as: "send_user",
+        attributes: ["Fname", "Lname", "userName", "url"],
+      },
+      {
+        model: User,
+        as: "driver",
+        attributes: ["Fname", "Lname", "userName", "url"],
+      },
+    ],
+  })
+    .then((result) => {
+      if (result.length != 0) {
+        const packageList = result.map((result) => ({
+          packageId: result.packageId,
+          username: getPackageTo(result.status)
+            ? result.rec_userName
+            : result.send_userName,
+
+          img: getPackageTo(result.status)
+            ? "/image/" + result.rec_user.userName + result.rec_user.url
+            : "/image/" + result.send_user.userName + result.send_user.url,
+
+          name: getPackageTo(result.status)
+            ? result.rec_user.Fname + " " + result.rec_user.Lname
+            : result.send_user.Fname + " " + result.send_user.Lname,
+
+          city: getPackageTo(result.status) ? result.toCity : result.fromCity,
+          packageType: getPackageTo(result.status)==0?1:0,
+          driverName:
+            result.driver != null
+              ? result.driver.Fname + " " + result.driver.Lname
+              : "null",
+          status: result.status,
+        }));
+
+        res.status(200).json(packageList);
+      } else {
+        return res.status(404).json();
+      }
+    })
+    .catch((err) => {
+      console.log(err);
       res.status(500).json({ message: "failed" });
     });
 };
@@ -152,6 +276,7 @@ exports.GetDriverListEmployee = (req, res, next) => {
         working_days: driver.workingDays,
         city: driver.toCity,
         vehicleNumber: driver.vehicleNumber,
+        notAvailableDate: driver.notAvailableDate,
       }));
 
       res.status(200).json(driverList);
@@ -303,7 +428,6 @@ exports.GetDriversBalance = (req, res, next) => {
         deliverdNumber: driver.deliverdNumber,
         receivedNumber: driver.receivedNumber,
       }));
-
       res.status(200).json(driverList);
     })
     .catch((err) => {
@@ -329,6 +453,7 @@ exports.postReceiveDriverBalance = (req, res, next) => {
     }
   )
     .then((result) => {
+      updatePaclages();
       updatedaily();
     })
     .catch((err) => {
@@ -366,6 +491,18 @@ exports.postReceiveDriverBalance = (req, res, next) => {
         res.status(500).json({ message: "failed" });
       });
   };
+  const updatePaclages=async()=>{
+    await Package.update(
+      {
+      status:"In Warehouse",
+      driver_userName: null
+      },{
+      where:{
+        driver_userName:driverUsername,
+        status: "Complete Receive"
+      }}
+    );
+  }
 };
 
 exports.PostEditPackage = (req, res, next) => {
@@ -387,6 +524,25 @@ exports.PostEditPackage = (req, res, next) => {
     });
 };
 
+exports.PostAssignPackageToDriver = (req, res, next) => {
+  console.log("post PostAssignPackageToDriver");
+  const { packageId, driverUsername, assignToDate, packageType } = req.body;
+  Package.update(
+    {
+      status: packageType == 1 ? "Accepted" : "In Warehouse",
+      receiveDate: assignToDate,
+      driver_userName: driverUsername,
+    },
+    { where: { packageId } }
+  )
+    .then((result) => {
+      res.status(200).json({ message: "done" });
+    })
+    .catch((err) => {
+      res.status(500).json({ message: "failed" });
+    });
+};
+
 exports.sendPackage = (req, res, next) => {
   const rec_userName = req.body.rec_userName;
   const recName = req.body.recName;
@@ -401,8 +557,8 @@ exports.sendPackage = (req, res, next) => {
   const whoWillPay = req.body.whoWillPay;
   const distance = req.body.distance;
   const latTo = req.body.latTo;
-  const toCity= req.body.toCity;
-  const fromCity= req.body.fromCity;
+  const toCity = req.body.toCity;
+  const fromCity = req.body.fromCity;
   const longTo = req.body.longTo;
   const latFrom = req.body.latFrom;
   const longFrom = req.body.longFrom;
@@ -425,11 +581,11 @@ exports.sendPackage = (req, res, next) => {
   } else {
     packageSize = "Document";
   }
-  let res_new_username= "C" + Customer.generateRandomNumber() + "fop"
-  let send_new_username= "C" + Customer.generateRandomNumber() + "fop"
+  let res_new_username = "C" + Customer.generateRandomNumber() + "fop";
+  let send_new_username = "C" + Customer.generateRandomNumber() + "fop";
   let rec_pass = "c" + Customer.generateRandomNumber() + "f";
   let send_pass = "c" + Customer.generateRandomNumber() + "f";
-  if(whoWillPay=="The sender")updateDilyCreatePackage(1,0,total);
+  if (whoWillPay == "The sender") updateDilyCreatePackage(1, 0, total);
   if (rec_userName != "" && send_userName != "") {
     Package.create({
       send_userName: send_userName,
@@ -460,8 +616,7 @@ exports.sendPackage = (req, res, next) => {
         res.status(500).json({ message: "failed" });
         console.log(err);
       });
-  } 
-  else if(rec_userName != "" && send_userName == ""){
+  } else if (rec_userName != "" && send_userName == "") {
     Package.create(
       {
         send_user: {
@@ -516,9 +671,7 @@ exports.sendPackage = (req, res, next) => {
         res.status(500).json({ message: "failed" });
         console.log(err);
       });
-
-  }
-  else if(rec_userName == "" && send_userName != ""){
+  } else if (rec_userName == "" && send_userName != "") {
     Package.create(
       {
         send_userName: send_userName,
@@ -573,10 +726,7 @@ exports.sendPackage = (req, res, next) => {
         res.status(500).json({ message: "failed" });
         console.log(err);
       });
-
-  }
-  else {
-
+  } else {
     Package.create(
       {
         send_user: {
@@ -642,3 +792,16 @@ exports.sendPackage = (req, res, next) => {
       });
   }
 };
+
+exports.DeletePackage = (req,res) => {
+  const { packageId } = req.body;
+  Package.destroy({ where: { packageId: packageId } })
+    .then((result) => {
+      if (result == 1) res.status(200).json({ message: "done" });
+      else res.status(500).json({ message: "failed" });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ message: "failed" });
+    });
+}

@@ -6,6 +6,8 @@ const fs = require("fs");
 const path = require("path");
 const Package = require("../models/package");
 //Driver.belongsTo(User, { as: 'driver' });
+const { Op, fn } = require("sequelize");
+const sequelize = require("../util/database");
 
 exports.getDeliverdDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
@@ -34,6 +36,8 @@ exports.getDeliverdDriver = (req, res, next) => {
 
 exports.getPreparePackageDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
+  const currentDate = new Date();
+  console.log(currentDate);
   Package.findAll({
     include: [
       { model: User, as: "rec_user" },
@@ -42,6 +46,14 @@ exports.getPreparePackageDriver = (req, res, next) => {
     where: {
       driver_userName: driverUserName,
       status: ["Accepted", "In Warehouse"],
+      [Op.and]: [
+        fn("DATE", fn("NOW")),
+        sequelize.where(
+          fn("DATE", sequelize.col("receiveDate")),
+          "=",
+          fn("DATE", currentDate)
+        ),
+      ],
     },
   })
     .then((result) => {
@@ -99,14 +111,18 @@ exports.postRejectPreparePackageDriver = (req, res, next) => {
   const comment = req.body.comment;
   let newStatus;
   if (status == "Accepted") {
-    newStatus = "Receive Rejected";
+    newStatus = "reject receive";
   } else {
-    newStatus = "Deliver Rejected";
+    newStatus = "reject deliver";
   }
   Package.update(
     {
-      status: newStatus,
-      driverComment: comment,
+      //status: newStatus,
+      driverComment:
+        `The Driver ${newStatus} this package\nDate: ${new Date().toLocaleDateString()}` +
+        "\nDriver Comment: " +
+        comment,
+      driver_userName: null,
     },
     {
       where: {
@@ -153,6 +169,7 @@ exports.postOnGoingPackagesDriver = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.postCancelOnGoingPackageDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
   const status = req.body.status;
@@ -166,6 +183,7 @@ exports.postCancelOnGoingPackageDriver = (req, res, next) => {
   Package.update(
     {
       status: newStatus,
+      driver_userName: null
     },
     {
       where: {
@@ -187,6 +205,7 @@ exports.postCancelOnGoingPackageDriver = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.postCompleatePackageDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
   const status = req.body.status;
@@ -201,7 +220,7 @@ exports.postCompleatePackageDriver = (req, res, next) => {
   if (whoWillPay == "The recipient" && status == "With Driver") {
     balanceIncVal = total;
   }
-  
+
   if (status == "Wait Driver") {
     newStatus = "Complete Receive";
   } else {
@@ -260,6 +279,7 @@ exports.postCompleatePackageDriver = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.postRejectWorkOnPackageDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
   const packageId = req.body.packageId;
@@ -327,6 +347,7 @@ exports.getSummary = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.GetDriverListManager = (req, res, next) => {
   Driver.findAll({ include: [{ model: User, as: "user" }] })
     .then((drivers) => {
@@ -345,6 +366,7 @@ exports.GetDriverListManager = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.GetDriverLocation = (req, res, next) => {
   const driverUserName = req.query.driverUserName;
   Driver.findOne({ where: { userUserName: driverUserName } })
@@ -356,13 +378,14 @@ exports.GetDriverLocation = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.PostEditLocation = (req, res) => {
   const driverUserName = req.body.driverUserName;
   const body = req.body;
   Driver.update(
     {
-      latitude: body.latitude+0.00001000001602,
-      longitude: body.longitude+0.00110000001602,
+      latitude: body.latitude + 0.00001000001602,
+      longitude: body.longitude + 0.00110000001602,
     },
     {
       where: { userUserName: driverUserName },

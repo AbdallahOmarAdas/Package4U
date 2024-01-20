@@ -66,7 +66,7 @@ class _edit_profileState extends State<edit_profile> {
     city = GetStorage().read("city");
     town = GetStorage().read("town");
     street = GetStorage().read("street");
-    townStreet = town! + ", " + street!;
+    townStreet = town != null ? town.toString() + ", " + street.toString() : "";
   }
 
   Future postEditProfile() async {
