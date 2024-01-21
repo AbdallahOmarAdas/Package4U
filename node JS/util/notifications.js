@@ -22,25 +22,21 @@ const packageNoti = Notification.belongsTo(Package, {
 });
 Package.hasMany(Notification, { foreignKey: "noti_packageId" });
 
-// const user = Package.belongsTo(User, {
-//   foreignKey: "rec_userName",
-//   onDelete: "CASCADE",
-//   as: "rec_user",
-// });
-// User.hasMany(Package, { foreignKey: "rec_userName" });
-
-// const user2 = Package.belongsTo(User, {
-//   foreignKey: "send_userName",
-//   onDelete: "CASCADE",
-//   as: "send_user",
-// });
-// User.hasMany(Package, { foreignKey: "send_userName" });
 
 exports.SendPackageNotification = (status, packageId) => {
   let title, body;
   if (status == "Delivered") {
     title = "Pacakge Delivered";
     body = `Your Package number ${packageId} has been delivered`;
+  } else if (status == "Accepted") {
+    title = "Accepte Pacakge";
+    body = `Your package number ${packageId} has been accepted for pickup and delivery.`;
+  } else if (status == "Under review") {
+    title = "Pacakge Under review";
+    body = `Your Package number ${packageId} is under review`;
+  } else if (status == "In Warehouse") {
+    title = "Pacakge In Warehouse";
+    body = `Your package number ${packageId} is now in the warehouse and will be delivered as soon as possible`;
   } else {
     title = "hhhhh";
     body = `hhhhh Package number ${packageId} has been delivered`;

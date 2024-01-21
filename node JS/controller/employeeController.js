@@ -55,7 +55,8 @@ function getPackageTo(status) {
   if (
     status == "In Warehouse" ||
     status == "With Driver" ||
-    status == "Delivered"
+    status == "Delivered" ||
+    status == "Assigned to deliver"
   )
     return 1;
   return 0;
@@ -140,7 +141,7 @@ exports.getAssignPackageToDriver = (req, res, next) => {
     ],
     where: {
       status: ["Accepted", "In Warehouse"],
-      driver_userName: { [Op.eq]: null },
+      //driver_userName: { [Op.eq]: null },
     },
   })
     .then((result) => {
@@ -213,12 +214,13 @@ exports.getAllPackages = (req, res, next) => {
             : result.send_user.Fname + " " + result.send_user.Lname,
 
           city: getPackageTo(result.status) ? result.toCity : result.fromCity,
-          packageType: getPackageTo(result.status)==0?1:0,
+          packageType: getPackageTo(result.status) == 0 ? 1 : 0,
           driverName:
             result.driver != null
               ? result.driver.Fname + " " + result.driver.Lname
               : "null",
           status: result.status,
+          driverUsername: result.driver_userName
         }));
 
         res.status(200).json(packageList);
@@ -240,6 +242,7 @@ exports.PostAcceptPackage = (req, res, next) => {
     { where: { packageId } }
   )
     .then((result) => {
+      notification.SendPackageNotification("Accepted", packageId);
       res.status(200).json({ message: "done" });
     })
     .catch((err) => {
@@ -388,26 +391,23 @@ exports.getDistributionOrders = (req, res, next) => {
       },
     ],
     where: {
-      driver_userName: {
-        [Sequelize.Op.not]: null,
-      },
-      status: ["Accepted", "In Warehouse"],
+      status: ["Assigned to receive" , "Assigned to deliver"],
     },
   })
     .then((results) => {
       const DistributionOrders = results.map((result) => ({
         packageId: result.packageId,
-        packageType: result.status == "Accepted" ? "Recive" : "Deliver",
+        packageType: result.status == "Assigned to receive" ? "Recive" : "Deliver",
         customerName:
-          result.status == "Accepted"
+          result.status == "Assigned to receive"
             ? result.send_user.Fname + " " + result.send_user.Lname
             : result.rec_user.Fname + " " + result.rec_user.Lname,
         phoneNumber:
-          result.status == "Accepted"
+          result.status == "Assigned to receive"
             ? result.send_user.phoneNumber
             : result.rec_user.phoneNumber,
         driverName: result.driver.Fname + " " + result.driver.Lname,
-        address: result.status == "Accepted" ? result.fromCity : result.toCity,
+        address: result.status == "Assigned to receive" ? result.fromCity : result.toCity,
       }));
       res.status(200).json({ message: "done", result: DistributionOrders });
     })
@@ -491,27 +491,66 @@ exports.postReceiveDriverBalance = (req, res, next) => {
         res.status(500).json({ message: "failed" });
       });
   };
-  const updatePaclages=async()=>{
+  const updatePaclages = async () => {
     await Package.update(
       {
-      status:"In Warehouse",
-      driver_userName: null
-      },{
-      where:{
-        driver_userName:driverUsername,
-        status: "Complete Receive"
-      }}
+        status: "In Warehouse",
+        driver_userName: null,
+      },
+      {
+        where: {
+          driver_userName: driverUsername,
+          status: "Complete Receive",
+        },
+      }
     );
-  }
+  };
 };
 
 exports.PostEditPackage = (req, res, next) => {
   console.log("Post EditPackage");
-  const { packageId, newStatus, NewDriverUsername } = req.body;
+  const { packageId, packageStatus, driverUsername } = req.body;
+  let newDriverUsername;
+  let newStatus;
+  if (packageStatus == "Under review") {
+    newStatus = "Under review";
+    newDriverUsername = null;
+  } else if (packageStatus == "Rejected by employee") {
+    newStatus = "Under review";
+    newDriverUsername = null;
+  }  else if (packageStatus == "Accepted") {
+    newStatus = "Under review";
+    newDriverUsername = null;
+  } else if (packageStatus == "Assigned to receive") {
+    newStatus = "Accepted";
+    newDriverUsername = null;
+  } else if (packageStatus == "Wait Driver") {
+    newStatus = "Assigned to receive";
+    newDriverUsername = driverUsername;
+  } else if (packageStatus == "Complete Receive" || packageStatus == "Rejected by driver") {
+    newStatus = "Wait Driver";
+    newDriverUsername = driverUsername;
+  } else if (packageStatus == "In Warehouse") {
+    newStatus = "Complete Receive";
+    newDriverUsername = null;
+  } else if (packageStatus == "Assigned to deliver") {
+    newStatus = "In Warehouse";
+    newDriverUsername = null;
+  } else if (packageStatus == "With Driver") {
+    newStatus = "Assigned to deliver";
+    newDriverUsername = driverUsername;
+  } else if (packageStatus == "Delivered") {
+    newStatus = "With Driver";
+    newDriverUsername = driverUsername;
+  } else {
+    console.log("errrrrrrrrrrrrrorrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr");
+    newStatus = "Under review";
+    newDriverUsername = null;
+  }
   Package.update(
     {
       status: newStatus,
-      driver_userName: NewDriverUsername,
+      driver_userName: newDriverUsername,
     },
     { where: { packageId } }
   )
@@ -529,7 +568,7 @@ exports.PostAssignPackageToDriver = (req, res, next) => {
   const { packageId, driverUsername, assignToDate, packageType } = req.body;
   Package.update(
     {
-      status: packageType == 1 ? "Accepted" : "In Warehouse",
+      status: packageType == 1 ? "Assigned to receive" : "Assigned to deliver",
       receiveDate: assignToDate,
       driver_userName: driverUsername,
     },
@@ -611,6 +650,7 @@ exports.sendPackage = (req, res, next) => {
     })
       .then((result) => {
         res.status(201).json({ message: "done" });
+        notification.SendPackageNotification("In Warehouse", result.packageId);
       })
       .catch((err) => {
         res.status(500).json({ message: "failed" });
@@ -654,6 +694,7 @@ exports.sendPackage = (req, res, next) => {
       }
     )
       .then((result) => {
+        notification.SendPackageNotification("In Warehouse", result.packageId);
         User.findOne({ where: { username: rec_userName } })
           .then((result2) => {
             const info = trans.sendMail({
@@ -709,6 +750,7 @@ exports.sendPackage = (req, res, next) => {
       }
     )
       .then((result) => {
+        notification.SendPackageNotification("In Warehouse", result.packageId);
         User.findOne({ where: { username: res_new_username } })
           .then((result2) => {
             const info = trans.sendMail({
@@ -773,6 +815,7 @@ exports.sendPackage = (req, res, next) => {
       }
     )
       .then((result) => {
+        notification.SendPackageNotification("In Warehouse", result.packageId);
         User.findOne({ where: { username: res_new_username } })
           .then((result2) => {
             const info = trans.sendMail({
@@ -793,7 +836,7 @@ exports.sendPackage = (req, res, next) => {
   }
 };
 
-exports.DeletePackage = (req,res) => {
+exports.DeletePackage = (req, res) => {
   const { packageId } = req.body;
   Package.destroy({ where: { packageId: packageId } })
     .then((result) => {
@@ -804,4 +847,4 @@ exports.DeletePackage = (req,res) => {
       console.log(err);
       res.status(500).json({ message: "failed" });
     });
-}
+};

@@ -11,6 +11,8 @@ const sequelize = require("../util/database");
 
 exports.getDeliverdDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
+  const currentDate = new Date();
+
   Package.findAll({
     include: [
       { model: User, as: "rec_user" },
@@ -19,6 +21,14 @@ exports.getDeliverdDriver = (req, res, next) => {
     where: {
       driver_userName: driverUserName,
       status: ["Delivered", "Complete Receive"],
+      [Op.and]: [
+        fn("DATE", fn("NOW")),
+        sequelize.where(
+          fn("DATE", sequelize.col("deliverDate")),
+          "=",
+          fn("DATE", currentDate)
+        ),
+      ],
     },
   })
     .then((result) => {
@@ -37,7 +47,6 @@ exports.getDeliverdDriver = (req, res, next) => {
 exports.getPreparePackageDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
   const currentDate = new Date();
-  console.log(currentDate);
   Package.findAll({
     include: [
       { model: User, as: "rec_user" },
@@ -45,7 +54,7 @@ exports.getPreparePackageDriver = (req, res, next) => {
     ],
     where: {
       driver_userName: driverUserName,
-      status: ["Accepted", "In Warehouse"],
+      status: ["Assigned to receive", "Assigned to deliver"],
       [Op.and]: [
         fn("DATE", fn("NOW")),
         sequelize.where(
@@ -74,7 +83,7 @@ exports.postAcceptPreparePackageDriver = (req, res, next) => {
   const status = req.body.status;
   const packageId = req.body.packageId;
   let newStatus;
-  if (status == "Accepted") {
+  if (status == "Assigned to receive") {
     newStatus = "Wait Driver";
   } else {
     newStatus = "With Driver";
@@ -86,7 +95,7 @@ exports.postAcceptPreparePackageDriver = (req, res, next) => {
     {
       where: {
         driver_userName: driverUserName,
-        status: ["Accepted", "In Warehouse"],
+        status: ["Assigned to receive", "Assigned to deliver"],
         packageId: packageId,
       },
     }
@@ -109,17 +118,21 @@ exports.postRejectPreparePackageDriver = (req, res, next) => {
   const status = req.body.status;
   const packageId = req.body.packageId;
   const comment = req.body.comment;
+  let msg;
   let newStatus;
-  if (status == "Accepted") {
-    newStatus = "reject receive";
+  if (status == "Assigned to receive") {
+    msg = "reject receive";
+    newStatus = "Accepted";
   } else {
-    newStatus = "reject deliver";
+    msg = "reject deliver";
+    msg = "reject receive";
+    newStatus = "In Warehouse";
   }
   Package.update(
     {
-      //status: newStatus,
+      status: newStatus,
       driverComment:
-        `The Driver ${newStatus} this package\nDate: ${new Date().toLocaleDateString()}` +
+        `The Driver ${msg} this package\nDate: ${new Date().toLocaleDateString()}` +
         "\nDriver Comment: " +
         comment,
       driver_userName: null,
@@ -127,7 +140,7 @@ exports.postRejectPreparePackageDriver = (req, res, next) => {
     {
       where: {
         driver_userName: driverUserName,
-        status: ["Accepted", "In Warehouse"],
+        status: ["Assigned to receive", "Assigned to deliver"],
         packageId: packageId,
       },
     }
@@ -183,7 +196,7 @@ exports.postCancelOnGoingPackageDriver = (req, res, next) => {
   Package.update(
     {
       status: newStatus,
-      driver_userName: null
+      driver_userName: null,
     },
     {
       where: {
