@@ -83,7 +83,7 @@ class _PreparePackagesState extends State<PreparePackages>
           pktType = 'Document';
           break;
       }
-      if (delivery_type == "In Warehouse") {
+      if (delivery_type == "Assigned to deliver") {
         deliver_order.add(
           Content(
             delivery_type: delivery_type,
@@ -480,9 +480,10 @@ class _ContentState extends State<Content> {
                               ])),
                           SizedBox(height: 5),
                           Text.rich(TextSpan(
-                              text: widget.delivery_type == "In Warehouse"
-                                  ? 'Recipient Name : '
-                                  : 'Sender Name : ',
+                              text:
+                                  widget.delivery_type == "Assigned to deliver"
+                                      ? 'Recipient Name : '
+                                      : 'Sender Name : ',
                               style:
                                   TextStyle(fontSize: 12, color: Colors.grey),
                               children: <InlineSpan>[
@@ -497,9 +498,10 @@ class _ContentState extends State<Content> {
                               ])),
                           SizedBox(height: 5),
                           Text.rich(TextSpan(
-                              text: widget.delivery_type == "In Warehouse"
-                                  ? 'Recipient username : '
-                                  : 'Sender username : ',
+                              text:
+                                  widget.delivery_type == "Assigned to deliver"
+                                      ? 'Recipient username : '
+                                      : 'Sender username : ',
                               style:
                                   TextStyle(fontSize: 12, color: Colors.grey),
                               children: <InlineSpan>[

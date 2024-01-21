@@ -38,10 +38,10 @@ class _track_pState extends State<track_p> {
     "With Driver", //4
     "Delivered", //5
     "Rejected by driver", //6
-    "Deliver Rejected", //7
-    "Receive Rejected", //8
-    "Complete Receive", //8
-    "Rejected by employee" //10
+    "Complete Receive", //7
+    "Rejected by employee", //8
+    "Assigned to receive", // 9
+    "Assigned to deliver", // 10
   ];
   bool result = false;
   bool isAllowdExpand = true;
@@ -89,10 +89,10 @@ class _track_pState extends State<track_p> {
           pktIndex == 6 ? _index = 3 : _index;
           pktIndex == 7 ? _index = 3 : _index;
           pktIndex == 8 ? _index = 1 : _index;
-          pktIndex == 9 ? _index = 3 : _index;
-          pktIndex == 10 ? _index = 1 : _index;
+          pktIndex == 9 ? _index = 1 : _index;
+          pktIndex == 10 ? _index = 3 : _index;
           result = true;
-          if (pktIndex == 6 || pktIndex == 10) isAllowdExpand = false;
+          if (pktIndex == 6 || pktIndex == 8) isAllowdExpand = false;
         });
       } else if (data['message'] == "invalid id") {
         print("invalid id");
@@ -426,7 +426,7 @@ class _track_pState extends State<track_p> {
   }
 
   Step AcceptState() {
-    if (10 == pktIndex) {
+    if (8 == pktIndex) {
       return Step(
         isActive: true,
         state: StepState.error,
