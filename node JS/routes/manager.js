@@ -90,4 +90,5 @@ router.get('/todayWork',managerController.GetTodayWork)
 router.get('/thisMonthDaysWork',managerController.GetThisMonthDaysWork)
 router.get('/monthlySummary',managerController.GetMonthlySummary)
 router.get('/yearlySummary',managerController.GetYearlySummary)
+router.get('/dateRangeSummary',managerController.GetDateRangeSummary)
 module.exports = router;

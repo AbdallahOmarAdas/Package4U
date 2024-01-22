@@ -294,3 +294,28 @@ exports.GetYearlySummary = async (req, res, next) => {
     res.status(500).send('Internal Server Error');
   }
 };
+
+exports.GetDateRangeSummary = async (req, res, next) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    const dateRangeSummary = await DailyReport.findAll({
+      attributes: [
+        [sequelize.fn('SUM', sequelize.col('packageDeliveredNum')), 'sumPackageDeliveredNum'],
+        [sequelize.fn('SUM', sequelize.col('packageReceivedNumber')), 'sumPackageReceivedNumber'],
+        [sequelize.fn('SUM', sequelize.col('totalBalance')), 'sumTotalBalance'],
+        [sequelize.fn('AVG', sequelize.col('DriversWorkingToday')), 'avgDriversWorkingToday'],
+      ],
+      where: {
+        date: {
+          [Sequelize.Op.between]: [startDate, endDate],
+        },
+      },
+    });
+
+    res.json(dateRangeSummary);
+  } catch (err) {
+    console.error('Error fetching date range summary:', err);
+    res.status(500).send('Internal Server Error');
+  }
+}
