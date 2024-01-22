@@ -41,7 +41,8 @@ class _home_page_customerState extends State<home_page_customer> {
     var url = urlStarter +
         "/customer/getNotificationCount?customerUserName=" +
         GetStorage().read("userName");
-    final response = await http.get(Uri.parse(url));
+    final response =
+        await http.get(Uri.parse(url)).timeout(Duration(minutes: 3));
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       return data;

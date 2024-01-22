@@ -8,6 +8,7 @@ const Package = require("../models/package");
 //Driver.belongsTo(User, { as: 'driver' });
 const { Op, fn } = require("sequelize");
 const sequelize = require("../util/database");
+const notification = require("../util/notifications");
 
 exports.getDeliverdDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
@@ -84,8 +85,10 @@ exports.postAcceptPreparePackageDriver = (req, res, next) => {
   const packageId = req.body.packageId;
   let newStatus;
   if (status == "Assigned to receive") {
+    notification.SendPackageNotification("Wait Driver", packageId);
     newStatus = "Wait Driver";
   } else {
+    notification.SendPackageNotification("With Driver", packageId);
     newStatus = "With Driver";
   }
   Package.update(
@@ -236,7 +239,9 @@ exports.postCompleatePackageDriver = (req, res, next) => {
 
   if (status == "Wait Driver") {
     newStatus = "Complete Receive";
+    notification.SendPackageNotification("Complete Receive", packageId);
   } else {
+    notification.SendPackageNotification("Delivered", packageId);
     newStatus = "Delivered";
   }
   Driver.update(

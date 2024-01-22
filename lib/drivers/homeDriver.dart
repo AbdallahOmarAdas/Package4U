@@ -51,8 +51,7 @@ class _HomeDriverState extends State<HomeDriver> {
 
   Future PostEditLocation() async {
     var url = urlStarter + "/driver/EditLocation";
-    print("helo");
-    var response = await http.post(Uri.parse(url),
+    var response =  await http.post(Uri.parse(url),
         body: jsonEncode({
           "driverUserName": GetStorage().read('userName'),
           "driverPassword": GetStorage().read('password'),

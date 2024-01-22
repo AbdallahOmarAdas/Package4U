@@ -22,24 +22,32 @@ const packageNoti = Notification.belongsTo(Package, {
 });
 Package.hasMany(Notification, { foreignKey: "noti_packageId" });
 
-
 exports.SendPackageNotification = (status, packageId) => {
   let title, body;
   if (status == "Delivered") {
-    title = "Pacakge Delivered";
-    body = `Your Package number ${packageId} has been delivered`;
+    title = "Pacakge delivered";
+    body = `Your Package number ${packageId} has been delivered. We are pleased to serve you.`;
   } else if (status == "Accepted") {
-    title = "Accepte Pacakge";
+    title = "Accepte pacakge";
     body = `Your package number ${packageId} has been accepted for pickup and delivery.`;
   } else if (status == "Under review") {
-    title = "Pacakge Under review";
-    body = `Your Package number ${packageId} is under review`;
+    title = "Pacakge under review";
+    body = `Your Package number ${packageId} is under review.`;
+  } else if (status == "Wait Driver") {
+    title = "Wait Driver";
+    body = `Our team will be collecting your package (${packageId}) today, you can track your package by click on this notification.`;
+  } else if (status == "Complete Receive") {
+    title = "Pacakge Received";
+    body = `Your package number ${packageId} has been received successfully, Thank you for choosing our service!`;
   } else if (status == "In Warehouse") {
-    title = "Pacakge In Warehouse";
-    body = `Your package number ${packageId} is now in the warehouse and will be delivered as soon as possible`;
+    title = "Pacakge in warehouse";
+    body = `Your package number ${packageId} is now in the warehouse and will be delivered as soon as possible.`;
+  } else if (status == "With Driver") {
+    title = "Pacakge with driver";
+    body = `Great news! Your package (${packageId}) is scheduled to be delivered today, you can track your package by click on this notification.`;
   } else {
     title = "hhhhh";
-    body = `hhhhh Package number ${packageId} has been delivered`;
+    body = `hhhhh Package number ${packageId} has been delivered.`;
   }
   Package.findOne({
     include: [
@@ -58,7 +66,7 @@ exports.SendPackageNotification = (status, packageId) => {
     where: { packageId: packageId },
   })
     .then((result) => {
-      console.log(result);
+      //console.log(result);
       const noteFrom = `Note: this package from you to ${result.rec_user.Fname} ${result.rec_user.Lname}`;
       const noteFor = `Note: this package for you from ${result.send_user.Fname} ${result.send_user.Lname}`;
       const dataToSend1 = preperData(

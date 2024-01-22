@@ -42,6 +42,7 @@ class _track_pState extends State<track_p> {
     "Rejected by employee", //8
     "Assigned to receive", // 9
     "Assigned to deliver", // 10
+    "Completed", //11
   ];
   bool result = false;
   bool isAllowdExpand = true;
@@ -91,7 +92,10 @@ class _track_pState extends State<track_p> {
           pktIndex == 8 ? _index = 1 : _index;
           pktIndex == 9 ? _index = 1 : _index;
           pktIndex == 10 ? _index = 3 : _index;
+          pktIndex == 11 ? _index = 5 : _index;
           result = true;
+          if (pktIndex != 6 && pktIndex != 8) pktIndex = _index;
+          print("pkt ini= " + pktIndex.toString());
           if (pktIndex == 6 || pktIndex == 8) isAllowdExpand = false;
         });
       } else if (data['message'] == "invalid id") {

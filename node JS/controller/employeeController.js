@@ -56,7 +56,8 @@ function getPackageTo(status) {
     status == "In Warehouse" ||
     status == "With Driver" ||
     status == "Delivered" ||
-    status == "Assigned to deliver"
+    status == "Assigned to deliver" ||
+    status == "Completed"
   )
     return 1;
   return 0;
@@ -220,7 +221,8 @@ exports.getAllPackages = (req, res, next) => {
               ? result.driver.Fname + " " + result.driver.Lname
               : "null",
           status: result.status,
-          driverUsername: result.driver_userName
+          driverUsername: result.driver_userName,
+          whoWillPay: result.whoWillPay,
         }));
 
         res.status(200).json(packageList);
@@ -391,13 +393,14 @@ exports.getDistributionOrders = (req, res, next) => {
       },
     ],
     where: {
-      status: ["Assigned to receive" , "Assigned to deliver"],
+      status: ["Assigned to receive", "Assigned to deliver"],
     },
   })
     .then((results) => {
       const DistributionOrders = results.map((result) => ({
         packageId: result.packageId,
-        packageType: result.status == "Assigned to receive" ? "Recive" : "Deliver",
+        packageType:
+          result.status == "Assigned to receive" ? "Recive" : "Deliver",
         customerName:
           result.status == "Assigned to receive"
             ? result.send_user.Fname + " " + result.send_user.Lname
@@ -407,7 +410,10 @@ exports.getDistributionOrders = (req, res, next) => {
             ? result.send_user.phoneNumber
             : result.rec_user.phoneNumber,
         driverName: result.driver.Fname + " " + result.driver.Lname,
-        address: result.status == "Assigned to receive" ? result.fromCity : result.toCity,
+        address:
+          result.status == "Assigned to receive"
+            ? result.fromCity
+            : result.toCity,
       }));
       res.status(200).json({ message: "done", result: DistributionOrders });
     })
@@ -453,7 +459,8 @@ exports.postReceiveDriverBalance = (req, res, next) => {
     }
   )
     .then((result) => {
-      updatePaclages();
+      updatePaclagesInWarehouse();
+      updatePaclagesCompleted();
       updatedaily();
     })
     .catch((err) => {
@@ -491,7 +498,7 @@ exports.postReceiveDriverBalance = (req, res, next) => {
         res.status(500).json({ message: "failed" });
       });
   };
-  const updatePaclages = async () => {
+  const updatePaclagesInWarehouse = async () => {
     await Package.update(
       {
         status: "In Warehouse",
@@ -505,11 +512,25 @@ exports.postReceiveDriverBalance = (req, res, next) => {
       }
     );
   };
+  const updatePaclagesCompleted = async () => {
+    await Package.update(
+      {
+        status: "Completed",
+        driver_userName: null,
+      },
+      {
+        where: {
+          driver_userName: driverUsername,
+          status: "Delivered",
+        },
+      }
+    );
+  };
 };
 
 exports.PostEditPackage = (req, res, next) => {
   console.log("Post EditPackage");
-  const { packageId, packageStatus, driverUsername } = req.body;
+  const { packageId, packageStatus, driverUsername, whoWillPay } = req.body;
   let newDriverUsername;
   let newStatus;
   if (packageStatus == "Under review") {
@@ -518,7 +539,7 @@ exports.PostEditPackage = (req, res, next) => {
   } else if (packageStatus == "Rejected by employee") {
     newStatus = "Under review";
     newDriverUsername = null;
-  }  else if (packageStatus == "Accepted") {
+  } else if (packageStatus == "Accepted") {
     newStatus = "Under review";
     newDriverUsername = null;
   } else if (packageStatus == "Assigned to receive") {
@@ -527,11 +548,16 @@ exports.PostEditPackage = (req, res, next) => {
   } else if (packageStatus == "Wait Driver") {
     newStatus = "Assigned to receive";
     newDriverUsername = driverUsername;
-  } else if (packageStatus == "Complete Receive" || packageStatus == "Rejected by driver") {
+  } else if (
+    packageStatus == "Complete Receive" ||
+    packageStatus == "Rejected by driver"
+  ) {
     newStatus = "Wait Driver";
     newDriverUsername = driverUsername;
+    //correct the money in driver table
   } else if (packageStatus == "In Warehouse") {
-    newStatus = "Complete Receive";
+    //not allowed
+    newStatus = "In Warehouse";
     newDriverUsername = null;
   } else if (packageStatus == "Assigned to deliver") {
     newStatus = "In Warehouse";
@@ -542,25 +568,87 @@ exports.PostEditPackage = (req, res, next) => {
   } else if (packageStatus == "Delivered") {
     newStatus = "With Driver";
     newDriverUsername = driverUsername;
+    //correct the money in driver table
+  } else if (packageStatus == "Completed") {
+    //not allowed
+    newStatus = "Delivered";
+    newDriverUsername = driverUsername;
   } else {
     console.log("errrrrrrrrrrrrrorrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr");
     newStatus = "Under review";
     newDriverUsername = null;
   }
-  Package.update(
-    {
+  let updateJson;
+  if (driverUsername == null) {
+    updateJson = {
       status: newStatus,
       driver_userName: newDriverUsername,
-    },
+    };
+  } else {
+    updateJson = {
+      status: newStatus,
+    };
+  }
+  Package.update(
+    updateJson,
+
     { where: { packageId } }
   )
     .then((result) => {
+      updateDriverMoney(packageStatus, packageId, driverUsername);
       res.status(200).json({ message: "done" });
     })
     .catch((err) => {
       console.log(err);
       res.status(500).json({ message: "failed" });
     });
+
+  const updateDriverMoney = async (packageStatus, packageId, driverUserName) => {
+    let balanceDecVal = 0;
+    let numberOfPackages = 0;
+    let pkt = await getPackageInfo(packageId);
+    if (pkt.whoWillPay == "The sender" && packageStatus == "Complete Receive") {
+      balanceDecVal = pkt.total;
+      console.log(balanceDecVal);
+    }
+    if (pkt.whoWillPay == "The recipient" && packageStatus == "Delivered") {
+      balanceDecVal = pkt.total;
+    }
+    if (packageStatus == "Delivered" || packageStatus == "Complete Receive")
+      numberOfPackages = 1;
+    console.log(driverUserName);
+    Driver.update(
+      packageStatus == "Delivered"
+        ? {
+            totalBalance: Sequelize.literal(`totalBalance - ${balanceDecVal}`),
+            deliverdNumber: Sequelize.literal(
+              `deliverdNumber - ${numberOfPackages}`
+            ),
+            deliverDate: null,
+          }
+        : {
+            totalBalance: Sequelize.literal(`totalBalance - ${balanceDecVal}`),
+            receivedNumber: Sequelize.literal(
+              `receivedNumber - ${numberOfPackages}`
+            ),
+            receiveDate: Sequelize.fn("NOW"),
+          },
+      {
+        where: { userUserName: driverUserName },
+      }
+    )
+      .then((result) => {})
+      .catch((err) => {});
+  };
+  const getPackageInfo = async (packageId) => {
+    return await Package.findOne({ where: { packageId: packageId } })
+      .then((result) => {
+        return result;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 };
 
 exports.PostAssignPackageToDriver = (req, res, next) => {
