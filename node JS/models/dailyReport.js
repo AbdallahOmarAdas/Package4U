@@ -15,6 +15,10 @@ const DailyReport = sequelize.define("dailyReport", {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
+  DriversWorkingToday: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
   totalBalance: {
     type: Sequelize.DOUBLE,
     allowNull: true,
@@ -23,8 +27,8 @@ const DailyReport = sequelize.define("dailyReport", {
     type: Sequelize.STRING,
     allowNull: true,
   },
-  dateTime: {
-    type: Sequelize.DATE,
+  date: {
+    type: Sequelize.DATEONLY,
     allowNull: true,
   },
 });

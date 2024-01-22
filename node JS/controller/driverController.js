@@ -94,6 +94,7 @@ exports.postAcceptPreparePackageDriver = (req, res, next) => {
   Package.update(
     {
       status: newStatus,
+      driverComment:null
     },
     {
       where: {
@@ -200,6 +201,7 @@ exports.postCancelOnGoingPackageDriver = (req, res, next) => {
     {
       status: newStatus,
       driver_userName: null,
+      driverComment:null
     },
     {
       where: {
@@ -270,12 +272,13 @@ exports.postCompleatePackageDriver = (req, res, next) => {
     newStatus == "Delivered"
       ? {
           status: newStatus,
-
+          driverComment:null,
           deliverDate: Sequelize.fn("NOW"),
         }
       : {
           status: newStatus,
           receiveDate: Sequelize.fn("NOW"),
+          driverComment:null
         },
     {
       where: {

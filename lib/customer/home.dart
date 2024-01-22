@@ -26,7 +26,7 @@ class _homeState extends State<home> {
                 padding: EdgeInsets.fromLTRB(30, 20, 30, 0),
                 width: MediaQuery.of(context).size.width,
                 //margin: EdgeInsets.all(0),
-                height: 140,
+                height: 120,
                 color: primarycolor,
                 child: Column(
                   children: [
@@ -94,7 +94,7 @@ class _homeState extends State<home> {
                 ),
               ),
               Container(
-                height: 250,
+                height: 280,
                 width: MediaQuery.of(context).size.width,
                 child: Image(
                   image: AssetImage("assets/ff.png"),

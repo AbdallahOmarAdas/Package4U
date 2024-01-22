@@ -84,7 +84,7 @@ const updateDilyCreatePackage = async (
         [Op.and]: [
           fn("DATE", fn("NOW")),
           sequelize.where(
-            fn("DATE", sequelize.col("dateTime")),
+            fn("DATE", sequelize.col("date")),
             "=",
             fn("DATE", new Date())
           ),
@@ -164,6 +164,7 @@ exports.getAssignPackageToDriver = (req, res, next) => {
           city: result.status == "Accepted" ? result.fromCity : result.toCity,
           packageType: result.status == "Accepted" ? 1 : 0,
           packageSize: result.shippingType,
+          reason: result.driverComment,
         }));
 
         res.status(200).json(packageList);
@@ -223,6 +224,7 @@ exports.getAllPackages = (req, res, next) => {
           status: result.status,
           driverUsername: result.driver_userName,
           whoWillPay: result.whoWillPay,
+          reason: result.driverComment,
         }));
 
         res.status(200).json(packageList);
@@ -240,7 +242,11 @@ exports.PostAcceptPackage = (req, res, next) => {
   console.log("post AcceptPackage");
   const { packageId } = req.body;
   Package.update(
-    { status: "Accepted", receiveDate: Sequelize.fn("NOW") },
+    {
+      status: "Accepted",
+      receiveDate: Sequelize.fn("NOW"),
+      driverComment: null,
+    },
     { where: { packageId } }
   )
     .then((result) => {
@@ -482,7 +488,7 @@ exports.postReceiveDriverBalance = (req, res, next) => {
           [Op.and]: [
             fn("DATE", fn("NOW")),
             sequelize.where(
-              fn("DATE", sequelize.col("dateTime")),
+              fn("DATE", sequelize.col("date")),
               "=",
               fn("DATE", currentDate)
             ),
@@ -503,6 +509,7 @@ exports.postReceiveDriverBalance = (req, res, next) => {
       {
         status: "In Warehouse",
         driver_userName: null,
+        driverComment:null
       },
       {
         where: {
@@ -603,7 +610,11 @@ exports.PostEditPackage = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 
-  const updateDriverMoney = async (packageStatus, packageId, driverUserName) => {
+  const updateDriverMoney = async (
+    packageStatus,
+    packageId,
+    driverUserName
+  ) => {
     let balanceDecVal = 0;
     let numberOfPackages = 0;
     let pkt = await getPackageInfo(packageId);
@@ -659,6 +670,7 @@ exports.PostAssignPackageToDriver = (req, res, next) => {
       status: packageType == 1 ? "Assigned to receive" : "Assigned to deliver",
       receiveDate: assignToDate,
       driver_userName: driverUsername,
+      driverComment:null
     },
     { where: { packageId } }
   )

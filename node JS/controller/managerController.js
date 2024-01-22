@@ -3,6 +3,11 @@ const Driver = require("../models/driver");
 const Employee = require("../models/employee");
 const fs = require("fs");
 const { validationResult } = require("express-validator");
+const DailyReport = require("../models/dailyReport");
+const { Op, fn } = require("sequelize");
+const sequelize = require("../util/database");
+const { Sequelize, where } = require("sequelize");
+
 const user = Driver.belongsTo(User, {
   as: "user",
   constraints: true,
@@ -172,4 +177,120 @@ exports.postEditDeliveryCosts = (req, res, next) => {
     }
     return res.status(200).json({ message: "done" });
   });
+};
+
+exports.GetTodayWork = async (req, res, next) => {
+  const currentDate = new Date();
+  const todayDate = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1)
+    .toString()
+    .padStart(2, "0")}-${currentDate.getDate().toString().padStart(2, "0")}`;
+
+  const todayReports = await DailyReport.findOne({
+    where: {
+      date: todayDate,
+    },
+    attributes: [
+      "packageDeliveredNum",
+      "packageReceivedNumber",
+      "DriversWorkingToday",
+      "totalBalance",
+      "comment",
+      "date",
+    ],
+  });
+  const oldestDay = await DailyReport.min("date");
+  res.json({ todayReports, oldestDay });
+};
+
+exports.GetThisMonthDaysWork = async (req, res, next) => {
+  try {
+    const firstDayOfMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1
+    )
+      .toISOString()
+      .split("T")[0];
+    const lastDayOfMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1,
+      0
+    )
+      .toISOString()
+      .split("T")[0];
+
+    const thisMonthDaysWork = await DailyReport.findAll({
+      where: {
+        date: {
+          [Op.between]: [firstDayOfMonth, lastDayOfMonth],
+        },
+      },
+      attributes: [
+        "packageDeliveredNum",
+        "packageReceivedNumber",
+        "DriversWorkingToday",
+        "totalBalance",
+        "comment",
+        "date",
+      ],
+    });
+
+    res.json(thisMonthDaysWork);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.GetMonthlySummary = async (req, res, next) => {
+  try {
+    const monthlySummary = await DailyReport.findAll({
+      attributes: [
+        [
+          sequelize.fn("DATE_FORMAT", sequelize.col("date"), "%m-%Y"),
+          "monthYear",
+        ],
+
+        [
+          sequelize.fn("SUM", sequelize.col("packageDeliveredNum")),
+          "sumPackageDeliveredNum",
+        ],
+        [
+          sequelize.fn("SUM", sequelize.col("packageReceivedNumber")),
+          "sumPackageReceivedNumber",
+        ],
+        [sequelize.fn("SUM", sequelize.col("totalBalance")), "sumTotalBalance"],
+        [
+          sequelize.fn("AVG", sequelize.col("DriversWorkingToday")),
+          "avgDriversWorkingToday",
+        ],
+      ],
+      group: [sequelize.literal('DATE_FORMAT(date, "%m-%Y")')],
+    });
+
+    res.json(monthlySummary);
+  } catch (err) {
+    console.error("Error fetching monthly summary:", err);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+exports.GetYearlySummary = async (req, res, next) => {
+  try {
+    const yearlySummary = await DailyReport.findAll({
+      attributes: [
+        [sequelize.fn('YEAR', sequelize.col('date')), 'year'],
+        [sequelize.fn('SUM', sequelize.col('packageDeliveredNum')), 'sumPackageDeliveredNum'],
+        [sequelize.fn('SUM', sequelize.col('packageReceivedNumber')), 'sumPackageReceivedNumber'],
+        [sequelize.fn('SUM', sequelize.col('totalBalance')), 'sumTotalBalance'],
+        [sequelize.fn('AVG', sequelize.col('DriversWorkingToday')), 'avgDriversWorkingToday'],
+      ],
+      group: [sequelize.fn('YEAR', sequelize.col('date'))],
+    });
+
+    res.json(yearlySummary);
+  } catch (err) {
+    console.error('Error fetching yearly summary:', err);
+    res.status(500).send('Internal Server Error');
+  }
 };
