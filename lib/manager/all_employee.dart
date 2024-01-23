@@ -2,6 +2,7 @@ import 'package:Package4U/manager/creat_employee.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/style/common/theme_h.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -28,6 +29,26 @@ class _all_employeeState extends State<all_employee> {
     super.dispose();
   }
 
+  //  String username = GetStorage().read("userName");
+  // String password = GetStorage().read("password");
+
+  // Future post_delete_employee() async {
+  //   var url = urlStarter + "/employee/DeletePackage";
+  //   var responce = await http.post(Uri.parse(url),
+  //       body: jsonEncode({
+  //         "employeeUserName": username,
+  //         "employeePassword": password,
+  //       }),
+  //       headers: {
+  //         'Content-type': 'application/json; charset=UTF-8',
+  //       });
+  //   if (responce.statusCode == 200) {
+  //     setState(() {
+  //       widget.refreshdata();
+  //     });
+  //   }
+  // }
+
   Future<void> fetchData_employees() async {
     var url = urlStarter + "/employee/GetDriverListEmployee";
     print(url);
@@ -51,6 +72,9 @@ class _all_employeeState extends State<all_employee> {
     for (int i = 0; i < employees_.length; i++) {
       new_drivers.add(
         Content_p(
+          refreshdata: () {
+            fetchData_employees();
+          },
           phone: '444444', //drivers_[i]['phone'],
           username: employees_[i]['username'],
           name: employees_[i]['name'],
@@ -165,6 +189,7 @@ class Content_p extends StatefulWidget {
   final String username;
   final String phone;
   final String email;
+  final Function() refreshdata;
 
   Content_p({
     super.key,
@@ -173,6 +198,7 @@ class Content_p extends StatefulWidget {
     required this.username,
     required this.phone,
     required this.email,
+    required this.refreshdata,
   });
 
   @override

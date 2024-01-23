@@ -27,6 +27,25 @@ class _all_driversState extends State<all_drivers> {
   void dispose() {
     super.dispose();
   }
+  //  String username = GetStorage().read("userName");
+  // String password = GetStorage().read("password");
+
+  // Future post_delete_driver() async {
+  //   var url = urlStarter + "/employee/DeletePackage";
+  //   var responce = await http.post(Uri.parse(url),
+  //       body: jsonEncode({
+  //         "employeeUserName": username,
+  //         "employeePassword": password,
+  //       }),
+  //       headers: {
+  //         'Content-type': 'application/json; charset=UTF-8',
+  //       });
+  //   if (responce.statusCode == 200) {
+  //     setState(() {
+  //       widget.refreshdata();
+  //     });
+  //   }
+  // }
 
   Future<void> fetchData_drivers() async {
     var url = urlStarter + "/employee/GetDriverListEmployee";
@@ -59,6 +78,9 @@ class _all_driversState extends State<all_drivers> {
 
       new_drivers.add(
         Content_d(
+          refreshdata: () {
+            fetchData_drivers();
+          },
           vehicleNumber: drivers_[i]['vehicleNumber'],
           city: drivers_[i]['city'],
           phone: '444444', //drivers_[i]['phone'],
@@ -177,6 +199,7 @@ class Content_d extends StatefulWidget {
   final String city;
   final String vehicleNumber;
   final List<String> working_days;
+  final Function() refreshdata;
 
   Content_d(
       {super.key,
@@ -186,7 +209,8 @@ class Content_d extends StatefulWidget {
       required this.username,
       required this.phone,
       required this.photo,
-      required this.vehicleNumber});
+      required this.vehicleNumber,
+      required this.refreshdata});
 
   @override
   State<Content_d> createState() => _Content_dState();
