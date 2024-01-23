@@ -9,6 +9,7 @@ const Technical = require("./models/technicalMessage");
 const managerRoutes = require("./routes/manager");
 const customerRoutes = require("./routes/customer");
 const employeeRoutes = require("./routes/employee");
+const adminRoutes = require("./routes/admin");
 const bodyParser = require("body-parser");
 const sequelize = require("./util/database");
 const notification = require("./util/notifications");
@@ -50,6 +51,7 @@ app.use("/manager", managerRoutes);
 app.use("/driver", driverRoutes);
 app.use("/customer", customerRoutes);
 app.use("/employee", employeeRoutes);
+app.use("/admin", adminRoutes);
 app.use("/image", express.static(path.join(__dirname, "user_images")));
 app.use("/image", (req, res, next) => {
   res
