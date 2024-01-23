@@ -2,7 +2,6 @@ import 'package:Package4U/manager/creat_employee.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/style/common/theme_h.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -29,28 +28,8 @@ class _all_employeeState extends State<all_employee> {
     super.dispose();
   }
 
-  //  String username = GetStorage().read("userName");
-  // String password = GetStorage().read("password");
-
-  // Future post_delete_employee() async {
-  //   var url = urlStarter + "/employee/DeletePackage";
-  //   var responce = await http.post(Uri.parse(url),
-  //       body: jsonEncode({
-  //         "employeeUserName": username,
-  //         "employeePassword": password,
-  //       }),
-  //       headers: {
-  //         'Content-type': 'application/json; charset=UTF-8',
-  //       });
-  //   if (responce.statusCode == 200) {
-  //     setState(() {
-  //       widget.refreshdata();
-  //     });
-  //   }
-  // }
-
   Future<void> fetchData_employees() async {
-    var url = urlStarter + "/employee/GetDriverListEmployee";
+    var url = urlStarter + "/manager/employeesDetailsList";
     print(url);
     final response = await http
         .get(Uri.parse(url), headers: {'ngrok-skip-browser-warning': 'true'});
@@ -68,26 +47,26 @@ class _all_employeeState extends State<all_employee> {
   }
 
   List<Content_p> buildMy_employees() {
-    List<Content_p> new_drivers = [];
+    List<Content_p> new_employees = [];
     for (int i = 0; i < employees_.length; i++) {
-      new_drivers.add(
+      new_employees.add(
         Content_p(
-          refreshdata: () {
-            fetchData_employees();
-          },
-          phone: '444444', //drivers_[i]['phone'],
-          username: employees_[i]['username'],
-          name: employees_[i]['name'],
-          email: 'aa@gailc.ssssss',
-          photo: urlStarter + employees_[i]['img'],
-        ),
+            refreshdata: () {
+              fetchData_employees();
+            },
+            phone: employees_[i]['phoneNumber'].toString(),
+            username: employees_[i]['username'],
+            name: employees_[i]['name'],
+            email: employees_[i]['email'],
+            photo: urlStarter + employees_[i]['img'],
+            count: employees_.length),
       );
     }
 
-    return new_drivers;
+    return new_employees;
   }
 
-  List<Content_p> filterddrivers() {
+  List<Content_p> filterdemployees() {
     if (searchText!.isEmpty) return all_employees;
     return all_employees.where((order) {
       if (searchText!.isNotEmpty &&
@@ -100,7 +79,7 @@ class _all_employeeState extends State<all_employee> {
 
   @override
   Widget build(BuildContext context) {
-    List<Content_p> filterd_drivers = filterddrivers();
+    List<Content_p> filterd_employee = filterdemployees();
     return Scaffold(
       appBar: AppBar(
         title: Text('Employees'),
@@ -137,7 +116,7 @@ class _all_employeeState extends State<all_employee> {
                 ),
               ],
             ),
-            ...filterd_drivers.map((order) {
+            ...filterd_employee.map((order) {
               return order;
             }).toList(),
           ]),
@@ -185,6 +164,8 @@ class _all_employeeState extends State<all_employee> {
 // ignore: must_be_immutable
 class Content_p extends StatefulWidget {
   final String photo;
+  final int count;
+
   final String name;
   final String username;
   final String phone;
@@ -199,6 +180,7 @@ class Content_p extends StatefulWidget {
     required this.phone,
     required this.email,
     required this.refreshdata,
+    required this.count,
   });
 
   @override
@@ -206,6 +188,19 @@ class Content_p extends StatefulWidget {
 }
 
 class _Content_pState extends State<Content_p> {
+  Future post_delete_employee(String user) async {
+    var url = urlStarter + "/manager/deleteEmployee/${user}";
+    var responce = await http.delete(Uri.parse(url), headers: {
+      'Content-type': 'application/json; charset=UTF-8',
+    });
+
+    if (responce.statusCode == 200) {
+      setState(() {
+        widget.refreshdata();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -329,76 +324,82 @@ class _Content_pState extends State<Content_p> {
                 SizedBox(
                   height: 10,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Container(
-                      child: MaterialButton(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25.0)),
-                        color: Colors.red,
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Text(
-                            "Delete",
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
+                Visibility(
+                  visible: widget.count > 1,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        child: MaterialButton(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.0)),
+                          color: Colors.red,
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Text(
+                              "Delete",
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
                           ),
-                        ),
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text(
-                                          "Yes",
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 18),
-                                        )),
-                                    TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text(
-                                          "Cancel",
-                                          style: TextStyle(
-                                              color: Colors.red, fontSize: 18),
-                                        )),
-                                  ],
-                                  title: Text("Delete employee"),
-                                  content: Container(
-                                    width: 400,
-                                    child: Text(
-                                      "Are you sure you want to delete  the employee name's  ${widget.name} from company",
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 18),
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
-                                  ),
-                                  titleTextStyle: TextStyle(
-                                      color: Colors.white, fontSize: 25),
-                                  contentTextStyle: TextStyle(
-                                      color: Colors.white, fontSize: 16),
-                                  backgroundColor: primarycolor,
-                                );
-                              });
-                        },
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                            post_delete_employee(
+                                                widget.username);
+                                          },
+                                          child: Text(
+                                            "Yes",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 18),
+                                          )),
+                                      TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text(
+                                            "Cancel",
+                                            style: TextStyle(
+                                                color: Colors.red,
+                                                fontSize: 18),
+                                          )),
+                                    ],
+                                    title: Text("Delete employee"),
+                                    content: Container(
+                                      width: 400,
+                                      child: Text(
+                                        "Are you sure you want to delete  the employee name's  ${widget.name} from company",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 18),
+                                      ),
+                                    ),
+                                    titleTextStyle: TextStyle(
+                                        color: Colors.white, fontSize: 25),
+                                    contentTextStyle: TextStyle(
+                                        color: Colors.white, fontSize: 16),
+                                    backgroundColor: primarycolor,
+                                  );
+                                });
+                          },
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: 30,
-                    ),
-                  ],
+                      SizedBox(
+                        width: 30,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

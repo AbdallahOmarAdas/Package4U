@@ -27,28 +27,9 @@ class _all_driversState extends State<all_drivers> {
   void dispose() {
     super.dispose();
   }
-  //  String username = GetStorage().read("userName");
-  // String password = GetStorage().read("password");
-
-  // Future post_delete_driver() async {
-  //   var url = urlStarter + "/employee/DeletePackage";
-  //   var responce = await http.post(Uri.parse(url),
-  //       body: jsonEncode({
-  //         "employeeUserName": username,
-  //         "employeePassword": password,
-  //       }),
-  //       headers: {
-  //         'Content-type': 'application/json; charset=UTF-8',
-  //       });
-  //   if (responce.statusCode == 200) {
-  //     setState(() {
-  //       widget.refreshdata();
-  //     });
-  //   }
-  // }
 
   Future<void> fetchData_drivers() async {
-    var url = urlStarter + "/employee/GetDriverListEmployee";
+    var url = urlStarter + "/manager/driversDetailsList";
     print(url);
     final response = await http
         .get(Uri.parse(url), headers: {'ngrok-skip-browser-warning': 'true'});
@@ -83,11 +64,12 @@ class _all_driversState extends State<all_drivers> {
           },
           vehicleNumber: drivers_[i]['vehicleNumber'],
           city: drivers_[i]['city'],
-          phone: '444444', //drivers_[i]['phone'],
+          phone: drivers_[i]['phoneNumber'].toString(),
           username: drivers_[i]['username'],
           name: drivers_[i]['name'],
           working_days: daysList,
           photo: urlStarter + drivers_[i]['img'],
+          vacation: drivers_[i]['notAvailableDate'],
         ),
       );
     }
@@ -193,6 +175,7 @@ class _all_driversState extends State<all_drivers> {
 // ignore: must_be_immutable
 class Content_d extends StatefulWidget {
   final String photo;
+  final String? vacation;
   final String name;
   final String username;
   final String phone;
@@ -210,13 +193,33 @@ class Content_d extends StatefulWidget {
       required this.phone,
       required this.photo,
       required this.vehicleNumber,
-      required this.refreshdata});
+      required this.refreshdata,
+      required this.vacation});
 
   @override
   State<Content_d> createState() => _Content_dState();
 }
 
 class _Content_dState extends State<Content_d> {
+  //  String username = GetStorage().read("userName");
+  // String password = GetStorage().read("password");
+
+  // Future post_delete_driver() async {
+  //   var url = urlStarter + "/employee/DeletePackage";
+  //   var responce = await http.post(Uri.parse(url),
+  //       body: jsonEncode({
+  //         "employeeUserName": username,
+  //         "employeePassword": password,
+  //       }),
+  //       headers: {
+  //         'Content-type': 'application/json; charset=UTF-8',
+  //       });
+  //   if (responce.statusCode == 200) {
+  //     setState(() {
+  //       widget.refreshdata();
+  //     });
+  //   }
+  // }
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -372,6 +375,35 @@ class _Content_dState extends State<Content_d> {
                           ])),
                     ),
                   ],
+                ),
+                Visibility(
+                  visible: widget.vacation != null,
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        children: [
+                          Text.rich(TextSpan(
+                              text: 'Vacation : ',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey),
+                              children: <InlineSpan>[
+                                TextSpan(
+                                  text: widget.vacation,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.red,
+                                  ),
+                                )
+                              ])),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
                 SizedBox(
                   height: 10,
