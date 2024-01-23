@@ -58,13 +58,18 @@ app.use("/image", (req, res, next) => {
 });
 const createDailyRecord = async () => {
   try {
-    // Create a new instance of the DailyRecord model
+    const currentDate = new Date();
+    const today = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${currentDate.getDate().toString().padStart(2, "0")}`;
+
     const dailyReport = await DailyReport.create({
-      dateTime: new Date(), // Set the date to the current date
+      date: today, //.toISOString().split('T')[0], // Set the date to the current date
       comment: "",
       totalBalance: 0,
       packageReceivedNumber: 0,
       packageDeliveredNum: 0,
+      DriversWorkingToday: 0,
     });
 
     console.log("Daily record created:", dailyReport.toJSON());
@@ -88,6 +93,7 @@ sequelize
   .catch((err) => {
     console.log(err);
   });
+
 //notification.SendPackageNotification("Under review", 28);
 // // notification.SendNotification(
 // //   "notification.titlePindingToCustomer",
@@ -97,3 +103,31 @@ sequelize
 // //   "abdallahC",
 // //
 // // );
+//addRecordsForPastMonths();
+async function addRecordsForPastMonths() {
+  const today = new Date();
+
+  for (let i = 1; i <= 1; i++) {
+    const year = today.getFullYear();
+    const month = today.getMonth();
+
+    // Calculate the number of days in the month
+    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let day = 1; day <= 24; day++) {
+      const date = new Date(year, month, day);
+
+      // Use the create method to add a record
+      await DailyReport.create({
+        comment: "",
+        totalBalance: i+i,//Math.floor(Math.random() * 100) + 1,
+        packageReceivedNumber:  i,//Math.floor(Math.random() * 10) + 1,
+        packageDeliveredNum: i,//Math.floor(Math.random() * 10) + 1,
+        date: date.toISOString().split("T")[0],
+        DriversWorkingToday: Math.floor(Math.random() * 10) + 1, // Random number of drivers for demonstration
+      });
+
+      console.log(`Record added for ${date.toISOString().split("T")[0]}`);
+    }
+  }
+}

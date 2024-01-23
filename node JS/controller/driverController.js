@@ -6,9 +6,14 @@ const fs = require("fs");
 const path = require("path");
 const Package = require("../models/package");
 //Driver.belongsTo(User, { as: 'driver' });
+const { Op, fn } = require("sequelize");
+const sequelize = require("../util/database");
+const notification = require("../util/notifications");
 
 exports.getDeliverdDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
+  const currentDate = new Date();
+
   Package.findAll({
     include: [
       { model: User, as: "rec_user" },
@@ -17,6 +22,14 @@ exports.getDeliverdDriver = (req, res, next) => {
     where: {
       driver_userName: driverUserName,
       status: ["Delivered", "Complete Receive"],
+      [Op.and]: [
+        fn("DATE", fn("NOW")),
+        sequelize.where(
+          fn("DATE", sequelize.col("deliverDate")),
+          "=",
+          fn("DATE", currentDate)
+        ),
+      ],
     },
   })
     .then((result) => {
@@ -34,6 +47,7 @@ exports.getDeliverdDriver = (req, res, next) => {
 
 exports.getPreparePackageDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
+  const currentDate = new Date();
   Package.findAll({
     include: [
       { model: User, as: "rec_user" },
@@ -41,7 +55,15 @@ exports.getPreparePackageDriver = (req, res, next) => {
     ],
     where: {
       driver_userName: driverUserName,
-      status: ["Accepted", "In Warehouse"],
+      status: ["Assigned to receive", "Assigned to deliver"],
+      [Op.and]: [
+        fn("DATE", fn("NOW")),
+        sequelize.where(
+          fn("DATE", sequelize.col("receiveDate")),
+          "=",
+          fn("DATE", currentDate)
+        ),
+      ],
     },
   })
     .then((result) => {
@@ -62,19 +84,22 @@ exports.postAcceptPreparePackageDriver = (req, res, next) => {
   const status = req.body.status;
   const packageId = req.body.packageId;
   let newStatus;
-  if (status == "Accepted") {
+  if (status == "Assigned to receive") {
+    notification.SendPackageNotification("Wait Driver", packageId);
     newStatus = "Wait Driver";
   } else {
+    notification.SendPackageNotification("With Driver", packageId);
     newStatus = "With Driver";
   }
   Package.update(
     {
       status: newStatus,
+      driverComment:null
     },
     {
       where: {
         driver_userName: driverUserName,
-        status: ["Accepted", "In Warehouse"],
+        status: ["Assigned to receive", "Assigned to deliver"],
         packageId: packageId,
       },
     }
@@ -97,21 +122,29 @@ exports.postRejectPreparePackageDriver = (req, res, next) => {
   const status = req.body.status;
   const packageId = req.body.packageId;
   const comment = req.body.comment;
+  let msg;
   let newStatus;
-  if (status == "Accepted") {
-    newStatus = "Receive Rejected";
+  if (status == "Assigned to receive") {
+    msg = "reject receive";
+    newStatus = "Accepted";
   } else {
-    newStatus = "Deliver Rejected";
+    msg = "reject deliver";
+    msg = "reject receive";
+    newStatus = "In Warehouse";
   }
   Package.update(
     {
       status: newStatus,
-      driverComment: comment,
+      driverComment:
+        `The Driver ${msg} this package\nDate: ${new Date().toLocaleDateString()}` +
+        "\nDriver Comment: " +
+        comment,
+      driver_userName: null,
     },
     {
       where: {
         driver_userName: driverUserName,
-        status: ["Accepted", "In Warehouse"],
+        status: ["Assigned to receive", "Assigned to deliver"],
         packageId: packageId,
       },
     }
@@ -153,6 +186,7 @@ exports.postOnGoingPackagesDriver = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.postCancelOnGoingPackageDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
   const status = req.body.status;
@@ -166,6 +200,8 @@ exports.postCancelOnGoingPackageDriver = (req, res, next) => {
   Package.update(
     {
       status: newStatus,
+      driver_userName: null,
+      driverComment:null
     },
     {
       where: {
@@ -187,6 +223,7 @@ exports.postCancelOnGoingPackageDriver = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.postCompleatePackageDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
   const status = req.body.status;
@@ -201,10 +238,12 @@ exports.postCompleatePackageDriver = (req, res, next) => {
   if (whoWillPay == "The recipient" && status == "With Driver") {
     balanceIncVal = total;
   }
-  
+
   if (status == "Wait Driver") {
     newStatus = "Complete Receive";
+    notification.SendPackageNotification("Complete Receive", packageId);
   } else {
+    notification.SendPackageNotification("Delivered", packageId);
     newStatus = "Delivered";
   }
   Driver.update(
@@ -233,12 +272,13 @@ exports.postCompleatePackageDriver = (req, res, next) => {
     newStatus == "Delivered"
       ? {
           status: newStatus,
-
+          driverComment:null,
           deliverDate: Sequelize.fn("NOW"),
         }
       : {
           status: newStatus,
           receiveDate: Sequelize.fn("NOW"),
+          driverComment:null
         },
     {
       where: {
@@ -260,6 +300,7 @@ exports.postCompleatePackageDriver = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.postRejectWorkOnPackageDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
   const packageId = req.body.packageId;
@@ -327,6 +368,7 @@ exports.getSummary = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.GetDriverListManager = (req, res, next) => {
   Driver.findAll({ include: [{ model: User, as: "user" }] })
     .then((drivers) => {
@@ -345,6 +387,7 @@ exports.GetDriverListManager = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.GetDriverLocation = (req, res, next) => {
   const driverUserName = req.query.driverUserName;
   Driver.findOne({ where: { userUserName: driverUserName } })
@@ -356,13 +399,14 @@ exports.GetDriverLocation = (req, res, next) => {
       res.status(500).json({ message: "failed" });
     });
 };
+
 exports.PostEditLocation = (req, res) => {
   const driverUserName = req.body.driverUserName;
   const body = req.body;
   Driver.update(
     {
-      latitude: body.latitude+0.00001000001602,
-      longitude: body.longitude+0.00110000001602,
+      latitude: body.latitude + 0.00001000001602,
+      longitude: body.longitude + 0.00110000001602,
     },
     {
       where: { userUserName: driverUserName },

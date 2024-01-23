@@ -34,7 +34,7 @@ const managerAuth = (req, res, next) => {
     })
     .catch((err) => console.log(err));
 };
-router.use(managerAuth);
+router.post(managerAuth);
 router.post(
   "/addDriver",
   body("Fname").notEmpty().withMessage("please enter First name"),
@@ -86,4 +86,9 @@ router.post(
   managerController.postEditDeliveryCosts
 );
 
+router.get('/todayWork',managerController.GetTodayWork)
+router.get('/thisMonthDaysWork',managerController.GetThisMonthDaysWork)
+router.get('/monthlySummary',managerController.GetMonthlySummary)
+router.get('/yearlySummary',managerController.GetYearlySummary)
+router.get('/dateRangeSummary',managerController.GetDateRangeSummary)
 module.exports = router;

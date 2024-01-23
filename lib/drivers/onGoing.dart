@@ -217,7 +217,7 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
             child: isEmptyList == true
                 ? Center(
                     child: Text(
-                    "You don't have packages to receiver",
+                    "You don't have packages to work on",
                     style: TextStyle(fontSize: 20, color: primarycolor),
                   ))
                 : Container(

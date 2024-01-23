@@ -31,6 +31,7 @@ class _NotificationHistoryState extends State<NotificationHistory> {
     "Accepted": "assets/accepted.png",
     "Wait Driver": "assets/Wait_Driver.png",
     "In Warehouse": "assets/Warehouse.png",
+    "Complete Receive": "assets/Warehouse.png",
     "With Driver": "assets/With_Driver.png",
     "Delivered": "assets/delivered.png",
     "Rejected": "assets/Rejected.png",

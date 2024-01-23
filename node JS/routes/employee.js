@@ -31,7 +31,7 @@ const employeeAuth = (req, res, next) => {
     })
     .catch((err) => console.log(err));
 };
-router.use(employeeAuth);
+router.post(employeeAuth);
 
 router.get("/getNewOrders", employeeController.newPackages);
 router.post("/acceptPackage", employeeController.PostAcceptPackage);
@@ -58,4 +58,8 @@ router.post(
 );
 router.post("/editPackage", employeeController.PostEditPackage);
 router.post("/createOrder", employeeController.sendPackage);
+router.post("/AssignPackageToDriver", employeeController.PostAssignPackageToDriver);
+router.get("/getAssignPackageToDriver",employeeController.getAssignPackageToDriver);
+router.get("/getAllPackages",employeeController.getAllPackages);
+router.post("/DeletePackage", employeeController.DeletePackage);
 module.exports = router;
