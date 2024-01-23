@@ -154,7 +154,7 @@ class _report_mState extends State<report_m> {
 
 class contentreport_m {
   final String month;
-  final int r_moeny;
+  final double r_moeny;
   final String d_package;
   final String r_package;
   final String w_drivers;

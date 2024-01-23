@@ -161,6 +161,23 @@ class _report_dState extends State<report_d> {
                               ])),
                           SizedBox(
                             height: 20,
+                          ),
+                          Text.rich(TextSpan(
+                              text: "Comment : ",
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.grey),
+                              children: <InlineSpan>[
+                                TextSpan(
+                                  text: '${widget.dailyReports[index].comment}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              ])),
+                          SizedBox(
+                            height: 10,
                           )
                         ],
                       ),
@@ -176,13 +193,14 @@ class _report_dState extends State<report_d> {
 
 class contentreport_d {
   final String date;
-
-  final int r_moeny;
+  final double r_moeny;
   final int d_package;
   final int r_package;
   final int w_drivers;
+  final String comment;
 
   contentreport_d({
+    required this.comment,
     required this.date,
     required this.r_moeny,
     required this.d_package,

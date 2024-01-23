@@ -19,14 +19,15 @@ class _reportsState extends State<reports> {
     super.initState();
   }
 
-  late int r_moeny = 0;
+  late double r_moeny = 0;
   late int d_package = 0;
   late int r_package = 0;
   late int w_drivers = 0;
+  late String comment = '';
 
   bool is_load = false;
 
-  late int r_moeny_interval = 0;
+  late double r_moeny_interval = 0;
   late String d_package_interval = '';
   late String r_package_interval = '';
   late String w_drivers_interval = '';
@@ -48,10 +49,11 @@ class _reportsState extends State<reports> {
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       setState(() {
-        r_moeny = data['todayReports']['totalBalance'];
+        r_moeny = data['todayReports']['totalBalance'].toDouble();
         d_package = data['todayReports']['packageDeliveredNum'];
         r_package = data['todayReports']['packageReceivedNumber'];
         w_drivers = data['todayReports']['DriversWorkingToday'];
+        comment = data['todayReports']['comment'];
       });
     } else {
       print('new_orders error');
@@ -84,8 +86,9 @@ class _reportsState extends State<reports> {
     for (int i = 0; i < serverdata_.length; i++) {
       d_report.add(contentreport_d(
         date: serverdata_[i]['date'],
-        r_moeny: serverdata_[i]['totalBalance'],
+        r_moeny: serverdata_[i]['totalBalance'].toDouble(),
         d_package: serverdata_[i]['packageDeliveredNum'],
+        comment: serverdata_[i]['comment'],
         w_drivers: serverdata_[i]['DriversWorkingToday'],
         r_package: serverdata_[i]['packageReceivedNumber'],
       ));
@@ -118,11 +121,14 @@ class _reportsState extends State<reports> {
   List<contentreport_m> buildMy_monthly() {
     List<contentreport_m> m_report = [];
     for (int i = 0; i < serverdata_.length; i++) {
+      String stringValue = serverdata_[i]['avgDriversWorkingToday'];
+      double doubleValue = double.parse(stringValue);
+      int intValue = doubleValue.toInt();
       m_report.add(contentreport_m(
         month: serverdata_[i]['monthYear'],
-        r_moeny: serverdata_[i]['sumTotalBalance'],
+        r_moeny: serverdata_[i]['sumTotalBalance'].toDouble(),
         d_package: serverdata_[i]['sumPackageDeliveredNum'],
-        w_drivers: serverdata_[i]['avgDriversWorkingToday'],
+        w_drivers: intValue.toString(),
         r_package: serverdata_[i]['sumPackageReceivedNumber'],
       ));
     }
@@ -154,11 +160,14 @@ class _reportsState extends State<reports> {
   List<contentreport_y> buildMy_yearly() {
     List<contentreport_y> y_report = [];
     for (int i = 0; i < serverdata_.length; i++) {
+      String stringValue = serverdata_[i]['avgDriversWorkingToday'];
+      double doubleValue = double.parse(stringValue);
+      int intValue = doubleValue.toInt();
       y_report.add(contentreport_y(
         year: serverdata_[i]['year'].toString(),
-        r_moeny: serverdata_[i]['sumTotalBalance'],
+        r_moeny: serverdata_[i]['sumTotalBalance'].toDouble(),
         d_package: serverdata_[i]['sumPackageDeliveredNum'],
-        w_drivers: serverdata_[i]['avgDriversWorkingToday'],
+        w_drivers: intValue.toString(),
         r_package: serverdata_[i]['sumPackageReceivedNumber'],
       ));
     }
@@ -178,11 +187,14 @@ class _reportsState extends State<reports> {
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       serverdata_ = data;
+      String stringValue = serverdata_[0]['avgDriversWorkingToday'];
+      double doubleValue = double.parse(stringValue);
+      int intValue = doubleValue.toInt();
       setState(() {
-        r_moeny_interval = serverdata_[0]['sumTotalBalance'];
+        r_moeny_interval = serverdata_[0]['sumTotalBalance'].toDouble();
         d_package_interval = serverdata_[0]['sumPackageDeliveredNum'];
         r_package_interval = serverdata_[0]['sumPackageReceivedNumber'];
-        w_drivers_interval = serverdata_[0]['avgDriversWorkingToday'];
+        w_drivers_interval = intValue.toString();
         is_load = true;
       });
     } else {
@@ -304,7 +316,24 @@ class _reportsState extends State<reports> {
                               ])),
                           SizedBox(
                             height: 20,
-                          )
+                          ),
+                          Text.rich(TextSpan(
+                              text: "Comment: ",
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.grey),
+                              children: <InlineSpan>[
+                                TextSpan(
+                                  text: '${comment}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              ])),
+                          SizedBox(
+                            height: 10,
+                          ),
                         ],
                       ),
                     ),
