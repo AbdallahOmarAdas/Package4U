@@ -1,3 +1,4 @@
+import 'package:Package4U/manager/all_drivers.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/style/common/theme_h.dart';
 import 'package:day_picker/day_picker.dart';
@@ -14,6 +15,10 @@ class creat_driver extends StatefulWidget {
 }
 
 class _creat_driverState extends State<creat_driver> {
+  void dispose() {
+    super.dispose();
+  }
+
   bool isValidEmail(String email) {
     final emailRegExp = RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$');
     return emailRegExp.hasMatch(email);

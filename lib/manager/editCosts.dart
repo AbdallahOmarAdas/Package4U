@@ -28,7 +28,8 @@ class _editCostsState extends State<editCosts> {
 
   Future<void> fetchData() async {
     var url = urlStarter + "/users/costs";
-    final response = await http.get(Uri.parse(url));
+    final response = await http
+        .get(Uri.parse(url), headers: {'ngrok-skip-browser-warning': 'true'});
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       setState(() {
