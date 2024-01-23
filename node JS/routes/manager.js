@@ -91,4 +91,7 @@ router.get('/thisMonthDaysWork',managerController.GetThisMonthDaysWork)
 router.get('/monthlySummary',managerController.GetMonthlySummary)
 router.get('/yearlySummary',managerController.GetYearlySummary)
 router.get('/dateRangeSummary',managerController.GetDateRangeSummary)
+router.get('/driversDetailsList',managerController.GetDriverDetailsList)
+router.get('/employeesDetailsList',managerController.GetEmployeesDetailsList)
+router.delete('/deleteEmployee/:userName',managerController.DeleteEmployee)
 module.exports = router;

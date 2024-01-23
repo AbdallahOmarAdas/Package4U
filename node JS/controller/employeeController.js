@@ -2,8 +2,6 @@ const User = require("../models/users");
 const Package = require("../models/package");
 const Driver = require("../models/driver");
 const DailyReport = require("../models/dailyReport");
-const Locations = require("../models/locations");
-const Notification = require("../models/nofification");
 const Technical = require("../models/technicalMessage");
 const Customer = require("./customerController");
 const { validationResult } = require("express-validator");
@@ -142,7 +140,6 @@ exports.getAssignPackageToDriver = (req, res, next) => {
     ],
     where: {
       status: ["Accepted", "In Warehouse"],
-      //driver_userName: { [Op.eq]: null },
     },
   })
     .then((result) => {
@@ -165,6 +162,7 @@ exports.getAssignPackageToDriver = (req, res, next) => {
           packageType: result.status == "Accepted" ? 1 : 0,
           packageSize: result.shippingType,
           reason: result.driverComment,
+          status: result.status
         }));
 
         res.status(200).json(packageList);

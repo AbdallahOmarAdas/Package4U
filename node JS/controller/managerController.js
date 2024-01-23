@@ -267,7 +267,6 @@ exports.GetMonthlySummary = async (req, res, next) => {
       ],
       group: [sequelize.literal('DATE_FORMAT(date, "%m-%Y")')],
     });
-
     res.json(monthlySummary);
   } catch (err) {
     console.error("Error fetching monthly summary:", err);
@@ -279,19 +278,28 @@ exports.GetYearlySummary = async (req, res, next) => {
   try {
     const yearlySummary = await DailyReport.findAll({
       attributes: [
-        [sequelize.fn('YEAR', sequelize.col('date')), 'year'],
-        [sequelize.fn('SUM', sequelize.col('packageDeliveredNum')), 'sumPackageDeliveredNum'],
-        [sequelize.fn('SUM', sequelize.col('packageReceivedNumber')), 'sumPackageReceivedNumber'],
-        [sequelize.fn('SUM', sequelize.col('totalBalance')), 'sumTotalBalance'],
-        [sequelize.fn('AVG', sequelize.col('DriversWorkingToday')), 'avgDriversWorkingToday'],
+        [sequelize.fn("YEAR", sequelize.col("date")), "year"],
+        [
+          sequelize.fn("SUM", sequelize.col("packageDeliveredNum")),
+          "sumPackageDeliveredNum",
+        ],
+        [
+          sequelize.fn("SUM", sequelize.col("packageReceivedNumber")),
+          "sumPackageReceivedNumber",
+        ],
+        [sequelize.fn("SUM", sequelize.col("totalBalance")), "sumTotalBalance"],
+        [
+          sequelize.fn("AVG", sequelize.col("DriversWorkingToday")),
+          "avgDriversWorkingToday",
+        ],
       ],
-      group: [sequelize.fn('YEAR', sequelize.col('date'))],
+      group: [sequelize.fn("YEAR", sequelize.col("date"))],
     });
 
     res.json(yearlySummary);
   } catch (err) {
-    console.error('Error fetching yearly summary:', err);
-    res.status(500).send('Internal Server Error');
+    console.error("Error fetching yearly summary:", err);
+    res.status(500).send("Internal Server Error");
   }
 };
 
@@ -301,10 +309,19 @@ exports.GetDateRangeSummary = async (req, res, next) => {
 
     const dateRangeSummary = await DailyReport.findAll({
       attributes: [
-        [sequelize.fn('SUM', sequelize.col('packageDeliveredNum')), 'sumPackageDeliveredNum'],
-        [sequelize.fn('SUM', sequelize.col('packageReceivedNumber')), 'sumPackageReceivedNumber'],
-        [sequelize.fn('SUM', sequelize.col('totalBalance')), 'sumTotalBalance'],
-        [sequelize.fn('AVG', sequelize.col('DriversWorkingToday')), 'avgDriversWorkingToday'],
+        [
+          sequelize.fn("SUM", sequelize.col("packageDeliveredNum")),
+          "sumPackageDeliveredNum",
+        ],
+        [
+          sequelize.fn("SUM", sequelize.col("packageReceivedNumber")),
+          "sumPackageReceivedNumber",
+        ],
+        [sequelize.fn("SUM", sequelize.col("totalBalance")), "sumTotalBalance"],
+        [
+          sequelize.fn("AVG", sequelize.col("DriversWorkingToday")),
+          "avgDriversWorkingToday",
+        ],
       ],
       where: {
         date: {
@@ -315,7 +332,66 @@ exports.GetDateRangeSummary = async (req, res, next) => {
 
     res.json(dateRangeSummary);
   } catch (err) {
-    console.error('Error fetching date range summary:', err);
-    res.status(500).send('Internal Server Error');
+    console.error("Error fetching date range summary:", err);
+    res.status(500).send("Internal Server Error");
   }
-}
+};
+
+exports.GetDriverDetailsList = (req, res, next) => {
+  Driver.findAll({ include: [{ model: User, as: "user" }] })
+    .then((drivers) => {
+      const driverList = drivers.map((driver) => ({
+        username: driver.userUserName,
+        img: "/image/" + driver.userUserName + driver.user.url,
+        name: driver.user.Fname + " " + driver.user.Lname,
+        phoneNumber: driver.user.phoneNumber,
+        working_days: driver.workingDays,
+        city: driver.toCity,
+        vehicleNumber: driver.vehicleNumber,
+        notAvailableDate: driver.notAvailableDate,
+      }));
+
+      res.status(200).json(driverList);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ message: "failed" });
+    });
+};
+
+exports.GetEmployeesDetailsList = (req, res) => {
+  User.findAll({ where: { userType: "employee" } })
+    .then((result) => {
+      const employeeList = result.map((employee) => ({
+        username: employee.userName,
+        img: "/image/" + employee.userName + employee.url,
+        name: employee.Fname + " " + employee.Lname,
+        phoneNumber: employee.phoneNumber,
+        email: employee.email,
+      }));
+
+      res.status(200).json(employeeList);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ message: "failed" });
+    });
+};
+
+exports.DeleteEmployee = async (req, res) => {
+  const { userName } = req.params;
+
+  const employeesCount = await User.count({
+    where: { userType: "employee" },
+  }).then((count) => {
+    return count;
+  });
+
+  if (employeesCount > 1) {
+    User.destroy({ where: { userType: "employee", userName: userName } });
+    return res.status(200).json({ message: "Success" });
+  }
+  return res
+    .status(400)
+    .json({ message: "There must be at least one employee in the system." });
+};
