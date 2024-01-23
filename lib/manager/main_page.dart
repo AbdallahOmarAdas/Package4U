@@ -1,9 +1,11 @@
+import 'package:Package4U/customer/sendTechnicalReport.dart';
+import 'package:Package4U/manager/all_drivers.dart';
+import 'package:Package4U/manager/all_employee.dart';
+import 'package:Package4U/manager/reports/reports.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/customer/change_password.dart';
 import 'package:Package4U/customer/edit_profile.dart';
-import 'package:Package4U/manager/creat_driver.dart';
-import 'package:Package4U/manager/creat_employee.dart';
 import 'package:Package4U/manager/editCompany.dart';
 import 'package:Package4U/manager/editCosts.dart';
 import 'package:Package4U/manager/track_driver.dart';
@@ -173,6 +175,25 @@ class _home_page_managerState extends State<home_page_manager> {
                       MaterialPageRoute(builder: (context) => editCosts()));
                 },
               ),
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                leading: Icon(
+                  Icons.bug_report,
+                  color: primarycolor,
+                  size: 30,
+                ),
+                title: Text(
+                  "Technical Report",
+                  style: TextStyle(fontSize: 25),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => SendTechnicalReport()));
+                },
+              ),
               Divider(
                 color: Colors.grey,
                 height: 5,
@@ -197,6 +218,7 @@ class _home_page_managerState extends State<home_page_manager> {
                       MaterialPageRoute(builder: (context) => sign_in()));
                 },
               ),
+
               // Divider(
               //   color: Colors.grey,
               //   height: 5,
@@ -223,32 +245,30 @@ class _home_page_managerState extends State<home_page_manager> {
                   height: 30,
                 ),
                 content(
-                  label: 'Add Employee',
+                  label: 'Employees',
                   btn: () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: ((context) => create_employee())));
+                            builder: ((context) => all_employee())));
                   },
                   img: "assets/add-friend.png",
                 ),
                 content(
-                  label: 'Add Driver',
+                  label: 'Drivers',
                   btn: () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: ((context) => creat_driver())));
+                            builder: ((context) => all_drivers())));
                   },
                   img: "assets/driver.png",
                 ),
                 content(
                   label: 'View Reports',
                   btn: () {
-                    // Navigator.push(
-                    //     context,
-                    //     MaterialPageRoute(
-                    //         builder: ((context) => create_employee())));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: ((context) => reports())));
                   },
                   img: "assets/audit.png",
                 ),
@@ -262,16 +282,6 @@ class _home_page_managerState extends State<home_page_manager> {
                   },
                   img: "assets/route.png",
                 ),
-                content(
-                  label: 'Sending Notes to Admin',
-                  btn: () {
-                    // Navigator.push(
-                    //     context,
-                    //     MaterialPageRoute(
-                    //         builder: ((context) => create_employee())));
-                  },
-                  img: "assets/send.png",
-                )
               ],
             ),
           ),

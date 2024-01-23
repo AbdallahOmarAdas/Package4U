@@ -33,7 +33,8 @@ class _TrackDriverLocationState extends State<TrackDriverLocation> {
 
   Future<void> fetchLocation() async {
     var url = urlStarter + "/driver/driverLocation?driverUserName=" + username;
-    final response = await http.get(Uri.parse(url));
+    final response = await http
+        .get(Uri.parse(url), headers: {'ngrok-skip-browser-warning': 'true'});
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       setState(() {

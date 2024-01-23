@@ -17,7 +17,8 @@ class Track_driverState extends State<Track_driver> {
 
   Future<void> fetchDrivers() async {
     var url = urlStarter + "/driver/driverListManager";
-    final response = await http.get(Uri.parse(url));
+    final response = await http
+        .get(Uri.parse(url), headers: {'ngrok-skip-browser-warning': 'true'});
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       setState(() {

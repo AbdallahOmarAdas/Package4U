@@ -38,7 +38,8 @@ class _editCompanyState extends State<editCompany> {
 
   Future<void> fetchData() async {
     var url = urlStarter + "/users/info";
-    final response = await http.get(Uri.parse(url));
+    final response = await http
+        .get(Uri.parse(url), headers: {'ngrok-skip-browser-warning': 'true'});
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       setState(() {
