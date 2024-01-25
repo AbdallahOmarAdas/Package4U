@@ -314,23 +314,23 @@ class _reportsState extends State<reports> {
                                   ),
                                 )
                               ])),
-                          SizedBox(
-                            height: 20,
-                          ),
-                          Text.rich(TextSpan(
-                              text: "Comment: ",
-                              style:
-                                  TextStyle(fontSize: 18, color: Colors.grey),
-                              children: <InlineSpan>[
-                                TextSpan(
-                                  text: '${comment}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                              ])),
+                          // SizedBox(
+                          //   height: 20,
+                          // ),
+                          // Text.rich(TextSpan(
+                          //     text: "Comment: ",
+                          //     style:
+                          //         TextStyle(fontSize: 18, color: Colors.grey),
+                          //     children: <InlineSpan>[
+                          //       TextSpan(
+                          //         text: '${comment}',
+                          //         style: TextStyle(
+                          //           fontSize: 14,
+                          //           color: Colors.black,
+                          //           fontWeight: FontWeight.bold,
+                          //         ),
+                          //       )
+                          //     ])),
                           SizedBox(
                             height: 10,
                           ),
