@@ -201,6 +201,42 @@ class _report_dState extends State<report_d> {
                             height: 20,
                           ),
                           Text.rich(TextSpan(
+                              text: "Total receive packages price : ",
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.grey),
+                              children: <InlineSpan>[
+                                TextSpan(
+                                  text:
+                                      "${filteredReports[index].total_r_p_price}\$",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              ])),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Text.rich(TextSpan(
+                              text: "Total paid packages price : ",
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.grey),
+                              children: <InlineSpan>[
+                                TextSpan(
+                                  text:
+                                      "${filteredReports[index].total_p_p_price}\$",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              ])),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Text.rich(TextSpan(
                             text: "Total delivered packages : ",
                             style: TextStyle(fontSize: 18, color: Colors.grey),
                             children: <InlineSpan>[
@@ -311,12 +347,16 @@ class _report_dState extends State<report_d> {
 class contentreport_d {
   final String date;
   final double r_moeny;
+  final double total_r_p_price;
+  final double total_p_p_price;
   final int d_package;
   final int r_package;
   final int w_drivers;
   final String comment;
 
   contentreport_d({
+    required this.total_r_p_price,
+    required this.total_p_p_price,
     required this.comment,
     required this.date,
     required this.r_moeny,

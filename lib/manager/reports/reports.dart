@@ -19,15 +19,18 @@ class _reportsState extends State<reports> {
     super.initState();
   }
 
-  late double r_moeny = 0;
+  late double? de_moeny = 0;
   late int d_package = 0;
   late int r_package = 0;
   late int w_drivers = 0;
   late String comment = '';
+  late double? total_r_p_price = 0;
+  late double? total_p_p_price = 0;
+  String? lastdate;
 
   bool is_load = false;
 
-  late double r_moeny_interval = 0;
+  late double? r_moeny_interval = 0;
   late String d_package_interval = '';
   late String r_package_interval = '';
   late String w_drivers_interval = '';
@@ -49,10 +52,13 @@ class _reportsState extends State<reports> {
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       setState(() {
-        r_moeny = data['todayReports']['totalBalance'].toDouble();
+        de_moeny = data['todayReports']['totalBalance'].toDouble();
         d_package = data['todayReports']['packageDeliveredNum'];
         r_package = data['todayReports']['packageReceivedNumber'];
         w_drivers = data['todayReports']['DriversWorkingToday'];
+        total_p_p_price = data['todayReports']['totalPaiedPaclagePrices'];
+        total_r_p_price = data['todayReports']['totalRecivedPaclagePrices'];
+        lastdate = data['todayReports']['oldestDay'];
         comment = data['todayReports']['comment'];
       });
     } else {
@@ -86,6 +92,8 @@ class _reportsState extends State<reports> {
     for (int i = 0; i < serverdata_.length; i++) {
       d_report.add(contentreport_d(
         date: serverdata_[i]['date'],
+        total_p_p_price: serverdata_[i]['totalPaiedPaclagePrices'].toDouble(),
+        total_r_p_price: serverdata_[i]['totalRecivedPaclagePrices'].toDouble(),
         r_moeny: serverdata_[i]['totalBalance'].toDouble(),
         d_package: serverdata_[i]['packageDeliveredNum'],
         comment: serverdata_[i]['comment'],
@@ -250,12 +258,46 @@ class _reportsState extends State<reports> {
                             height: 30,
                           ),
                           Text.rich(TextSpan(
-                              text: "Total received money : ",
+                              text: "Total deilvery  money : ",
                               style:
                                   TextStyle(fontSize: 18, color: Colors.grey),
                               children: <InlineSpan>[
                                 TextSpan(
-                                  text: "${r_moeny}\$",
+                                  text: "${de_moeny}\$",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              ])),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Text.rich(TextSpan(
+                              text: "Total receive packages price : ",
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.grey),
+                              children: <InlineSpan>[
+                                TextSpan(
+                                  text: "${total_r_p_price}\$",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              ])),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Text.rich(TextSpan(
+                              text: "Total paid packages price : ",
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.grey),
+                              children: <InlineSpan>[
+                                TextSpan(
+                                  text: "${total_p_p_price}\$",
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.black,
@@ -314,23 +356,6 @@ class _reportsState extends State<reports> {
                                   ),
                                 )
                               ])),
-                          // SizedBox(
-                          //   height: 20,
-                          // ),
-                          // Text.rich(TextSpan(
-                          //     text: "Comment: ",
-                          //     style:
-                          //         TextStyle(fontSize: 18, color: Colors.grey),
-                          //     children: <InlineSpan>[
-                          //       TextSpan(
-                          //         text: '${comment}',
-                          //         style: TextStyle(
-                          //           fontSize: 14,
-                          //           color: Colors.black,
-                          //           fontWeight: FontWeight.bold,
-                          //         ),
-                          //       )
-                          //     ])),
                           SizedBox(
                             height: 10,
                           ),
@@ -695,7 +720,8 @@ class _reportsState extends State<reports> {
     DateTime? selectedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2024, 1, 2),
+      firstDate:
+          lastdate != null ? DateTime.parse(lastdate!) : DateTime(2023, 02, 26),
       lastDate: DateTime.now().add(Duration(days: 0)),
     );
 
