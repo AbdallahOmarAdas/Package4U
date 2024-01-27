@@ -1,6 +1,7 @@
 import 'package:Package4U/customer/sendTechnicalReport.dart';
 import 'package:Package4U/manager/all_drivers.dart';
 import 'package:Package4U/manager/all_employee.dart';
+import 'package:Package4U/manager/packges_price.dart';
 import 'package:Package4U/manager/reports/reports.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -288,6 +289,14 @@ class _home_page_managerState extends State<home_page_manager> {
                             builder: ((context) => Track_driver())));
                   },
                   img: "assets/route.png",
+                ),
+                content(
+                  label: 'Packages price',
+                  btn: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: ((context) => prices())));
+                  },
+                  img: "assets/calculator.png",
                 ),
               ],
             ),

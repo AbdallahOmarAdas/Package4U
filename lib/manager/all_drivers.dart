@@ -201,25 +201,50 @@ class Content_d extends StatefulWidget {
 }
 
 class _Content_dState extends State<Content_d> {
-  //  String username = GetStorage().read("userName");
-  // String password = GetStorage().read("password");
+  Future post_delete_driver(String user) async {
+    var url = urlStarter + "/manager/deleteDriver/${user}";
+    var responce = await http.delete(Uri.parse(url), headers: {
+      'Content-type': 'application/json; charset=UTF-8',
+    });
 
-  // Future post_delete_driver() async {
-  //   var url = urlStarter + "/employee/DeletePackage";
-  //   var responce = await http.post(Uri.parse(url),
-  //       body: jsonEncode({
-  //         "employeeUserName": username,
-  //         "employeePassword": password,
-  //       }),
-  //       headers: {
-  //         'Content-type': 'application/json; charset=UTF-8',
-  //       });
-  //   if (responce.statusCode == 200) {
-  //     setState(() {
-  //       widget.refreshdata();
-  //     });
-  //   }
-  // }
+    if (responce.statusCode == 200) {
+      setState(() {
+        widget.refreshdata();
+      });
+    } else {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      "ok",
+                      style: TextStyle(color: Colors.red, fontSize: 18),
+                    )),
+              ],
+              title: Text("Error Delete driver"),
+              content: Container(
+                width: 400,
+                child: Text(
+                  " You are unable to delete this driver because he has undelivered orders!",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+              titleTextStyle: TextStyle(color: Colors.white, fontSize: 25),
+              contentTextStyle: TextStyle(color: Colors.white, fontSize: 16),
+              backgroundColor: primarycolor,
+            );
+          });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -443,6 +468,7 @@ class _Content_dState extends State<Content_d> {
                                   actions: [
                                     TextButton(
                                         onPressed: () {
+                                          post_delete_driver(widget.username);
                                           Navigator.of(context).pop();
                                         },
                                         child: Text(
