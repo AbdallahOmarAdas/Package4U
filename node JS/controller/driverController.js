@@ -56,14 +56,17 @@ exports.getPreparePackageDriver = (req, res, next) => {
     where: {
       driver_userName: driverUserName,
       status: ["Assigned to receive", "Assigned to deliver"],
-      [Op.and]: [
-        fn("DATE", fn("NOW")),
-        sequelize.where(
-          fn("DATE", sequelize.col("receiveDate")),
-          "=",
-          fn("DATE", currentDate)
-        ),
-      ],
+      receiveDate: {
+        [Op.lte]: currentDate, // Less than or equal to current date
+      },
+      // [Op.and]: [
+      //   fn("DATE", fn("NOW")),
+      //   sequelize.where(
+      //     fn("DATE", sequelize.col("receiveDate")),
+      //     "=",
+      //     fn("DATE", currentDate)
+      //   ),
+      // ],
     },
   })
     .then((result) => {
@@ -94,7 +97,7 @@ exports.postAcceptPreparePackageDriver = (req, res, next) => {
   Package.update(
     {
       status: newStatus,
-      driverComment:null
+      driverComment: null,
     },
     {
       where: {
@@ -201,7 +204,7 @@ exports.postCancelOnGoingPackageDriver = (req, res, next) => {
     {
       status: newStatus,
       driver_userName: null,
-      driverComment:null
+      driverComment: null,
     },
     {
       where: {
@@ -272,13 +275,13 @@ exports.postCompleatePackageDriver = (req, res, next) => {
     newStatus == "Delivered"
       ? {
           status: newStatus,
-          driverComment:null,
+          driverComment: null,
           deliverDate: Sequelize.fn("NOW"),
         }
       : {
           status: newStatus,
           receiveDate: Sequelize.fn("NOW"),
-          driverComment:null
+          driverComment: null,
         },
     {
       where: {
@@ -370,7 +373,19 @@ exports.getSummary = (req, res, next) => {
 };
 
 exports.GetDriverListManager = (req, res, next) => {
-  Driver.findAll({ include: [{ model: User, as: "user" }] })
+  const todayDay = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+  });
+  const todayDate = new Date().toISOString().split("T")[0];
+
+  Driver.findAll({
+    include: [{ model: User, as: "user" }],
+    where: {
+      workingDays: {
+        [Op.like]: `%${todayDay}%`,
+      },
+    },
+  })
     .then((drivers) => {
       const driverList = drivers.map((driver) => ({
         late: driver.latitude,
@@ -378,6 +393,7 @@ exports.GetDriverListManager = (req, res, next) => {
         username: driver.userUserName,
         img: driver.userUserName + driver.user.url,
         name: driver.user.Fname + " " + driver.user.Lname,
+        updatedAt:driver.updatedAt
       }));
 
       res.status(200).json(driverList);
@@ -392,7 +408,7 @@ exports.GetDriverLocation = (req, res, next) => {
   const driverUserName = req.query.driverUserName;
   Driver.findOne({ where: { userUserName: driverUserName } })
     .then((driver) => {
-      res.status(200).json({ late: driver.latitude, long: driver.longitude });
+      res.status(200).json({ late: driver.latitude, long: driver.longitude,updatedAt:driver.updatedAt });
     })
     .catch((err) => {
       console.log(err);

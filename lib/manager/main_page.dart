@@ -244,25 +244,32 @@ class _home_page_managerState extends State<home_page_manager> {
                 SizedBox(
                   height: 30,
                 ),
-                content(
-                  label: 'Employees',
-                  btn: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: ((context) => all_employee())));
-                  },
-                  img: "assets/add-friend.png",
-                ),
-                content(
-                  label: 'Drivers',
-                  btn: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: ((context) => all_drivers())));
-                  },
-                  img: "assets/driver.png",
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    content(
+                      label: 'Employees',
+                      btn: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: ((context) => all_employee())));
+                      },
+                      img: "assets/employees.png",
+                    ),
+                    content(
+                      label: 'Drivers',
+                      btn: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: ((context) => all_drivers())));
+                      },
+                      img: "assets/driver.png",
+                    ),
+                  ],
                 ),
                 content(
                   label: 'View Reports',
@@ -308,6 +315,7 @@ class content extends StatelessWidget {
         splashColor: primarycolor.withOpacity(0.6),
         onTap: btn,
         child: Ink(
+          width: 170,
           height: 200,
           decoration: BoxDecoration(
             color: Colors.white,

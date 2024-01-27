@@ -1,5 +1,6 @@
 const User = require("../models/users");
 const Package = require("../models/package");
+const PackagePrice = require("../models/packagePrice");
 const Driver = require("../models/driver");
 const DailyReport = require("../models/dailyReport");
 const Technical = require("../models/technicalMessage");
@@ -13,6 +14,27 @@ const { Sequelize, where } = require("sequelize");
 const notification = require("../util/notifications");
 const { log } = require("console");
 const { Op, fn } = require("sequelize");
+
+const reciveDriver = PackagePrice.belongsTo(User, {
+  foreignKey: "reciveDriver_userName",
+  onDelete: "CASCADE",
+  as: "reciveDriver",
+});
+Package.hasMany(PackagePrice, { foreignKey: "reciveDriver_userName" });
+
+const deliverDriver = PackagePrice.belongsTo(User, {
+  foreignKey: "deliverDriver_userName",
+  onDelete: "CASCADE",
+  as: "deliverDriver",
+});
+Package.hasMany(PackagePrice, { foreignKey: "deliverDriver_userName" });
+
+const pkt = PackagePrice.belongsTo(Package, {
+  foreignKey: "pkt_packageId",
+  onDelete: "CASCADE",
+  as: "pktId",
+});
+Package.hasMany(PackagePrice, { foreignKey: "pkt_packageId" });
 
 const emailTemplate = (recName, result2, result, packageSize, pass) => {
   return `
@@ -91,7 +113,7 @@ const updateDilyCreatePackage = async (
     }
   )
     .then((result) => {
-      console.log("DailyReport done create new package");
+      console.log("DailyReport done");
     })
     .catch((err) => {
       console.log(err);
@@ -162,7 +184,7 @@ exports.getAssignPackageToDriver = (req, res, next) => {
           packageType: result.status == "Accepted" ? 1 : 0,
           packageSize: result.shippingType,
           reason: result.driverComment,
-          status: result.status
+          status: result.status,
         }));
 
         res.status(200).json(packageList);
@@ -426,24 +448,30 @@ exports.getDistributionOrders = (req, res, next) => {
     });
 };
 
-exports.GetDriversBalance = (req, res, next) => {
+exports.GetDriversBalance = async (req, res, next) => {
   console.log("Get DriversBalance");
-  Driver.findAll({ include: [{ model: User, as: "user" }] })
-    .then((drivers) => {
-      const driverList = drivers.map((driver) => ({
-        username: driver.userUserName,
-        img: "/image/" + driver.userUserName + driver.user.url,
-        name: driver.user.Fname + " " + driver.user.Lname,
-        totalBalance: driver.totalBalance,
-        deliverdNumber: driver.deliverdNumber,
-        receivedNumber: driver.receivedNumber,
-      }));
-      res.status(200).json(driverList);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({ message: "failed" });
+
+  try {
+    const Drivers = await Driver.findAll({
+      include: [{ model: User, as: "user" }],
     });
+
+    const driverList = await Promise.all(Drivers.map(async (driver) => ({
+      username: driver.userUserName,
+      img: "/image/" + driver.userUserName + driver.user.url,
+      name: driver.user.Fname + " " + driver.user.Lname,
+      totalBalance: driver.totalBalance,
+      deliverdNumber: driver.deliverdNumber,
+      receivedNumber: driver.receivedNumber,
+      paiedAmount: await packagePriceAmountDriver(driver.userUserName,"Complete Receive"),
+      reciveAmount: await packagePriceAmountDriver(driver.userUserName, "Delivered"),
+    })));
+
+    res.status(200).json(driverList);
+  } catch (error) {
+    console.error("Error in GetDriversBalance:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
 exports.postReceiveDriverBalance = (req, res, next) => {
@@ -462,7 +490,9 @@ exports.postReceiveDriverBalance = (req, res, next) => {
       where: { userUserName: driverUsername },
     }
   )
-    .then((result) => {
+    .then(async (result) => {
+      await createRecordINPackagePrice();
+      await updateRecordINPackagePrice();
       updatePaclagesInWarehouse();
       updatePaclagesCompleted();
       updatedaily();
@@ -507,7 +537,7 @@ exports.postReceiveDriverBalance = (req, res, next) => {
       {
         status: "In Warehouse",
         driver_userName: null,
-        driverComment:null
+        driverComment: null,
       },
       {
         where: {
@@ -530,6 +560,42 @@ exports.postReceiveDriverBalance = (req, res, next) => {
         },
       }
     );
+  };
+  const createRecordINPackagePrice = async () => {
+    const pkgs = await Package.findAll({
+      where: {
+        driver_userName: driverUsername,
+        status: "Complete Receive",
+      },
+    });
+    for (let i = 0; i < pkgs.length; i++) {
+      await PackagePrice.create({
+        pkt_packageId: pkgs[i].packageId,
+        paidAmount: pkgs[i].packagePrice,
+        deliverDriver_userName: null,
+        reciveDriver_userName: driverUsername,
+        receiveDate: Sequelize.fn("NOW"),
+      });
+    }
+  };
+
+  const updateRecordINPackagePrice = async () => {
+    const pkgs = await Package.findAll({
+      where: {
+        driver_userName: driverUsername,
+        status: "Delivered",
+      },
+    });
+    for (let i = 0; i < pkgs.length; i++) {
+      await PackagePrice.update(
+        {
+          receiveAmount: pkgs[i].packagePrice,
+          deliverDriver_userName: driverUsername,
+          deliverDate: Sequelize.fn("NOW"),
+        },
+        { where: { pkt_packageId: pkgs[i].packageId } }
+      );
+    }
   };
 };
 
@@ -668,7 +734,7 @@ exports.PostAssignPackageToDriver = (req, res, next) => {
       status: packageType == 1 ? "Assigned to receive" : "Assigned to deliver",
       receiveDate: assignToDate,
       driver_userName: driverUsername,
-      driverComment:null
+      driverComment: null,
     },
     { where: { packageId } }
   )
@@ -945,4 +1011,89 @@ exports.DeletePackage = (req, res) => {
       console.log(err);
       res.status(500).json({ message: "failed" });
     });
+};
+
+exports.GetPackageDetailes = async (req, res) => {
+  const packageId = req.query.packageId;
+  const PackageDeteils = await Package.findOne({
+    where: { packageId: packageId },
+    attributes: [
+      "packageId",
+      "status",
+      "shippingType",
+      "whoWillPay",
+      "packagePrice",
+      "total",
+      "toCity",
+      "fromCity",
+      "driver_userName",
+    ],
+    include: [
+      {
+        model: User,
+        as: "rec_user",
+        attributes: [
+          "Fname",
+          "Lname",
+          "userName",
+          "url",
+          "city",
+          "phoneNumber",
+          "email",
+        ],
+      },
+      {
+        model: User,
+        as: "send_user",
+        attributes: [
+          "Fname",
+          "Lname",
+          "userName",
+          "url",
+          "city",
+          "phoneNumber",
+          "email",
+        ],
+      },
+    ],
+  });
+  const packagePriceDetails = await PackagePrice.findOne({
+    where: { pkt_packageId: packageId },
+    attributes: ["paidAmount", "receiveAmount", "receiveDate", "deliverDate"],
+    include: [
+      {
+        model: User,
+        as: "deliverDriver",
+        attributes: ["Fname", "Lname", "userName"],
+      },
+      {
+        model: User,
+        as: "reciveDriver",
+        attributes: ["Fname", "Lname", "userName"],
+      },
+    ],
+  });
+  // const pkgs=await Package.findAll()
+  // for(let i=0;i<pkgs.length;i++){
+  //   if(pkgs[i].status=="In Warehouse"){
+  //    await PackagePrice.create({pkt_packageId:pkgs[i].packageId,deliverDriver_userName:null,reciveDriver_userName:"driver"}).then((result) => {
+
+  //    }).catch((err) => {
+  //     console.log(err);
+  //    });
+  //   }
+  // }
+
+  res.status(200).json({ PackageDeteils, packagePriceDetails });
+};
+
+
+const packagePriceAmountDriver = async (username, status) => {
+  const totalPaiedAmount = await Package.sum("packagePrice", {
+    where: {
+      status:status,
+      driver_userName: username,
+    },
+  });
+  return totalPaiedAmount==null?0:totalPaiedAmount;
 };

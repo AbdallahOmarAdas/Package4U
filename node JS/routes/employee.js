@@ -62,4 +62,5 @@ router.post("/AssignPackageToDriver", employeeController.PostAssignPackageToDriv
 router.get("/getAssignPackageToDriver",employeeController.getAssignPackageToDriver);
 router.get("/getAllPackages",employeeController.getAllPackages);
 router.post("/DeletePackage", employeeController.DeletePackage);
+router.get("/PackageDeteils",employeeController.GetPackageDetailes);
 module.exports = router;

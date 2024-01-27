@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/style/common/theme_h.dart';
@@ -15,7 +16,7 @@ class MapWorkOnPackage extends StatefulWidget {
   final String package_type;
   final String name;
   final int id;
-  final int price;
+  final double price;
   final String img;
   final double del_price;
   final String phone;
@@ -51,7 +52,7 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
   late String package_type;
   late String name;
   late int id;
-  late int price;
+  late double price;
   late double del_price;
   late String phone;
   late double langfrom;
@@ -405,6 +406,23 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                       ),
                       Divider(
                         thickness: 5,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Package Price : ',
+                            style: TextStyle(fontSize: 15, color: Colors.grey),
+                          ),
+                          Text(
+                            '${price.toStringAsFixed(2)} \$',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                       Visibility(
                         visible: (((widget.whoWillPay == "The sender") &&
