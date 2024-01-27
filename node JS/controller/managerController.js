@@ -7,6 +7,8 @@ const DailyReport = require("../models/dailyReport");
 const { Op, fn } = require("sequelize");
 const sequelize = require("../util/database");
 const { Sequelize, where } = require("sequelize");
+const Package = require("../models/package");
+const PackagePrice = require("../models/packagePrice");
 
 const user = Driver.belongsTo(User, {
   as: "user",
@@ -199,7 +201,18 @@ exports.GetTodayWork = async (req, res, next) => {
     ],
   });
   const oldestDay = await DailyReport.min("date");
-  res.json({ todayReports, oldestDay });
+  const totalPaiedPaclagePrices = await GetTotalPaiedPackagePrices(
+    todayReports.date
+  );
+  const totalRecivedPaclagePrices = await GetTotalRecivedPackagePrices(
+    todayReports.date
+  );
+  res.json({
+    todayReports,
+    oldestDay,
+    totalPaiedPaclagePrices,
+    totalRecivedPaclagePrices,
+  });
 };
 
 exports.GetThisMonthDaysWork = async (req, res, next) => {
@@ -235,7 +248,22 @@ exports.GetThisMonthDaysWork = async (req, res, next) => {
       ],
     });
 
-    res.json(thisMonthDaysWork);
+    const totalPaidPromises = thisMonthDaysWork.map(async (report) => {
+      const totalPaiedPaclagePrices = await GetTotalPaiedPackagePrices(
+        report.date
+      );
+      const totalRecivedPaclagePrices = await GetTotalRecivedPackagePrices(
+        report.date
+      );
+      return {
+        ...report.toJSON(),
+        totalPaiedPaclagePrices,
+        totalRecivedPaclagePrices,
+      };
+    });
+
+    const modifiedThisMonthDaysWork = await Promise.all(totalPaidPromises);
+    res.json({ thisMonthDaysWork: modifiedThisMonthDaysWork });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -329,18 +357,28 @@ exports.GetDateRangeSummary = async (req, res, next) => {
         },
       },
     });
-
-    res.json(dateRangeSummary);
+    const intervalTotalPaiedPackagePrices =
+      await GetIntervalTotalPaiedPackagePrices(startDate, endDate);
+    const intervalTotalRecivedPackagePrices =
+      await GetIntervalTotalRecivedPackagePrices(startDate, endDate);
+    res.json({
+      dateRangeSummary,
+      intervalTotalPaiedPackagePrices,
+      intervalTotalRecivedPackagePrices,
+    });
   } catch (err) {
     console.error("Error fetching date range summary:", err);
     res.status(500).send("Internal Server Error");
   }
 };
 
-exports.GetDriverDetailsList = (req, res, next) => {
-  Driver.findAll({ include: [{ model: User, as: "user" }] })
-    .then((drivers) => {
-      const driverList = drivers.map((driver) => ({
+exports.GetDriverDetailsList = async (req, res) => {
+  try {
+    const drivers = await Driver.findAll({
+      include: [{ model: User, as: "user" }],
+    });
+    const driverList = await Promise.all(
+      drivers.map(async (driver) => ({
         username: driver.userUserName,
         img: "/image/" + driver.userUserName + driver.user.url,
         name: driver.user.Fname + " " + driver.user.Lname,
@@ -349,14 +387,16 @@ exports.GetDriverDetailsList = (req, res, next) => {
         city: driver.toCity,
         vehicleNumber: driver.vehicleNumber,
         notAvailableDate: driver.notAvailableDate,
-      }));
+        isAllowToDelete:
+          (await isAllowedToDeleteDriver(driver.userUserName)) == 0 ? 1 : 0,
+      }))
+    );
 
-      res.status(200).json(driverList);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({ message: "failed" });
-    });
+    res.status(200).json(driverList);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 exports.GetEmployeesDetailsList = (req, res) => {
@@ -394,4 +434,125 @@ exports.DeleteEmployee = async (req, res) => {
   return res
     .status(400)
     .json({ message: "There must be at least one employee in the system." });
+};
+
+exports.DeleteDriver = async (req, res) => {
+  const { userName } = req.params;
+
+  const isAllowToDelete = await isAllowedToDeleteDriver(userName);
+
+  if (isAllowToDelete == 0) {
+    await Driver.destroy({ where: { userUserName: userName } });
+    await User.destroy({ where: { userType: "driver", userName: userName } });
+    return res.status(200).json({ message: "Success" });
+  }
+  return res.status(400).json({ message: "error in delete the driver" });
+};
+
+const isAllowedToDeleteDriver = async (driverUserName) => {
+  const isAllowedToDeleteDriver = await Package.count({
+    where: {
+      driver_userName: { [Op.eq]: driverUserName },
+    },
+  });
+  return isAllowedToDeleteDriver;
+};
+
+const GetTotalPaiedPackagePrices = async (date) => {
+  const GetTotalPaiedPackagePrices = await PackagePrice.sum("paidAmount", {
+    where: {
+      [Op.and]: [
+        sequelize.literal(`DATE(receiveDate) = '${date}'`), // Compare only the date part
+      ],
+    },
+  });
+  return GetTotalPaiedPackagePrices == null ? 0 : GetTotalPaiedPackagePrices;
+};
+
+const GetTotalRecivedPackagePrices = async (date) => {
+  const GetTotalRecivedPackagePrices = await PackagePrice.sum("receiveAmount", {
+    where: {
+      [Op.and]: [
+        sequelize.literal(`DATE(deliverDate) = '${date}'`), // Compare only the date part
+      ],
+    },
+  });
+  return GetTotalRecivedPackagePrices == null
+    ? 0
+    : GetTotalRecivedPackagePrices;
+};
+
+const GetIntervalTotalRecivedPackagePrices = async (startDate, endDate) => {
+  const GetIntervalTotalRecivedPackagePrices = await PackagePrice.sum(
+    "receiveAmount",
+    {
+      where: {
+        [Op.and]: [
+          sequelize.literal(
+            `DATE(deliverDate) BETWEEN '${startDate}' AND '${endDate}'`
+          ),
+        ],
+      },
+    }
+  );
+  return GetIntervalTotalRecivedPackagePrices == null
+    ? 0
+    : GetIntervalTotalRecivedPackagePrices;
+};
+
+const GetIntervalTotalPaiedPackagePrices = async (startDate, endDate) => {
+  const GetIntervalTotalPaiedPackagePrices = await PackagePrice.sum(
+    "paidAmount",
+    {
+      where: {
+        [Op.and]: [
+          sequelize.literal(
+            `DATE(receiveDate) BETWEEN '${startDate}' AND '${endDate}'`
+          ),
+        ],
+      },
+    }
+  );
+  return GetIntervalTotalPaiedPackagePrices == null
+    ? 0
+    : GetIntervalTotalPaiedPackagePrices;
+};
+
+exports.GetmanagerPackagePrices = async (req, res) => {
+  const GetTotalPaiedPackagePricesBalance = await PackagePrice.sum(
+    "paidAmount",
+    {
+      where: {
+        deliverDriver_userName: {
+          [Op.eq]: null,
+        },
+      },
+    }
+  );
+  const GetPackagesMustPayForCompany = await PackagePrice.findAll({
+    where: {
+      deliverDriver_userName: {
+        [Op.eq]: null,
+      },
+      paidAmount: {
+        [Op.ne]: 0,
+      },
+    },
+    attributes: [
+      "pkt_packageId",
+      "receiveDate",
+      "reciveDriver_userName",
+      "paidAmount",
+    ],
+        include: [
+      {
+        model: User,
+        as: "reciveDriver",
+        attributes: ["Fname", "Lname"],
+      }]
+  });
+  res.json({
+    TotalPaiedPackagePrices: GetTotalPaiedPackagePricesBalance,
+    GetPackagesMustPayForCompany,
+  });
 };

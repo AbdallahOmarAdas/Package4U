@@ -753,7 +753,7 @@ exports.postDeleteLocation = (req, res, next) => {
 exports.getTechnicalReports = (req, res, next) => {
   const customerUserName = req.body.customerUserName;
   Technical.findAll({
-    where: { userName: customerUserName },
+    where: { send_techincal_userName: customerUserName },
   })
     .then((result) => {
       if (result.length != 0)

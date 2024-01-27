@@ -1,3 +1,4 @@
+import 'package:Package4U/customer/technicalReportDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/customer/sendTechnicalReport.dart';
 import 'package:Package4U/customer/set_location.dart';
@@ -12,7 +13,7 @@ class TechnicalReport extends StatefulWidget {
 }
 
 class _TechnicalReportState extends State<TechnicalReport> {
-  List Locations = [];
+  List reports = [];
   String? userName;
   TextEditingController _textController2 = TextEditingController();
   String customerUserName = GetStorage().read('userName').toString();
@@ -21,20 +22,17 @@ class _TechnicalReportState extends State<TechnicalReport> {
 
   Future<void> fetchData() async {
     print(customerUserName);
-    var url = urlStarter + "/customer/getTechnicalReports";
-    final response = await http.post(Uri.parse(url),
-        body: jsonEncode({
-          "customerUserName": customerUserName,
-          "customerPassword": customerPassword
-        }),
-        headers: {
-          'Content-type': 'application/json; charset=UTF-8',
-        });
+    var url = urlStarter +
+        "/admin/getUserTechnicalReports?userName=${customerUserName}";
+    final response = await http.get(Uri.parse(url), headers: {
+      'Content-type': 'application/json; charset=UTF-8',
+      'ngrok-skip-browser-warning': 'true'
+    });
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       setState(() {
-        Locations.clear();
-        Locations = data['result'];
+        reports.clear();
+        reports = data['result'];
         flag = false;
       });
     } else if (response.statusCode == 404) {
@@ -46,24 +44,16 @@ class _TechnicalReportState extends State<TechnicalReport> {
     }
   }
 
-  Future postDeleteLocation(int id) async {
-    var url = urlStarter + "/customer/deleteLocation";
-    var responce = await http.post(Uri.parse(url),
-        body: jsonEncode({
-          "customerUserName": customerUserName,
-          "customerPassword": customerPassword,
-          "id": id
-        }),
-        headers: {
-          'Content-type': 'application/json; charset=UTF-8',
-        });
-    var responceBody = jsonDecode(responce.body);
+  Future postDeleteReport(int id) async {
+    var url = urlStarter + "/admin/deleteTechnicalReport/${id}";
+    var responce = await http.delete(Uri.parse(url), headers: {
+      'Content-type': 'application/json; charset=UTF-8',
+    });
     if (responce.statusCode == 200) {
       fetchData();
     } else {
       throw Exception('Failed to load data');
     }
-    return responceBody;
   }
 
   @override
@@ -72,8 +62,7 @@ class _TechnicalReportState extends State<TechnicalReport> {
     fetchData();
   }
 
-  List<String> savedRows = [];
-
+  //ist<String>  = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,56 +75,69 @@ class _TechnicalReportState extends State<TechnicalReport> {
           Visibility(
             visible: !flag,
             child: Expanded(
-              child: ListView.separated(
-                itemCount: Locations.length,
+              child: ListView.builder(
+                itemCount: reports.length,
                 itemBuilder: (context, index) {
-                  List<String> detials =
-                      Locations[index]['location'].split(',');
-                  return ListTile(
-                      title: Text(
-                        "${Locations[index]['name']}",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: primarycolor, fontSize: 28),
-                      ),
-                      subtitle: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
-                                detials[0],
-                                style: textcolumnstyle(),
-                              ),
-                              Text(detials[1], style: textcolumnstyle()),
-                              Text(detials[2], style: textcolumnstyle()),
-                              Text(detials[3], style: textcolumnstyle()),
-                            ],
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  Icons.delete_sweep,
-                                  size: 35,
-                                  color: Colors.red,
-                                ),
-                                onPressed: () {
-                                  postDeleteLocation(Locations[index]['id']);
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
+                  return GestureDetector(
+                    onTap: () {
+                      // Navigate to details page here
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) =>
+                            TechnicalReportDetails(id: reports[index]['id']),
                       ));
-                },
-                separatorBuilder: (context, index) {
-                  return const Divider(
-                    thickness: 2,
-                    color: Colors.grey,
+                    },
+                    child: Card(
+                      color: Colors.grey[300],
+                      elevation: 3,
+                      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "${reports[index]['Title']}",
+                                    style: TextStyle(
+                                        color: primarycolor, fontSize: 28),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text.rich(
+                                    TextSpan(
+                                      text: "${reports[index]['message']}",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    overflow:
+                                        TextOverflow.visible, // Add this line
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    "Date: ${reports[index]['createdAt'].toString().split('T')[0]}",
+                                    style: TextStyle(
+                                        color: Colors.grey, fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.delete_sweep,
+                                size: 35,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                postDeleteReport(reports[index]['id']);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   );
                 },
               ),
@@ -143,16 +145,17 @@ class _TechnicalReportState extends State<TechnicalReport> {
           ),
           SizedBox(height: 20),
           Visibility(
-              visible: flag,
-              child: Column(
-                children: [
-                  Text(
-                    "There are no reports sent",
-                    style: TextStyle(color: primarycolor, fontSize: 25),
-                  ),
-                  SizedBox(height: 30),
-                ],
-              )),
+            visible: flag,
+            child: Column(
+              children: [
+                Text(
+                  "There are no reports sent",
+                  style: TextStyle(color: primarycolor, fontSize: 25),
+                ),
+                SizedBox(height: 30),
+              ],
+            ),
+          ),
           Container(
             alignment: Alignment.center,
             child: TextButton.icon(
@@ -164,8 +167,10 @@ class _TechnicalReportState extends State<TechnicalReport> {
                 ),
               ),
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => SendTechnicalReport()));
+                Navigator.of(context)
+                    .push(MaterialPageRoute(
+                        builder: (context) => SendTechnicalReport()))
+                    .then((value) => fetchData());
               },
               icon: Icon(
                 Icons.bug_report_outlined,

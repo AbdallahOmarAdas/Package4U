@@ -94,4 +94,7 @@ router.get('/dateRangeSummary',managerController.GetDateRangeSummary)
 router.get('/driversDetailsList',managerController.GetDriverDetailsList)
 router.get('/employeesDetailsList',managerController.GetEmployeesDetailsList)
 router.delete('/deleteEmployee/:userName',managerController.DeleteEmployee)
+router.delete('/deleteDriver/:userName',managerController.DeleteDriver)
+router.get('/managerPackagePrices',managerController.GetmanagerPackagePrices)
+
 module.exports = router;

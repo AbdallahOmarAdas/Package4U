@@ -151,7 +151,7 @@ class _edit_profileState extends State<edit_profile> {
     final uri = Uri.parse(urlStarter + "/users/imm");
     var request = http.MultipartRequest('POST', uri);
     request.fields['userName'] = GetStorage().read("userName");
-
+//username, title, message
     var file = await http.MultipartFile.fromPath('image', _image!.path);
     request.files.add(file);
 

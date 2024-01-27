@@ -149,6 +149,7 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
             delivered_price: packagesList[i]['total'],
             whoWillPay: packagesList[i]['whoWillPay'],
             pktdistance: packagesList[i]['distance'],
+            package_price: packagesList[i]['packagePrice'].toDouble(),
             distance: distance,
             id: packagesList[i]['packageId'],
             username: packagesList[i]['send_userName'],
@@ -181,6 +182,7 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
             distance: distance,
             pktdistance: packagesList[i]['distance'],
             id: packagesList[i]['packageId'],
+            package_price: packagesList[i]['packagePrice'].toDouble(),
             username: packagesList[i]['rec_userName'],
             context: this.context,
             packageType: pktType,
@@ -349,6 +351,7 @@ class Content extends StatefulWidget {
   final String img;
   final double pktdistance;
   final double delivered_price;
+  final double package_price;
   final double distance;
   final String delivery_type; // 0 Delivery of a package , 1 Receiving a package
   final BuildContext context;
@@ -372,6 +375,7 @@ class Content extends StatefulWidget {
       required this.username,
       required this.context,
       required this.img,
+      required this.package_price,
       required this.delivered_price,
       required this.delivery_type,
       required this.refreshData,
@@ -749,7 +753,7 @@ class _ContentState extends State<Content> {
                                         name: widget.name,
                                         package_type: widget.delivery_type,
                                         del_price: widget.delivered_price,
-                                        price: 121212,
+                                        price: widget.package_price,
                                       ))).then((value) => widget.refreshData());
                         },
                       ),
