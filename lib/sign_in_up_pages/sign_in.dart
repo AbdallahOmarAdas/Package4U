@@ -3,7 +3,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/customer/main_page.dart';
 import 'package:Package4U/drivers/home_page_driver.dart';
-import 'package:Package4U/employee/main_page.dart';
 import 'package:Package4U/manager/main_page.dart';
 import 'package:Package4U/style/common/theme_h.dart';
 import 'package:Package4U/sign_in_up_pages/forget_pass.dart';
@@ -60,8 +59,7 @@ class _sign_inState extends State<sign_in> {
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => home_page_manager()));
       if (responceBody['user']['userType'] == "employee")
-        Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => home_page_employee()));
+        showValidationMessage("Employees must register via browser");
       if (responceBody['user']['userType'] == "driver")
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => home_page_driver()));

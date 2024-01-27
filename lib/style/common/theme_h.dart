@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-var urlStarter = "http://192.168.1.222:8080";
+var urlStarter = "https://c3a6-83-244-61-33.ngrok-free.app";
 const primarycolor = Color.fromARGB(255, 7, 146, 93);
 const String Titleapp = 'Package4U';
 

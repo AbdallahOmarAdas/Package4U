@@ -6,7 +6,6 @@ import 'package:Package4U/customer/from_me.dart';
 import 'package:Package4U/customer/main_page.dart';
 import 'package:Package4U/drivers/home_page_driver.dart';
 import 'package:Package4U/drivers/onGoing.dart';
-import 'package:Package4U/employee/main_page.dart';
 import 'package:Package4U/manager/main_page.dart';
 import 'package:Package4U/sign_in_up_pages/sign_in.dart';
 import 'package:Package4U/style/common/theme_h.dart';
@@ -129,7 +128,6 @@ class _LoginUiAppState extends State<LoginUiApp> {
           "customerHome": (context) => home_page_customer(),
           "managerHome": (context) => home_page_manager(),
           "driverHome": (context) => home_page_driver(),
-          "employeeHome": (context) => home_page_employee(),
           "signIn": (context) => sign_in(),
           "fromMe": (context) => from_me(),
           "onGoing": (context) => OnGoingPackages(),

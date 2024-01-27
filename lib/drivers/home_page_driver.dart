@@ -1,3 +1,4 @@
+import 'package:Package4U/customer/technicalReport.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/customer/change_password.dart';
@@ -150,16 +151,18 @@ class _home_page_driverState extends State<home_page_driver> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                   leading: Icon(
-                    Icons.help,
+                    Icons.bug_report,
                     color: primarycolor,
                     size: 30,
                   ),
                   title: Text(
-                    "Help",
-                    style: TextStyle(fontSize: 25),
+                    "Report problem",
+                    style: TextStyle(fontSize: 20),
                   ),
                   onTap: () {
                     Navigator.pop(context);
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => TechnicalReport()));
                   },
                 ),
                 Divider(
