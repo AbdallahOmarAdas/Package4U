@@ -79,6 +79,7 @@ class _track_pState extends State<track_p> {
             vehicleNumber = data['driver']['vehicleNumber'];
             print(data['driver']['latitude']);
             _driver = new Driver(
+                date: data['driver']['updatedAt'],
                 late: data['driver']['latitude'],
                 long: data['driver']['longitude'],
                 username: driver['userName'],

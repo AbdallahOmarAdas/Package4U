@@ -176,7 +176,9 @@ class _report_mState extends State<report_m> {
                             style: TextStyle(fontSize: 18, color: Colors.grey),
                             children: <InlineSpan>[
                               TextSpan(
-                                text: "${filteredReports[index].r_moeny}\$",
+                                text: filteredReports[index].r_moeny != null
+                                    ? "${filteredReports[index].r_moeny!.toStringAsFixed(2)}\$"
+                                    : "${filteredReports[index].r_moeny}\$",
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.black,
@@ -345,7 +347,7 @@ class _report_mState extends State<report_m> {
 
 class contentreport_m {
   final String month;
-  final double r_moeny;
+  final double? r_moeny;
   final String d_package;
   final String r_package;
   final String w_drivers;
