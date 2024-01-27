@@ -6,6 +6,8 @@ import 'package:Package4U/style/common/theme_h.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
+
 class Track_driver extends StatefulWidget {
   Track_driverState createState() => Track_driverState();
 }
@@ -105,21 +107,45 @@ Widget _listView(List<Driver> filterdDrivers) {
                           name: filterdDrivers[index].name,
                           userName: filterdDrivers[index].username,
                           Late: filterdDrivers[index].late,
-                          long: filterdDrivers[index].long)));
+                          long: filterdDrivers[index].long
+                          //da
+                          )));
             },
             child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: primarycolor,
-                backgroundImage: filterdDrivers[index].img == ""
-                    ? null
-                    : NetworkImage(
-                        urlStarter + '/image/' + filterdDrivers[index].img),
-                child: filterdDrivers[index].img == ""
-                    ? Text(
-                        filterdDrivers[index].name[0].toString().toUpperCase(),
-                        style: TextStyle(color: Colors.white),
-                      )
-                    : null,
+              leading: Stack(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: primarycolor,
+                    backgroundImage: filterdDrivers[index].img == ""
+                        ? null
+                        : NetworkImage(
+                            urlStarter + '/image/' + filterdDrivers[index].img),
+                    child: filterdDrivers[index].img == ""
+                        ? Text(
+                            filterdDrivers[index]
+                                .name[0]
+                                .toString()
+                                .toUpperCase(),
+                            style: TextStyle(color: Colors.white),
+                          )
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 13,
+                      height: 13,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isWithin5MinutesOfCurrentTime(
+                                DateTime.parse(filterdDrivers[index].date))
+                            ? Colors.green
+                            : Colors.red,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               title: Text(filterdDrivers[index].name),
               subtitle: Text(filterdDrivers[index].username),
@@ -127,4 +153,17 @@ Widget _listView(List<Driver> filterdDrivers) {
           );
         }),
   );
+}
+
+///////   diff time < 5 online
+
+bool isWithin5MinutesOfCurrentTime(DateTime targetDateTime) {
+  String formattedDateTime =
+      DateFormat('yyyy-MM-dd HH:mm:ss').format(targetDateTime);
+  DateTime dateTime = DateTime.parse(formattedDateTime);
+  DateTime currentDateTime = DateTime.now();
+
+  Duration difference = dateTime.difference(currentDateTime);
+
+  return difference.inMinutes.abs() <= 5;
 }

@@ -73,8 +73,10 @@ class _report_yState extends State<report_y> {
                                   TextStyle(fontSize: 18, color: Colors.grey),
                               children: <InlineSpan>[
                                 TextSpan(
-                                  text:
-                                      "${widget.dailyReports[index].r_moeny}\$",
+                                  text: widget.dailyReports[index].r_moeny !=
+                                          null
+                                      ? "${widget.dailyReports[index].r_moeny!.toStringAsFixed(2)}\$"
+                                      : "${widget.dailyReports[index].r_moeny}\$",
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.black,
@@ -154,7 +156,7 @@ class _report_yState extends State<report_y> {
 
 class contentreport_y {
   final String year;
-  final double r_moeny;
+  final double? r_moeny;
   final String d_package;
   final String r_package;
   final String w_drivers;

@@ -184,11 +184,13 @@ class _report_dState extends State<report_d> {
                             height: 20,
                           ),
                           Text.rich(TextSpan(
-                            text: "Total received money : ",
+                            text: "Total deilvery money : ",
                             style: TextStyle(fontSize: 18, color: Colors.grey),
                             children: <InlineSpan>[
                               TextSpan(
-                                text: "${filteredReports[index].r_moeny}\$",
+                                text: filteredReports[index].r_moeny != null
+                                    ? "${filteredReports[index].r_moeny!.toStringAsFixed(2)}\$"
+                                    : "${filteredReports[index].r_moeny}\$",
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.black,
@@ -206,8 +208,11 @@ class _report_dState extends State<report_d> {
                                   TextStyle(fontSize: 18, color: Colors.grey),
                               children: <InlineSpan>[
                                 TextSpan(
-                                  text:
-                                      "${filteredReports[index].total_r_p_price}\$",
+                                  text: filteredReports[index]
+                                              .total_r_p_price !=
+                                          null
+                                      ? "${filteredReports[index].total_r_p_price!.toStringAsFixed(2)}\$"
+                                      : "${filteredReports[index].total_r_p_price}\$",
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.black,
@@ -224,8 +229,11 @@ class _report_dState extends State<report_d> {
                                   TextStyle(fontSize: 18, color: Colors.grey),
                               children: <InlineSpan>[
                                 TextSpan(
-                                  text:
-                                      "${filteredReports[index].total_p_p_price}\$",
+                                  text: filteredReports[index]
+                                              .total_p_p_price !=
+                                          null
+                                      ? "${filteredReports[index].total_p_p_price!.toStringAsFixed(2)}\$"
+                                      : "${filteredReports[index].total_p_p_price}\$",
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.black,
@@ -346,9 +354,9 @@ class _report_dState extends State<report_d> {
 
 class contentreport_d {
   final String date;
-  final double r_moeny;
-  final double total_r_p_price;
-  final double total_p_p_price;
+  final double? r_moeny;
+  final double? total_r_p_price;
+  final double? total_p_p_price;
   final int d_package;
   final int r_package;
   final int w_drivers;

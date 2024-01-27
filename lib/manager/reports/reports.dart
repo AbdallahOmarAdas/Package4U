@@ -31,6 +31,8 @@ class _reportsState extends State<reports> {
   bool is_load = false;
 
   late double? r_moeny_interval = 0;
+  late double? total_r_p_price_interval = 0;
+  late double? total_p_p_interval = 0;
   late String d_package_interval = '';
   late String r_package_interval = '';
   late String w_drivers_interval = '';
@@ -56,9 +58,9 @@ class _reportsState extends State<reports> {
         d_package = data['todayReports']['packageDeliveredNum'];
         r_package = data['todayReports']['packageReceivedNumber'];
         w_drivers = data['todayReports']['DriversWorkingToday'];
-        total_p_p_price = data['todayReports']['totalPaiedPaclagePrices'];
-        total_r_p_price = data['todayReports']['totalRecivedPaclagePrices'];
-        lastdate = data['todayReports']['oldestDay'];
+        total_p_p_price = data['totalPaiedPaclagePrices'].toDouble();
+        total_r_p_price = data['totalRecivedPaclagePrices'].toDouble();
+        lastdate = data['oldestDay'];
         comment = data['todayReports']['comment'];
       });
     } else {
@@ -76,7 +78,7 @@ class _reportsState extends State<reports> {
         .get(Uri.parse(url), headers: {'ngrok-skip-browser-warning': 'true'});
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
-      serverdata_ = data;
+      serverdata_ = data['thisMonthDaysWork'];
       setState(() {
         daily = buildMy_daily();
         serverdata_ = [];
@@ -194,11 +196,14 @@ class _reportsState extends State<reports> {
         .get(Uri.parse(url), headers: {'ngrok-skip-browser-warning': 'true'});
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
-      serverdata_ = data;
+      serverdata_ = data['dateRangeSummary'];
       String stringValue = serverdata_[0]['avgDriversWorkingToday'];
       double doubleValue = double.parse(stringValue);
       int intValue = doubleValue.toInt();
       setState(() {
+        total_r_p_price_interval =
+            data['intervalTotalRecivedPackagePrices'].toDouble();
+        total_p_p_interval = data['intervalTotalPaiedPackagePrices'].toDouble();
         r_moeny_interval = serverdata_[0]['sumTotalBalance'].toDouble();
         d_package_interval = serverdata_[0]['sumPackageDeliveredNum'];
         r_package_interval = serverdata_[0]['sumPackageReceivedNumber'];
@@ -263,7 +268,9 @@ class _reportsState extends State<reports> {
                                   TextStyle(fontSize: 18, color: Colors.grey),
                               children: <InlineSpan>[
                                 TextSpan(
-                                  text: "${de_moeny}\$",
+                                  text: de_moeny != null
+                                      ? "${de_moeny!.toStringAsFixed(2)}\$"
+                                      : "${de_moeny}\$",
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.black,
@@ -280,7 +287,9 @@ class _reportsState extends State<reports> {
                                   TextStyle(fontSize: 18, color: Colors.grey),
                               children: <InlineSpan>[
                                 TextSpan(
-                                  text: "${total_r_p_price}\$",
+                                  text: total_r_p_price != null
+                                      ? "${total_r_p_price!.toStringAsFixed(2)}\$"
+                                      : "${total_r_p_price}\$",
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.black,
@@ -297,7 +306,9 @@ class _reportsState extends State<reports> {
                                   TextStyle(fontSize: 18, color: Colors.grey),
                               children: <InlineSpan>[
                                 TextSpan(
-                                  text: "${total_p_p_price}\$",
+                                  text: total_p_p_price != null
+                                      ? "${total_p_p_price!.toStringAsFixed(2)}\$"
+                                      : "${total_p_p_price}\$",
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.black,
@@ -617,12 +628,13 @@ class _reportsState extends State<reports> {
                         child: Row(
                           children: [
                             Text.rich(TextSpan(
-                                text: "Total received money : ",
+                                text: "Total deilvery money : ",
                                 style:
                                     TextStyle(fontSize: 18, color: Colors.grey),
                                 children: <InlineSpan>[
                                   TextSpan(
-                                    text: "${r_moeny_interval}\$",
+                                    text:
+                                        "${r_moeny_interval!.toStringAsFixed(2)}\$",
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.black,
@@ -633,8 +645,63 @@ class _reportsState extends State<reports> {
                           ],
                         ),
                       ),
+                      //Spacer(),
+
                       SizedBox(
-                        height: 20,
+                        height: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Row(
+                          children: [
+                            Text.rich(TextSpan(
+                                text: "Total paid packages price : ",
+                                style:
+                                    TextStyle(fontSize: 18, color: Colors.grey),
+                                children: <InlineSpan>[
+                                  TextSpan(
+                                    text:
+                                        "${total_p_p_interval!.toStringAsFixed(2)}\$",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                ])),
+                          ],
+                        ),
+                      ),
+                      //   Spacer(),
+
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Row(
+                          children: [
+                            Text.rich(TextSpan(
+                                text: "Total receive packages price : ",
+                                style:
+                                    TextStyle(fontSize: 18, color: Colors.grey),
+                                children: <InlineSpan>[
+                                  TextSpan(
+                                    text:
+                                        "${total_r_p_price_interval!.toStringAsFixed(2)}\$",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                ])),
+                          ],
+                        ),
+                      ),
+                      // Spacer(),
+                      SizedBox(
+                        height: 10,
                       ),
                       Padding(
                         padding: const EdgeInsets.only(left: 8.0),
@@ -657,8 +724,10 @@ class _reportsState extends State<reports> {
                           ],
                         ),
                       ),
+                      //Spacer(),
+
                       SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       Padding(
                         padding: const EdgeInsets.only(left: 8.0),
@@ -681,8 +750,10 @@ class _reportsState extends State<reports> {
                           ],
                         ),
                       ),
+                      //Spacer(),
+
                       SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       Padding(
                         padding: const EdgeInsets.only(left: 8.0),
@@ -720,8 +791,7 @@ class _reportsState extends State<reports> {
     DateTime? selectedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate:
-          lastdate != null ? DateTime.parse(lastdate!) : DateTime(2023, 02, 26),
+      firstDate: DateTime.parse(lastdate!),
       lastDate: DateTime.now().add(Duration(days: 0)),
     );
 

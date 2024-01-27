@@ -9,27 +9,27 @@ class prices extends StatefulWidget {
 }
 
 class _pricesState extends State<prices> {
+  double all_price = 0;
+
+  String formatDate(DateTime dateTime) {
+    // Format the DateTime object as a string in 'yyyy-MM-dd' format
+    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+  }
+
   List<dynamic> all_p = [];
-  List<content_packgaes> packges = [
-    content_packgaes(
-      driver_name: '1234',
-      id: 55,
-      date: '122232',
-      driver_username: 'qqww',
-      price: 43344,
-    ),
-  ];
+  List<content_packgaes> packges = [];
 
   Future<void> fetchData_p() async {
-    var url = urlStarter + "/employee/getNewOrders";
+    var url = urlStarter + "/manager/managerPackagePrices";
     print(url);
     final response = await http
         .get(Uri.parse(url), headers: {'ngrok-skip-browser-warning': 'true'});
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
-      all_p = data['result'];
+      all_p = data['GetPackagesMustPayForCompany'];
       print(all_p);
       setState(() {
+        all_price = data['TotalPaiedPackagePrices'].toDouble();
         packges = buildMy_packges();
       });
     } else {
@@ -42,13 +42,17 @@ class _pricesState extends State<prices> {
     List<content_packgaes> orders = [];
 
     for (int i = 0; i < all_p.length; i++) {
+      DateTime dateTime = DateTime.parse(all_p[i]['receiveDate']);
+      String dateOnly = formatDate(dateTime);
       orders.add(
         content_packgaes(
-          driver_name: '1234',
-          id: 55,
-          date: '122232',
-          driver_username: 'qqww',
-          price: 43344,
+          driver_name: all_p[i]['reciveDriver']['Fname'] +
+              " " +
+              all_p[i]['reciveDriver']['Lname'], //reciveDriver
+          id: all_p[i]['pkt_packageId'],
+          date: dateOnly,
+          driver_username: all_p[i]['reciveDriver_userName'],
+          price: all_p[i]['paidAmount'].toDouble(),
         ),
       );
     }
@@ -58,10 +62,7 @@ class _pricesState extends State<prices> {
 
   @override
   void initState() {
-    //fetchData_p();
-    // setState(() {
-    //   packges = buildMy_packges();
-    // });
+    fetchData_p();
     super.initState();
   }
 
@@ -75,28 +76,41 @@ class _pricesState extends State<prices> {
       body: ListView(
         children: [
           Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Center(
-              child: Text.rich(TextSpan(
-                  text: 'Packges price : ',
-                  style: TextStyle(fontSize: 20, color: Colors.black),
-                  children: <InlineSpan>[
-                    TextSpan(
-                      text: '300\$',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  ])),
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.red, // You can set the color of the border
+                  width: 2.0, // You can set the width of the border
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+                child: Center(
+                  child: Text.rich(TextSpan(
+                      text: 'Packges price : ',
+                      style: TextStyle(fontSize: 20, color: Colors.black),
+                      children: <InlineSpan>[
+                        TextSpan(
+                          text: '${all_price.toStringAsFixed(2)}\$',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      ])),
+                ),
+              ),
             ),
           ),
           for (int i = 0; i < packges.length; i++)
             Container(
               height: 200,
               child: Padding(
-                padding: const EdgeInsets.all(30.0),
+                padding: const EdgeInsets.all(10.0),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(30),
                   splashColor: primarycolor.withOpacity(0.6),
@@ -189,7 +203,8 @@ class _pricesState extends State<prices> {
                                           fontSize: 14, color: Colors.grey),
                                       children: <InlineSpan>[
                                         TextSpan(
-                                          text: ' ${packges[i].price}\$',
+                                          text:
+                                              ' ${packges[i].price.toStringAsFixed(2)}\$',
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Colors.red,
