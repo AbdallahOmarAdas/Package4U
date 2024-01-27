@@ -100,6 +100,8 @@ exports.getTechnicalReports = async (req, res, next) => {
       name: report.send_user.Fname + " " + report.send_user.Lname,
       title: report.Title,
       seen: report.seen,
+      reply:report.reply,
+      userType: report.send_user.userType,
       isReplied: report.reply==null?false:true,
       createdAt: report.createdAt,
     }))
@@ -143,7 +145,7 @@ exports.postSendReplyTechnicalReport = async (req, res, next) => {
   
     return res.status(200).json({ message: "Success" });
   };
-  
+
   exports.DeleteTechnicalReport = async (req, res) => {
     const { id } = req.params;
     await Technical.destroy({ where: { id: id } });
