@@ -308,6 +308,7 @@ exports.GetDriverListEmployee = (req, res, next) => {
         city: driver.toCity,
         vehicleNumber: driver.vehicleNumber,
         notAvailableDate: driver.notAvailableDate,
+        assignedPackagesNumber: 4
       }));
 
       res.status(200).json(driverList);
