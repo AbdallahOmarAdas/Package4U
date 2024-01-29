@@ -278,30 +278,12 @@ class _home_page_customerState extends State<home_page_customer> {
                   ),
                   title: Text(
                     "Report problem",
-                    style: TextStyle(fontSize: 20),
+                    style: TextStyle(fontSize: 25),
                   ),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) => TechnicalReport()));
-                  },
-                ),
-                Padding(padding: EdgeInsets.only(top: 20)),
-                ListTile(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  leading: Icon(
-                    Icons.help,
-                    color: primarycolor,
-                    size: 30,
-                  ),
-                  title: Text(
-                    "Help",
-                    style: TextStyle(fontSize: 25),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
                   },
                 ),
                 Divider(

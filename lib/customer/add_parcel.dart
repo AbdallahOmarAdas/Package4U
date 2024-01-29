@@ -124,19 +124,16 @@ class _add_parcelState extends State<add_parcel> {
     'Paypal',
     'Cash delivery',
   ];
-  List citylist = [
-    'Nablus',
-    'Tulkarm',
-    'Ramallah',
-    'Jenin',
-    'Qalqilya',
-    'Salfit',
-    'Hebron'
-  ];
+  List cities = [];
   late int selectedValue;
 
   @override
   void initState() {
+    fetch_cities().then((List result) {
+      setState(() {
+        cities = result;
+      });
+    });
     super.initState();
     calculatePackageSizeprice();
 
@@ -698,7 +695,7 @@ class _add_parcelState extends State<add_parcel> {
                               '',
                               Icons.location_city,
                             ),
-                            items: citylist.map((value) {
+                            items: cities.map((value) {
                               return DropdownMenuItem(
                                 value: value,
                                 child: Text(value),
@@ -720,7 +717,7 @@ class _add_parcelState extends State<add_parcel> {
                             value: tocity,
                             hint: Text('shipping to city'),
                             isExpanded: true,
-                            items: citylist.map((value) {
+                            items: cities.map((value) {
                               return DropdownMenuItem(
                                 value: value,
                                 child: Text(value),

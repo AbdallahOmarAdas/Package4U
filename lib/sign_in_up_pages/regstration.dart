@@ -48,15 +48,16 @@ class _registrationState extends State<registration> {
 
   GlobalKey<FormState> formState1 = GlobalKey();
   String errormsg = "";
-  List citylist = [
-    'Nablus',
-    'Tulkarm',
-    'Ramallah',
-    'Jenin',
-    'Qalqilya',
-    'Salfit',
-    'Hebron'
-  ];
+  List cities = [];
+  @override
+  void initState() {
+    super.initState();
+    fetch_cities().then((List result) {
+      setState(() {
+        cities = result;
+      });
+    });
+  }
 
   String isValidPhone(String input) {
     bool isnum = RegExp(r'^[0-9]+$').hasMatch(input);
@@ -323,7 +324,7 @@ class _registrationState extends State<registration> {
                               isExpanded: true,
                               hint: Text('Select City',
                                   style: TextStyle(color: Colors.grey)),
-                              items: citylist.map((value) {
+                              items: cities.map((value) {
                                 return DropdownMenuItem(
                                   value: value,
                                   child: Text(value),

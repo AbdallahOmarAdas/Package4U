@@ -1,4 +1,3 @@
-import 'package:Package4U/customer/track_package.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -11,13 +10,8 @@ import 'package:Package4U/sign_in_up_pages/sign_in.dart';
 import 'package:Package4U/style/common/theme_h.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
-  //await Firebase.initializeApp();
-  //Navigator.pushNamed("customerHome");
   print(message.notification!.title.toString() +
       "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
   print("Handling a background message: ${message.messageId}");

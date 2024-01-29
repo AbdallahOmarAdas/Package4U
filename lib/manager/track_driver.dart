@@ -16,7 +16,8 @@ class Track_driverState extends State<Track_driver> {
   List<Driver> driverList = [];
   List<Driver> filterd = [];
   TextEditingController _searchController = new TextEditingController();
-
+  late Timer _timer;
+  bool online = false;
   Future<void> fetchDrivers() async {
     var url = urlStarter + "/driver/driverListManager";
     final response = await http
@@ -50,6 +51,20 @@ class Track_driverState extends State<Track_driver> {
   void initState() {
     super.initState();
     fetchDrivers();
+    try {
+      _timer = Timer.periodic(Duration(seconds: 10), (Timer timer) {
+        setState(() {
+          fetchDrivers();
+        });
+      });
+      throw Exception('Some error occurred');
+    } catch (e) {}
+    //print('////////////////////////////////');
+  }
+
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 
   @override
@@ -89,81 +104,83 @@ class Track_driverState extends State<Track_driver> {
           ]),
     );
   }
-}
 
-Widget _listView(List<Driver> filterdDrivers) {
-  return Expanded(
-    child: ListView.builder(
-        itemCount: filterdDrivers.length,
-        itemBuilder: (context, index) {
-          return InkWell(
-            borderRadius: BorderRadius.circular(30),
-            splashColor: Colors.grey.withOpacity(0.6),
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => TrackDriverLocation(
-                          name: filterdDrivers[index].name,
-                          userName: filterdDrivers[index].username,
-                          Late: filterdDrivers[index].late,
-                          long: filterdDrivers[index].long
-                          //da
-                          )));
-            },
-            child: ListTile(
-              leading: Stack(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: primarycolor,
-                    backgroundImage: filterdDrivers[index].img == ""
-                        ? null
-                        : NetworkImage(
-                            urlStarter + '/image/' + filterdDrivers[index].img),
-                    child: filterdDrivers[index].img == ""
-                        ? Text(
-                            filterdDrivers[index]
-                                .name[0]
-                                .toString()
-                                .toUpperCase(),
-                            style: TextStyle(color: Colors.white),
-                          )
-                        : null,
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 13,
-                      height: 13,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isWithin5MinutesOfCurrentTime(
-                                DateTime.parse(filterdDrivers[index].date))
-                            ? Colors.green
-                            : Colors.red,
+  Widget _listView(List<Driver> filterdDrivers) {
+    return Expanded(
+      child: ListView.builder(
+          itemCount: filterdDrivers.length,
+          itemBuilder: (context, index) {
+            // isWithinMinutesOfCurrentTime(
+            //     DateTime.parse(filterdDrivers[index].date));
+            return InkWell(
+              borderRadius: BorderRadius.circular(30),
+              splashColor: Colors.grey.withOpacity(0.6),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => TrackDriverLocation(
+                            name: filterdDrivers[index].name,
+                            userName: filterdDrivers[index].username,
+                            Late: filterdDrivers[index].late,
+                            long: filterdDrivers[index].long
+                            //da
+                            )));
+              },
+              child: ListTile(
+                leading: Stack(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: primarycolor,
+                      backgroundImage: filterdDrivers[index].img == ""
+                          ? null
+                          : NetworkImage(urlStarter +
+                              '/image/' +
+                              filterdDrivers[index].img),
+                      child: filterdDrivers[index].img == ""
+                          ? Text(
+                              filterdDrivers[index]
+                                  .name[0]
+                                  .toString()
+                                  .toUpperCase(),
+                              style: TextStyle(color: Colors.white),
+                            )
+                          : null,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        width: 13,
+                        height: 13,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isWithinMinutesOfCurrentTime(
+                                  DateTime.parse(filterdDrivers[index].date))
+                              ? Colors.green
+                              : Colors.red,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                title: Text(filterdDrivers[index].name),
+                subtitle: Text(filterdDrivers[index].username),
               ),
-              title: Text(filterdDrivers[index].name),
-              subtitle: Text(filterdDrivers[index].username),
-            ),
-          );
-        }),
-  );
-}
+            );
+          }),
+    );
+  }
 
-///////   diff time < 5 online
+  bool isWithinMinutesOfCurrentTime(DateTime targetDateTime) {
+    targetDateTime = targetDateTime.add(Duration(hours: 2));
+    String formattedDateTime =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(targetDateTime);
+    DateTime dateTime = DateTime.parse(formattedDateTime);
+    DateTime currentDateTime = DateTime.now();
 
-bool isWithin5MinutesOfCurrentTime(DateTime targetDateTime) {
-  String formattedDateTime =
-      DateFormat('yyyy-MM-dd HH:mm:ss').format(targetDateTime);
-  DateTime dateTime = DateTime.parse(formattedDateTime);
-  DateTime currentDateTime = DateTime.now();
+    Duration difference = dateTime.difference(currentDateTime);
 
-  Duration difference = dateTime.difference(currentDateTime);
-
-  return difference.inMinutes.abs() <= 5;
+    return difference.inSeconds.abs() < 60;
+  }
 }

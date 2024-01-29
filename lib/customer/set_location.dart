@@ -4,6 +4,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
 import 'package:open_street_map_search_and_pick/open_street_map_search_and_pick.dart';
 
+double late_spec = 0;
+double lange_spec = 0;
+
 class set_location extends StatefulWidget {
   final Function(String, double, double) onDataReceived;
 
@@ -13,7 +16,7 @@ class set_location extends StatefulWidget {
 }
 
 List<String> addressParts = [];
-LatLong current = LatLong(32.193192, 35.297659);
+LatLong current = LatLong(32.222668, 35.262146);
 
 Future<Position> onGetCurrentLocationPressed() async {
   bool serviceEnabled;
@@ -50,11 +53,17 @@ Future<Position> onGetCurrentLocationPressed() async {
 class _set_locationState extends State<set_location> {
   @override
   void initState() {
-    onGetCurrentLocationPressed().then((value) {
-      // setState(() {
-      //   current;
-      // });
-    });
+    if (lange_spec == 0 && late_spec == 0)
+      onGetCurrentLocationPressed().then((value) {
+        setState(() {
+          current;
+        });
+      });
+    else {
+      setState(() {
+        current = LatLong(late_spec, lange_spec);
+      });
+    }
     super.initState();
   }
 
@@ -98,6 +107,10 @@ class _set_locationState extends State<set_location> {
                                 pickedData.latLong.longitude);
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
+                            // setState(() {
+                            //   late_spec = 0;
+                            //   lange_spec = 0;
+                            // });
                             //add_parcel().
                           },
                           child: Text(

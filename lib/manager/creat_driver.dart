@@ -37,6 +37,43 @@ class _creat_driverState extends State<creat_driver> {
     }
   }
 
+  Future<void> fetchDataEmail(String email) async {
+    var url = urlStarter + "/users/isAvailableEmail?email=" + email;
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 409) {
+      setState(() {
+        isEmailTaken = true;
+      });
+    } else {
+      setState(() {
+        isEmailTaken = false;
+      });
+    }
+    _emailKey.currentState!.validate();
+  }
+
+  Future<void> fetchData(String userName) async {
+    var url = urlStarter + "/users/isAvailableUserName?userName=" + userName;
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 409) {
+      setState(() {
+        isUsernameTaken = true;
+      });
+    } else {
+      setState(() {
+        isUsernameTaken = false;
+      });
+    }
+    _usernameKey.currentState!.validate();
+  }
+
+  final GlobalKey<FormFieldState<String>> _usernameKey =
+      GlobalKey<FormFieldState<String>>();
+  final GlobalKey<FormFieldState<String>> _emailKey =
+      GlobalKey<FormFieldState<String>>();
+  bool isUsernameTaken = false;
+  bool isEmailTaken = false;
+
   String managerUserName = GetStorage().read('userName');
   String managerPassword = GetStorage().read('password');
   Future postUsersAddDriver() async {
@@ -118,15 +155,15 @@ class _creat_driverState extends State<creat_driver> {
   String? username;
   String? email;
   String? phone;
-  List citylist = [
-    'Nablus',
-    'Tulkarm',
-    'Ramallah',
-    'Jenin',
-    'Qalqilya',
-    'Salfit',
-    'Hebron'
-  ];
+  List cities = [];
+  void initState() {
+    super.initState();
+    fetch_cities().then((List result) {
+      setState(() {
+        cities = result;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -199,12 +236,19 @@ class _creat_driverState extends State<creat_driver> {
                             height: 20,
                           ),
                           TextFormField(
+                            key: _usernameKey,
+                            onChanged: (val) {
+                              fetchData(val.toString());
+                            },
                             onSaved: (newValue) {
                               username = newValue!;
                             },
                             validator: (value) {
                               if (value!.isEmpty) {
                                 return "Please enter username";
+                              }
+                              if (isUsernameTaken) {
+                                return "This username is not available";
                               }
                               return null;
                             },
@@ -219,7 +263,11 @@ class _creat_driverState extends State<creat_driver> {
                             height: 20,
                           ),
                           TextFormField(
+                            key: _emailKey,
                             keyboardType: TextInputType.emailAddress,
+                            onChanged: (val) {
+                              fetchDataEmail(val);
+                            },
                             onSaved: (newValue) {
                               email = newValue!;
                             },
@@ -230,6 +278,8 @@ class _creat_driverState extends State<creat_driver> {
                               if (!isValidEmail(value)) {
                                 return 'Please enter a valid email address';
                               }
+                              if (isEmailTaken)
+                                return "Used by another account";
                               return null;
                             },
                             initialValue: email,
@@ -268,7 +318,7 @@ class _creat_driverState extends State<creat_driver> {
                             value: tocity,
                             hint: Text('Working City'),
                             isExpanded: true,
-                            items: citylist.map((value) {
+                            items: cities.map((value) {
                               return DropdownMenuItem(
                                 value: value,
                                 child: Text(value),

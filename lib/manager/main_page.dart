@@ -1,5 +1,6 @@
 import 'package:Package4U/customer/sendTechnicalReport.dart';
 import 'package:Package4U/customer/technicalReport.dart';
+import 'package:Package4U/manager/add_city.dart';
 import 'package:Package4U/manager/all_drivers.dart';
 import 'package:Package4U/manager/all_employee.dart';
 import 'package:Package4U/manager/packges_price.dart';
@@ -110,7 +111,7 @@ class _home_page_managerState extends State<home_page_manager> {
                 ),
                 title: Text(
                   "Edit Profile",
-                  style: TextStyle(fontSize: 20),
+                  style: TextStyle(fontSize: 25),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -131,7 +132,7 @@ class _home_page_managerState extends State<home_page_manager> {
                 ),
                 title: Text(
                   "Change password",
-                  style: TextStyle(fontSize: 20),
+                  style: TextStyle(fontSize: 25),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -152,7 +153,7 @@ class _home_page_managerState extends State<home_page_manager> {
                 ),
                 title: Text(
                   "Company Informations",
-                  style: TextStyle(fontSize: 20),
+                  style: TextStyle(fontSize: 25),
                 ),
                 onTap: () {
                   Navigator.push(context,
@@ -170,11 +171,30 @@ class _home_page_managerState extends State<home_page_manager> {
                 ),
                 title: Text(
                   "Delivery Costs",
-                  style: TextStyle(fontSize: 20),
+                  style: TextStyle(fontSize: 25),
                 ),
                 onTap: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => editCosts()));
+                },
+              ), //add_city
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                leading: Icon(
+                  Icons.location_on_outlined,
+                  color: primarycolor,
+                  size: 30,
+                ),
+                title: Text(
+                  "Add citits",
+                  style: TextStyle(fontSize: 25),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => add_city()));
                 },
               ),
               ListTile(
@@ -188,7 +208,7 @@ class _home_page_managerState extends State<home_page_manager> {
                 ),
                 title: Text(
                   "Report problem",
-                  style: TextStyle(fontSize: 20),
+                  style: TextStyle(fontSize: 25),
                 ),
                 onTap: () {
                   Navigator.pop(context);

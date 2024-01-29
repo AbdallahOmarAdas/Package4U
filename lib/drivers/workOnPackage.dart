@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/style/common/theme_h.dart';
@@ -71,13 +70,15 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
   var showPriceDetiles = false;
 
   void calculatePackageSizeprice() {
-    if (widget.packageType == "Document") {
+    print('///////////////////////////////');
+    print(widget.packageType);
+    if (widget.packageType.toLowerCase() == "Document".toLowerCase()) {
       boxSizePrice = 0;
-    } else if (widget.packageType == "Package0") {
+    } else if (widget.packageType.toLowerCase() == "Small".toLowerCase()) {
       boxSizePrice = 0;
-    } else if (widget.packageType == "Package1") {
+    } else if (widget.packageType.toLowerCase() == "Medium".toLowerCase()) {
       boxSizePrice = bigPackagePrice / 2;
-    } else if (widget.packageType == "Package2") {
+    } else if (widget.packageType.toLowerCase() == "Large".toLowerCase()) {
       boxSizePrice = bigPackagePrice;
     } else {
       boxSizePrice = bigPackagePrice;
@@ -98,8 +99,11 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
   }
 
   Future<void> fetchData() async {
-    var url = urlStarter + "/users/cost";
-    final response = await http.get(Uri.parse(url));
+    var url = urlStarter + "/users/costs";
+    final response = await http.get(Uri.parse(url), headers: {
+      'Content-type': 'application/json; charset=UTF-8',
+      'ngrok-skip-browser-warning': 'true'
+    });
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       setState(() {
@@ -595,7 +599,9 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                                       ],
                                     ),
                                     Text(
-                                      totalPrice.toStringAsFixed(2) + "\$",
+                                      ((totalPrice + price)
+                                              .toStringAsFixed(2)) +
+                                          "\$",
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.black,
@@ -875,7 +881,7 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
             (package_type == "Wait Driver")) ||
         ((widget.whoWillPay == "The recipient") &&
             (package_type == "With Driver")))
-      return "You acknowledge that you received ${widget.del_price.toStringAsFixed(2)} \$ from the customer?";
+      return "You acknowledge that you received ${(widget.del_price + widget.price).toStringAsFixed(2)} \$ from the customer?";
     else if ((package_type == "Wait Driver"))
       return 'Do you acknowledge that you received the package from the customer?';
     else
