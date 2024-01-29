@@ -19,7 +19,7 @@ router.post('/forgotSetPass',body('email').notEmpty().withMessage('Please enter 
 router.post('/changePassword',body('oldPassword').notEmpty().withMessage('please enter the old password first'),signupValidators.passwordValidation(),usersController.postChangePassword);
 router.post('/editProfile',body('oldUserName').notEmpty().withMessage('please enter the old username'),body('userName').notEmpty().withMessage('please enter the new username'),body('Fname').notEmpty().withMessage('please enter First name'),body('Lname').notEmpty().withMessage('please enter Last name'),body('email').notEmpty().withMessage('Please enter your email').isEmail().withMessage('Please enter vaild email'),body('oldEmail').notEmpty().withMessage('Please enter your old email').isEmail().withMessage('Please enter vaild email'),signupValidators.phoneValidation(),body('city').notEmpty().withMessage('please enter your city'),body('town').notEmpty().withMessage('please enter your town'),body('street').notEmpty().withMessage('please enter your street'),usersController.postEditProfile)
 
-router.get('/cost',(req,res,next)=>{
+router.get('/costs',(req,res,next)=>{
   res.status(200).json(cost)
 });
 
