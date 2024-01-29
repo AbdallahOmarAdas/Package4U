@@ -33,7 +33,7 @@ class _HomeDriverState extends State<HomeDriver> {
     _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
       _updateDateTime();
     });
-    _LocationTimer = Timer.periodic(Duration(seconds: 10), (Timer timer) async {
+    _LocationTimer = Timer.periodic(Duration(minutes: 1), (Timer timer) async {
       await _getCurrentLocation();
       PostEditLocation();
     });
@@ -51,7 +51,7 @@ class _HomeDriverState extends State<HomeDriver> {
 
   Future PostEditLocation() async {
     var url = urlStarter + "/driver/EditLocation";
-    var response =  await http.post(Uri.parse(url),
+    var response = await http.post(Uri.parse(url),
         body: jsonEncode({
           "driverUserName": GetStorage().read('userName'),
           "driverPassword": GetStorage().read('password'),
@@ -87,7 +87,8 @@ class _HomeDriverState extends State<HomeDriver> {
     var url = urlStarter +
         "/driver/summary?driverUserName=" +
         GetStorage().read("userName");
-    final response = await http.get(Uri.parse(url));
+    final response = await http
+        .get(Uri.parse(url), headers: {'ngrok-skip-browser-warning': 'true'});
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
       setState(() {

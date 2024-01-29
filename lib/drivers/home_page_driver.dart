@@ -157,7 +157,7 @@ class _home_page_driverState extends State<home_page_driver> {
                   ),
                   title: Text(
                     "Report problem",
-                    style: TextStyle(fontSize: 20),
+                    style: TextStyle(fontSize: 25),
                   ),
                   onTap: () {
                     Navigator.pop(context);

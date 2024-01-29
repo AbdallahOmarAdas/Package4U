@@ -1,3 +1,4 @@
+import 'package:Package4U/customer/set_location.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/style/common/theme_h.dart';
 import 'package:Package4U/style/header/header.dart';
@@ -14,6 +15,14 @@ class editCompany extends StatefulWidget {
 }
 
 class _editCompanyState extends State<editCompany> {
+  late double latto = 0;
+  late double longto = 0;
+  String? locationName;
+  String? locationInfo;
+
+  TextEditingController _textController2 = TextEditingController();
+  List cities = [];
+  String? city;
   String? phone1;
   String? phone2;
   String? email;
@@ -50,9 +59,10 @@ class _editCompanyState extends State<editCompany> {
         _textControlleropenDay.text = data['openDay'];
         _textControlleropenTime.text = data['openTime'];
         _textControllercloseDay.text = data['closeDay'];
-        _textControllercompanyHead.text = data['companyHead'];
+        city = data['companyHead'];
         _textControllercompanyManager.text = data['companyManager'];
         _textControlleraboutCompany.text = data['aboutCompany'];
+        _textController2.text = 'data';
       });
     } else {
       throw Exception('Failed to load data');
@@ -113,6 +123,11 @@ class _editCompanyState extends State<editCompany> {
 
   @override
   void initState() {
+    fetch_cities().then((List result) {
+      setState(() {
+        cities = result;
+      });
+    });
     super.initState();
     fetchData();
   }
@@ -289,21 +304,67 @@ class _editCompanyState extends State<editCompany> {
                             SizedBox(
                               height: 15,
                             ),
-                            TextFormField(
-                              controller: _textControllercompanyHead,
-                              onSaved: (newValue) {
-                                companyHead = newValue;
+                            DropdownButtonFormField(
+                              isExpanded: true,
+                              hint: Text('Select City',
+                                  style: TextStyle(color: Colors.grey)),
+                              items: cities.map((value) {
+                                return DropdownMenuItem(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              value:
+                                  cities.contains(city) == true ? city : null,
+                              decoration: theme_helper().text_form_style(
+                                '',
+                                '',
+                                Icons.location_city,
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  city = value as String?;
+                                  print(city);
+                                });
                               },
                               validator: (value) {
-                                if (value!.isEmpty) {
-                                  return "Please enter the company's main headquarters";
+                                if (value == null) {
+                                  return "Please select city";
                                 }
                                 return null;
                               },
+                            ),
+                            SizedBox(
+                              height: 15,
+                            ),
+                            TextFormField(
+                              controller: _textController2,
+                              style: TextStyle(fontSize: 12.0),
+                              validator: (val) {
+                                if (val!.isEmpty)
+                                  return 'Please set location first';
+                                return null;
+                              },
+                              onSaved: (newValue) {
+                                locationInfo = newValue;
+                              },
+                              readOnly: true,
+                              onTap: () {
+                                // setState(() {
+                                //   // late_spec = 32.459358;
+                                //   // lange_spec = 35.300270;
+                                // });
+
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: ((context) => set_location(
+                                            onDataReceived: getlocationto))));
+                              },
                               decoration: theme_helper().text_form_style(
-                                "Company headquarters",
-                                "Enter the company's main headquarters",
-                                Icons.location_on_outlined,
+                                "Set Location",
+                                "Set Location",
+                                Icons.add_location_alt_rounded,
                               ),
                             ),
                             SizedBox(
@@ -382,5 +443,14 @@ class _editCompanyState extends State<editCompany> {
             ],
           ),
         ));
+  }
+
+  void getlocationto(String text, double lat, double long) {
+    setState(() {
+      String modifiedString = text.replaceAll("','", ",");
+      _textController2.text = modifiedString;
+      latto = lat;
+      longto = long;
+    });
   }
 }
