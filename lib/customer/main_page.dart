@@ -277,8 +277,8 @@ class _home_page_customerState extends State<home_page_customer> {
                     size: 30,
                   ),
                   title: Text(
-                    "Technical Report",
-                    style: TextStyle(fontSize: 25),
+                    "Report problem",
+                    style: TextStyle(fontSize: 20),
                   ),
                   onTap: () {
                     Navigator.pop(context);

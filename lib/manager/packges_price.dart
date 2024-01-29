@@ -70,7 +70,7 @@ class _pricesState extends State<prices> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Packages price'),
+        title: Text('Financial'),
         backgroundColor: primarycolor,
       ),
       body: ListView(
@@ -86,23 +86,20 @@ class _pricesState extends State<prices> {
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-                child: Center(
-                  child: Text.rich(TextSpan(
-                      text: 'Packges price : ',
-                      style: TextStyle(fontSize: 20, color: Colors.black),
-                      children: <InlineSpan>[
-                        TextSpan(
-                          text: '${all_price.toStringAsFixed(2)}\$',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      ])),
-                ),
+              child: Center(
+                child: Text.rich(TextSpan(
+                    text: 'Unearned package prices : ',
+                    style: TextStyle(fontSize: 20, color: Colors.black),
+                    children: <InlineSpan>[
+                      TextSpan(
+                        text: '${all_price.toStringAsFixed(2)}\$',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    ])),
               ),
             ),
           ),

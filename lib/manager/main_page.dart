@@ -1,4 +1,5 @@
 import 'package:Package4U/customer/sendTechnicalReport.dart';
+import 'package:Package4U/customer/technicalReport.dart';
 import 'package:Package4U/manager/all_drivers.dart';
 import 'package:Package4U/manager/all_employee.dart';
 import 'package:Package4U/manager/packges_price.dart';
@@ -186,13 +187,13 @@ class _home_page_managerState extends State<home_page_manager> {
                   size: 30,
                 ),
                 title: Text(
-                  "Technical Report",
-                  style: TextStyle(fontSize: 25),
+                  "Report problem",
+                  style: TextStyle(fontSize: 20),
                 ),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => SendTechnicalReport()));
+                      builder: (context) => TechnicalReport()));
                 },
               ),
               Divider(
@@ -235,7 +236,7 @@ class _home_page_managerState extends State<home_page_manager> {
             child: ListView(
               children: [
                 Container(
-                  height: 100,
+                  height: 50,
                   decoration: BoxDecoration(
                       color: primarycolor,
                       borderRadius: BorderRadius.only(
@@ -272,13 +273,32 @@ class _home_page_managerState extends State<home_page_manager> {
                     ),
                   ],
                 ),
-                content(
-                  label: 'View Reports',
-                  btn: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: ((context) => reports())));
-                  },
-                  img: "assets/audit.png",
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    content(
+                      label: 'Reports',
+                      btn: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: ((context) => reports())));
+                      },
+                      img: "assets/audit.png",
+                    ),
+                    content(
+                      label: 'Financial',
+                      btn: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: ((context) => prices())));
+                      },
+                      img: "assets/calculator.png",
+                    ),
+                  ],
                 ),
                 content(
                   label: 'Track Driver',
@@ -289,14 +309,6 @@ class _home_page_managerState extends State<home_page_manager> {
                             builder: ((context) => Track_driver())));
                   },
                   img: "assets/route.png",
-                ),
-                content(
-                  label: 'Packages price',
-                  btn: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: ((context) => prices())));
-                  },
-                  img: "assets/calculator.png",
                 ),
               ],
             ),
