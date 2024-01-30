@@ -5,6 +5,7 @@ const signupValidators=require('../validators/signup')
 const router=express.Router();
 const path = require('path');
 const cost=require('../json/cost');
+const cities=require('../json/cities');
 const company=require('../json/company');
 const User=require('../models/users');
 const { body } = require('express-validator');
@@ -21,6 +22,10 @@ router.post('/editProfile',body('oldUserName').notEmpty().withMessage('please en
 
 router.get('/costs',(req,res,next)=>{
   res.status(200).json(cost)
+});
+
+router.get('/getCities',(req,res,next)=>{
+  res.status(200).json(cities)
 });
 
 router.get('/isAvailableUserName',(req,res)=>{

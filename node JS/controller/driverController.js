@@ -48,6 +48,7 @@ exports.getDeliverdDriver = (req, res, next) => {
 exports.getPreparePackageDriver = (req, res, next) => {
   const driverUserName = req.body.driverUserName;
   const currentDate = new Date();
+  console.log(currentDate);
   Package.findAll({
     include: [
       { model: User, as: "rec_user" },
@@ -56,17 +57,17 @@ exports.getPreparePackageDriver = (req, res, next) => {
     where: {
       driver_userName: driverUserName,
       status: ["Assigned to receive", "Assigned to deliver"],
-      receiveDate: {
-        [Op.lte]: currentDate, // Less than or equal to current date
-      },
-      // [Op.and]: [
-      //   fn("DATE", fn("NOW")),
-      //   sequelize.where(
-      //     fn("DATE", sequelize.col("receiveDate")),
-      //     "=",
-      //     fn("DATE", currentDate)
-      //   ),
-      // ],
+      // receiveDate: {
+      //   [Op.lte]: currentDate, // Less than or equal to current date
+      // },
+      [Op.and]: [
+        fn("DATE", fn("NOW")),
+        sequelize.where(
+          fn("DATE", sequelize.col("receiveDate")),
+          "=",
+          fn("DATE", currentDate)
+        ),
+      ],
     },
   })
     .then((result) => {

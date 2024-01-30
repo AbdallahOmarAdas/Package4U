@@ -96,5 +96,5 @@ router.get('/employeesDetailsList',managerController.GetEmployeesDetailsList)
 router.delete('/deleteEmployee/:userName',managerController.DeleteEmployee)
 router.delete('/deleteDriver/:userName',managerController.DeleteDriver)
 router.get('/managerPackagePrices',managerController.GetmanagerPackagePrices)
-
+router.post('/editCitiesList',managerController.postEditCitiesList)
 module.exports = router;

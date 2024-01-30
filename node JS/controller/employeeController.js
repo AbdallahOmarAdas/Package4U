@@ -297,10 +297,14 @@ exports.PostRejectPackage = (req, res, next) => {
     });
 };
 
-exports.GetDriverListEmployee = (req, res, next) => {
-  Driver.findAll({ include: [{ model: User, as: "user" }] })
-    .then((drivers) => {
-      const driverList = drivers.map((driver) => ({
+exports.GetDriverListEmployee = async (req, res, next) => {
+  try {
+    const drivers = await Driver.findAll({ include: [{ model: User, as: "user" }] });
+
+    const driverList = await Promise.all(drivers.map(async (driver) => {
+      const assignedPackagesNumber = await GetAssigendPackagesNumber(driver.userUserName);
+
+      return {
         username: driver.userUserName,
         img: "/image/" + driver.userUserName + driver.user.url,
         name: driver.user.Fname + " " + driver.user.Lname,
@@ -308,16 +312,17 @@ exports.GetDriverListEmployee = (req, res, next) => {
         city: driver.toCity,
         vehicleNumber: driver.vehicleNumber,
         notAvailableDate: driver.notAvailableDate,
-        assignedPackagesNumber: 4
-      }));
+        assignedPackagesNumber: assignedPackagesNumber
+      };
+    }));
 
-      res.status(200).json(driverList);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({ message: "failed" });
-    });
+    res.status(200).json(driverList);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "failed" });
+  }
 };
+
 
 exports.PostEditDriverWorkingDays = (req, res, next) => {
   const { driverUsername, workingDays } = req.body;
@@ -1028,6 +1033,7 @@ exports.GetPackageDetailes = async (req, res) => {
       "toCity",
       "fromCity",
       "driver_userName",
+      "driverComment"
     ],
     include: [
       {
@@ -1097,4 +1103,14 @@ const packagePriceAmountDriver = async (username, status) => {
     },
   });
   return totalPaiedAmount==null?0:totalPaiedAmount;
+};
+
+const GetAssigendPackagesNumber = async (driverUserName) => {
+  const GetAssigendPackagesNumber = await Package.count({
+    where: {
+      status:["Assigned to deliver","Assigned to receive"],
+      driver_userName: { [Op.eq]: driverUserName },
+    },
+  });
+  return GetAssigendPackagesNumber;
 };

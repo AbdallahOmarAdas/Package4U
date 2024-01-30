@@ -123,6 +123,9 @@ exports.postEditCompanyInfo = (req, res, next) => {
   const closeDay = req.body.closeDay;
   const companyHead = req.body.companyHead;
   const companyManager = req.body.companyManager;
+  const longitude = req.body.longitude;
+  const latitude = req.body.latitude;
+  const locationInfo = req.body.locationInfo;
   const aboutCompany = req.body.aboutCompany;
   const error = validationResult(req);
 
@@ -141,6 +144,9 @@ exports.postEditCompanyInfo = (req, res, next) => {
     companyHead: companyHead,
     companyManager: companyManager,
     aboutCompany: aboutCompany,
+    locationInfo: locationInfo,
+    longitude: longitude,
+    latitude: latitude
   };
   const updatedJsonString = JSON.stringify(dataToWrite, null, 2);
   fs.writeFile("./json/company.json", updatedJsonString, "utf8", (err) => {
@@ -554,5 +560,18 @@ exports.GetmanagerPackagePrices = async (req, res) => {
   res.json({
     TotalPaiedPackagePrices: GetTotalPaiedPackagePricesBalance,
     GetPackagesMustPayForCompany,
+  });
+};
+
+exports.postEditCitiesList = (req, res, next) => {
+  const citiesList = req.body.citiesList;
+  const updatedJsonString = JSON.stringify(citiesList, null, 2);
+  fs.writeFile("./json/cities.json", updatedJsonString, "utf8", (err) => {
+    if (err) {
+      console.error("Error writing to the file:", err);
+      res.status(500).json({ message: "failed2" });
+      return;
+    }
+    return res.status(200).json({ message: "done" });
   });
 };

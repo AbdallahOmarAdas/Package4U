@@ -45,7 +45,7 @@ class _calculatePriceState extends State<calculatePrice> {
   GlobalKey<FormState> formState5 = GlobalKey();
 
   Future<void> fetchData() async {
-    var url = urlStarter + "/users/cost";
+    var url = urlStarter + "/users/costs";
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);
