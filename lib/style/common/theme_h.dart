@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-var urlStarter = "https://86e5-212-33-123-26.ngrok-free.app";
+var urlStarter = "http://192.168.1.222:8080";
 const primarycolor = Color.fromARGB(255, 7, 146, 93);
 const String Titleapp = 'Package4U';
 
