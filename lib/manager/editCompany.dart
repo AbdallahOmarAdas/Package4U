@@ -59,8 +59,8 @@ class _editCompanyState extends State<editCompany> {
         _textControllercloseDay.text = data['closeDay'];
         city = data['companyHead'];
         _textControllercompanyManager.text = data['companyManager'];
-        _textControlleraboutCompany.text =
-            _textController2.text = data['locationInfo'];
+        _textControlleraboutCompany.text = data['aboutCompany'];
+        _textController2.text = data['locationInfo'];
         late = data['latitude'];
         lang = data['longitude'];
         print('///////////////////////////////////');

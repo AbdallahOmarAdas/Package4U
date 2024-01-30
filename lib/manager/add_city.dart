@@ -31,14 +31,15 @@ class _add_cityState extends State<add_city> {
     if (responce.statusCode == 200) {
       setState(() {
         if (type == 'delete') {
-          fetch_cities().then((List result) {
-            cities = result;
-          });
+          cities = city;
+          // fetch_cities().then((List result) {
+          //   cities = result;
+          // });
         } else
-          fetch_cities().then((List result) {
-            cities = result;
-          });
-
+          //fetch_cities().then((List result) {
+          cities = city;
+        // });
+        new_cities = [];
         new_city = '';
       });
     }

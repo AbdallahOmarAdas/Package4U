@@ -59,7 +59,7 @@ class _homeState extends State<home> {
                                           ))));
                             },
                             decoration: InputDecoration(
-                              hintText: 'Enter 6 digits tracking number',
+                              hintText: 'Enter tracking package number',
                               filled: true,
                               fillColor: Colors.white,
                               focusedBorder: OutlineInputBorder(
