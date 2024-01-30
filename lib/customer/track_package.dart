@@ -160,13 +160,12 @@ class _track_pState extends State<track_p> {
                         validator: (val) {
                           if (val!.isEmpty)
                             return "Please enter tracking number";
-                          if (val.length < 0) return "Please enter 6 digit";
                           return null;
                         },
                         focusNode: _focusNode,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          hintText: 'Enter 6 digits tracking number',
+                          hintText: 'Enter tracking package number',
                           filled: true,
                           fillColor: Colors.white,
                           focusedBorder: OutlineInputBorder(
