@@ -23,7 +23,7 @@ class _home_page_driverState extends State<home_page_driver> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Fname = GetStorage().read("Fname");
+    Fname = GetStorage().read("Fname") + " " + GetStorage().read("Lname");
     email = GetStorage().read("email");
     userName = GetStorage().read("userName");
     imgUrl = urlStarter +

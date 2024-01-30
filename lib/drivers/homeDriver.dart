@@ -30,13 +30,16 @@ class _HomeDriverState extends State<HomeDriver> {
     super.initState();
     fetchData();
     _updateDateTime();
-    _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
-      _updateDateTime();
-    });
-    _LocationTimer = Timer.periodic(Duration(minutes: 1), (Timer timer) async {
-      await _getCurrentLocation();
-      PostEditLocation();
-    });
+    try {
+      _timer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
+        _updateDateTime();
+      });
+      _LocationTimer =
+          Timer.periodic(Duration(minutes: 1), (Timer timer) async {
+        await _getCurrentLocation();
+        PostEditLocation();
+      });
+    } catch (e) {}
   }
 
   Future<void> _getCurrentLocation() async {

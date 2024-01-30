@@ -101,7 +101,7 @@ class _editCostsState extends State<editCosts> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Package4U Edit Info'),
+          title: Text('Edit Costs'),
           backgroundColor: primarycolor,
         ),
         body: SingleChildScrollView(

@@ -30,7 +30,8 @@ class _home_page_managerState extends State<home_page_manager> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Fname = GetStorage().read("Fname");
+    Fname =
+        Fname = GetStorage().read("Fname") + " " + GetStorage().read("Lname");
     email = GetStorage().read("email");
     userName = GetStorage().read("userName");
     imgUrl = urlStarter +

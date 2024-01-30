@@ -137,7 +137,7 @@ class _editCompanyState extends State<editCompany> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Package4U Edit Info'),
+          title: Text('Edit Information'),
           backgroundColor: primarycolor,
         ),
         body: SingleChildScrollView(
