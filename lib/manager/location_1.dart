@@ -4,16 +4,19 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
 import 'package:open_street_map_search_and_pick/open_street_map_search_and_pick.dart';
 
-class set_location extends StatefulWidget {
+double late_spec = 0;
+double lange_spec = 0;
+
+class location_1 extends StatefulWidget {
   final Function(String, double, double) onDataReceived;
 
-  set_location({required this.onDataReceived});
+  location_1({required this.onDataReceived});
   @override
-  State<set_location> createState() => _set_locationState();
+  State<location_1> createState() => _location_1State();
 }
 
 List<String> addressParts = [];
-LatLong current = LatLong(32.222668, 35.262146);
+LatLong current = LatLong(0, 0);
 
 Future<Position> onGetCurrentLocationPressed() async {
   bool serviceEnabled;
@@ -47,15 +50,20 @@ Future<Position> onGetCurrentLocationPressed() async {
   return p;
 }
 
-class _set_locationState extends State<set_location> {
+class _location_1State extends State<location_1> {
   @override
   void initState() {
-    onGetCurrentLocationPressed().then((value) {
-      setState(() {
-        current;
+    if (lange_spec == 0 && late_spec == 0)
+      onGetCurrentLocationPressed().then((value) {
+        setState(() {
+          current;
+        });
       });
-    });
-
+    else {
+      setState(() {
+        current = LatLong(late_spec, lange_spec);
+      });
+    }
     super.initState();
   }
 

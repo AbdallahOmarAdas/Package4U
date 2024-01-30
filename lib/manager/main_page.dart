@@ -189,7 +189,7 @@ class _home_page_managerState extends State<home_page_manager> {
                   size: 30,
                 ),
                 title: Text(
-                  "Add citits",
+                  "Edit citits",
                   style: TextStyle(fontSize: 25),
                 ),
                 onTap: () {
