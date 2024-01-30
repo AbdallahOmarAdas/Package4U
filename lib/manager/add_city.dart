@@ -11,27 +11,36 @@ class add_city extends StatefulWidget {
 
 class _add_cityState extends State<add_city> {
   List cities = [];
+  List new_cities = [];
   String new_city = '';
   final formGlobalKey = GlobalKey<FormState>();
-  //String? userName;
-  //TextEditingController _textController2 = TextEditingController();
-  // String customerUserName = GetStorage().read('userName').toString();
-  // String customerPassword = GetStorage().read('password');
+  String UserName = GetStorage().read('userName');
+  String Password = GetStorage().read('password');
 
-  Future update_cities() async {
-    var url = urlStarter + "/employee/acceptPackage";
+  Future update_cities(List city, String type) async {
+    var url = urlStarter + "/manager/editCitiesList";
     var responce = await http.post(Uri.parse(url),
         body: jsonEncode({
-          // "employeeUserName": username,
-          // "employeePassword": password,
-          // "packageId": id
+          "managerUserName": UserName,
+          "managerPassword": Password,
+          "citiesList": city.toString()
         }),
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
         });
     if (responce.statusCode == 200) {
-      //fetch_cities();
-      //widget.refreshdata();
+      setState(() {
+        if (type == 'delete') {
+          fetch_cities().then((List result) {
+            cities = result;
+          });
+        } else
+          fetch_cities().then((List result) {
+            cities = result;
+          });
+
+        new_city = '';
+      });
     }
   }
 
@@ -82,10 +91,10 @@ class _add_cityState extends State<add_city> {
                             color: Colors.red,
                           ),
                           onPressed: () {
-                            setState(() {
-                              cities.removeAt(index);
-                            });
-                            update_cities();
+                            new_cities = cities;
+                            print('${cities[index]}');
+                            new_cities.remove('${cities[index]}');
+                            update_cities(new_cities, 'delete');
                           },
                         ),
                       ],
@@ -135,10 +144,10 @@ class _add_cityState extends State<add_city> {
                                 onPressed: () {
                                   if (formGlobalKey.currentState!.validate()) {
                                     formGlobalKey.currentState!.save();
-                                    setState(() {
-                                      cities.insert(0, new_city);
-                                    });
-                                    update_cities();
+                                    new_cities = cities;
+                                    print(new_cities.length);
+                                    new_cities.add(new_city);
+                                    update_cities(new_cities, 'add');
                                     Navigator.of(context).pop();
                                   }
                                 },

@@ -52,7 +52,7 @@ class Track_driverState extends State<Track_driver> {
     super.initState();
     fetchDrivers();
     try {
-      _timer = Timer.periodic(Duration(seconds: 10), (Timer timer) {
+      _timer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
         setState(() {
           fetchDrivers();
         });

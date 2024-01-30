@@ -51,7 +51,8 @@ class _home_page_customerState extends State<home_page_customer> {
   }
 
   int _index = 0;
-  String customerName = GetStorage().read("Fname");
+  String customerName =
+      GetStorage().read("Fname") + " " + GetStorage().read("Lname");
   String userName = GetStorage().read("userName");
   String email = GetStorage().read("email");
   int storedNotificationCount = GetStorage().read("notificationCount");

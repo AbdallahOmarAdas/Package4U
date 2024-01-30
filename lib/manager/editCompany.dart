@@ -1,4 +1,4 @@
-import 'package:Package4U/customer/set_location.dart';
+import 'package:Package4U/manager/location_1.dart';
 import 'package:flutter/material.dart';
 import 'package:Package4U/style/common/theme_h.dart';
 import 'package:Package4U/style/header/header.dart';
@@ -15,8 +15,6 @@ class editCompany extends StatefulWidget {
 }
 
 class _editCompanyState extends State<editCompany> {
-  late double latto = 0;
-  late double longto = 0;
   String? locationName;
   String? locationInfo;
 
@@ -30,9 +28,10 @@ class _editCompanyState extends State<editCompany> {
   String? openDay;
   String? openTime;
   String? closeDay;
-  String? companyHead;
   String? companyManager;
   String? aboutCompany;
+  double late = 0;
+  double lang = 0;
 
   TextEditingController _textControllerphone1 = TextEditingController();
   TextEditingController _textControllerphone2 = TextEditingController();
@@ -41,7 +40,6 @@ class _editCompanyState extends State<editCompany> {
   TextEditingController _textControlleropenDay = TextEditingController();
   TextEditingController _textControlleropenTime = TextEditingController();
   TextEditingController _textControllercloseDay = TextEditingController();
-  TextEditingController _textControllercompanyHead = TextEditingController();
   TextEditingController _textControllercompanyManager = TextEditingController();
   TextEditingController _textControlleraboutCompany = TextEditingController();
 
@@ -61,8 +59,13 @@ class _editCompanyState extends State<editCompany> {
         _textControllercloseDay.text = data['closeDay'];
         city = data['companyHead'];
         _textControllercompanyManager.text = data['companyManager'];
-        _textControlleraboutCompany.text = data['aboutCompany'];
-        _textController2.text = 'data';
+        _textControlleraboutCompany.text =
+            _textController2.text = data['locationInfo'];
+        late = data['latitude'];
+        lang = data['longitude'];
+        print('///////////////////////////////////');
+        print(late);
+        print(lang);
       });
     } else {
       throw Exception('Failed to load data');
@@ -82,9 +85,12 @@ class _editCompanyState extends State<editCompany> {
           "openDay": openDay,
           "openTime": openTime,
           "closeDay": closeDay,
-          "companyHead": companyHead,
+          "companyHead": city,
           "companyManager": companyManager,
-          "aboutCompany": aboutCompany
+          "aboutCompany": aboutCompany,
+          "locationInfo": _textController2.text,
+          "latitude": late,
+          "longitude": lang,
         }),
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
@@ -137,7 +143,7 @@ class _editCompanyState extends State<editCompany> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Package4U Edit Info'),
+          title: Text('Edit Information'),
           backgroundColor: primarycolor,
         ),
         body: SingleChildScrollView(
@@ -350,15 +356,14 @@ class _editCompanyState extends State<editCompany> {
                               },
                               readOnly: true,
                               onTap: () {
-                                // setState(() {
-                                //   // late_spec = 32.459358;
-                                //   // lange_spec = 35.300270;
-                                // });
-
+                                setState(() {
+                                  late_spec = late;
+                                  lange_spec = lang;
+                                });
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: ((context) => set_location(
+                                        builder: ((context) => location_1(
                                             onDataReceived: getlocationto))));
                               },
                               decoration: theme_helper().text_form_style(
@@ -449,8 +454,8 @@ class _editCompanyState extends State<editCompany> {
     setState(() {
       String modifiedString = text.replaceAll("','", ",");
       _textController2.text = modifiedString;
-      latto = lat;
-      longto = long;
+      late = lat;
+      lang = long;
     });
   }
 }

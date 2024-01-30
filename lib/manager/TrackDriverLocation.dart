@@ -55,7 +55,7 @@ class _TrackDriverLocationState extends State<TrackDriverLocation> {
 
     initial();
     super.initState();
-    timer = Timer.periodic(Duration(seconds: 3), (Timer t) async {
+    timer = Timer.periodic(Duration(seconds: 7), (Timer t) async {
       await fetchLocation();
       setState(() {
         _addMarker(LatLng(late, long), name);

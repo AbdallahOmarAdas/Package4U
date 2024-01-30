@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-var urlStarter = "http://192.168.1.222:8080";
+var urlStarter = "https://67aa-212-33-123-26.ngrok-free.app";
 const primarycolor = Color.fromARGB(255, 7, 146, 93);
 const String Titleapp = 'Package4U';
 
 Future<List> fetch_cities() async {
-  var url = urlStarter + "/employee/GetDriverListEmployee";
+  var url = urlStarter + "/users/getCities";
   final response = await http.get(Uri.parse(url), headers: {
     'Content-type': 'application/json; charset=UTF-8',
     'ngrok-skip-browser-warning': 'true'
@@ -16,9 +16,7 @@ Future<List> fetch_cities() async {
   if (response.statusCode == 200) {
     var data = jsonDecode(response.body);
     List cities = [];
-    cities = data[0]['working_days']
-        .substring(1, data[0]['working_days'].length - 1)
-        .split(', ');
+    cities = data.substring(1, data.length - 1).split(', ');
 
     return cities;
   } else {
