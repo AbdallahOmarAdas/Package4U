@@ -13,6 +13,8 @@ class MapWorkOnPackage extends StatefulWidget {
   final double latTo;
   final double longTo;
   final String package_type;
+  // final String city_from;
+  // final String city_to;
   final String name;
   final int id;
   final double price;
@@ -20,26 +22,29 @@ class MapWorkOnPackage extends StatefulWidget {
   final double del_price;
   final String phone;
   final String packageType;
-  final double longFrom;
+  final double longFrom_driver;
   final double pktdistance;
-  final double latFrom;
+  final double latFrom_driver;
   final String whoWillPay;
 
-  MapWorkOnPackage(
-      {required this.latTo,
-      required this.longTo,
-      required this.pktdistance,
-      required this.id,
-      required this.name,
-      required this.package_type,
-      required this.whoWillPay,
-      required this.price,
-      required this.img,
-      required this.del_price,
-      required this.phone,
-      required this.packageType,
-      required this.longFrom,
-      required this.latFrom});
+  MapWorkOnPackage({
+    required this.latTo,
+    required this.longTo,
+    required this.pktdistance,
+    required this.id,
+    required this.name,
+    required this.package_type,
+    required this.whoWillPay,
+    required this.price,
+    required this.img,
+    required this.del_price,
+    required this.phone,
+    required this.packageType,
+    required this.longFrom_driver,
+    required this.latFrom_driver,
+    // required this.city_from,
+    // required this.city_to
+  });
 
   @override
   State<MapWorkOnPackage> createState() => _MapWorkOnPackageState();
@@ -54,8 +59,12 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
   late double price;
   late double del_price;
   late String phone;
-  late double langfrom;
-  late double latefrom;
+  late double langfrom_driver;
+  late double latefrom_driver;
+  // late double langfrom;
+  // late double latefrom;
+  // late String city_from;
+  // late String city_to;
 
   final formGlobalKey = GlobalKey<FormState>();
   String? reason;
@@ -131,17 +140,20 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
     price = widget.price;
     del_price = widget.del_price;
     phone = widget.phone;
-    langfrom = widget.longFrom;
-    latefrom = widget.latFrom;
+    langfrom_driver = widget.longFrom_driver;
+    latefrom_driver = widget.latFrom_driver;
+    // langfrom = widget.longFrom;
+    // latefrom = widget.latFrom;
+    // city_from = widget.city_from;
+    // city_to = widget.city_to;
     super.initState();
 
-    _addMarker(
-        LatLng(latefrom, langfrom), "origin", BitmapDescriptor.defaultMarker);
-    // destination marker
-    _addMarker(LatLng(Lateto, langto), "destination",
+    _addMarker(LatLng(latefrom_driver, langfrom_driver), "My Location",
+        BitmapDescriptor.defaultMarker);
+    _addMarker(LatLng(Lateto, langto), "Destination",
         BitmapDescriptor.defaultMarkerWithHue(90));
-
-    //_getPolyline();
+    //  _addMarker(LatLng(latefrom, langfrom), "Source",
+    // BitmapDescriptor.defaultMarkerWithHue(90));
   }
 
   late GoogleMapController mapController;
@@ -717,6 +729,78 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                               },
                             ),
                           ),
+                          // Visibility(
+                          //   visible: city_from == city_to &&
+                          //       package_type == 'recive',
+                          //   child: Container(
+                          //     child: MaterialButton(
+                          //       shape: RoundedRectangleBorder(
+                          //           borderRadius: BorderRadius.circular(25.0)),
+                          //       color: primarycolor,
+                          //       child: Row(
+                          //         mainAxisAlignment: MainAxisAlignment.center,
+                          //         children: [
+                          //           Icon(
+                          //             Icons.done_all_rounded,
+                          //             color: Colors.white,
+                          //           ),
+                          //           Text(
+                          //             'Complete the process to deliver the package',
+                          //             style: TextStyle(
+                          //                 fontSize: 20,
+                          //                 fontWeight: FontWeight.bold,
+                          //                 color: Colors.white),
+                          //           ),
+                          //         ],
+                          //       ),
+                          //       onPressed: () {
+                          //         showDialog(
+                          //           context: context,
+                          //           builder: (context) {
+                          //             return AlertDialog(
+                          //               shape: RoundedRectangleBorder(
+                          //                 borderRadius: BorderRadius.circular(
+                          //                     27.0), // Adjust the radius as needed
+                          //               ),
+                          //               title: Text("Complete deliver"),
+                          //               content: Text(
+                          //                   'Are you sure you have completed the process to deliver the package ?'),
+                          //               titleTextStyle: TextStyle(
+                          //                   color: Colors.white, fontSize: 25),
+                          //               contentTextStyle: TextStyle(
+                          //                   color: Colors.white, fontSize: 16),
+                          //               backgroundColor: primarycolor,
+                          //               actions: [
+                          //                 TextButton(
+                          //                   child: Text(
+                          //                     "Yes",
+                          //                     style: TextStyle(
+                          //                         color: Colors.white,
+                          //                         fontSize: 18),
+                          //                   ),
+                          //                   onPressed: () async {
+                          //                     Navigator.of(context).pop();
+                          //                   },
+                          //                 ),
+                          //                 TextButton(
+                          //                   child: Text(
+                          //                     "Cancel",
+                          //                     style: TextStyle(
+                          //                         color: Colors.white,
+                          //                         fontSize: 18),
+                          //                   ),
+                          //                   onPressed: () {
+                          //                     Navigator.of(context).pop();
+                          //                   },
+                          //                 ),
+                          //               ],
+                          //             );
+                          //           },
+                          //         );
+                          //       },
+                          //     ),
+                          //   ),
+                          // ),
                           Visibility(
                             visible: package_type != "With Driver",
                             child: Container(

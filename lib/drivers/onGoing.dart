@@ -341,6 +341,10 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
 
 // ignore: must_be_immutable
 class Content extends StatefulWidget {
+  // final String city_from;
+  // final String city_to;
+  // final String late_from;
+  // final String long_from;
   final int id;
   late String reason;
   final String phone;
@@ -739,9 +743,10 @@ class _ContentState extends State<Content> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => MapWorkOnPackage(
-                                        longFrom:
+                                        longFrom_driver:
                                             widget.driverPosition.longitude,
-                                        latFrom: widget.driverPosition.latitude,
+                                        latFrom_driver:
+                                            widget.driverPosition.latitude,
                                         phone: widget.phone,
                                         id: widget.id,
                                         pktdistance: widget.pktdistance,

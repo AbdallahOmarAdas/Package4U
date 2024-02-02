@@ -760,7 +760,8 @@ class _reportsState extends State<reports> {
                         child: Row(
                           children: [
                             Text.rich(TextSpan(
-                                text: "Number of drivers works today : ",
+                                text:
+                                    "Average number of drivers works today : ",
                                 style:
                                     TextStyle(fontSize: 18, color: Colors.grey),
                                 children: <InlineSpan>[

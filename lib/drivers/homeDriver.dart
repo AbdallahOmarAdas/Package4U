@@ -133,21 +133,21 @@ class _HomeDriverState extends State<HomeDriver> {
                           color: Colors.black,
                           fontWeight: FontWeight.bold),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Text(
-                          _currentDate,
-                          style:
-                              TextStyle(fontSize: 25, color: Colors.grey[700]),
-                        ),
-                        Text(
-                          _currentTime,
-                          style:
-                              TextStyle(fontSize: 25, color: Colors.grey[700]),
-                        ),
-                      ],
-                    ),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    //   children: [
+                    //     Text(
+                    //       _currentDate,
+                    //       style:
+                    //           TextStyle(fontSize: 25, color: Colors.grey[700]),
+                    //     ),
+                    //     Text(
+                    //       _currentTime,
+                    //       style:
+                    //           TextStyle(fontSize: 25, color: Colors.grey[700]),
+                    //     ),
+                    //   ],
+                    // ),
                     Divider(
                       endIndent: 12,
                       indent: 12,
