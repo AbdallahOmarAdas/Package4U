@@ -22,13 +22,27 @@ exports.getDeliverdDriver = (req, res, next) => {
     where: {
       driver_userName: driverUserName,
       status: ["Delivered", "Complete Receive"],
-      [Op.and]: [
-        fn("DATE", fn("NOW")),
-        sequelize.where(
-          fn("DATE", sequelize.col("deliverDate")),
-          "=",
-          fn("DATE", currentDate)
-        ),
+      [Op.or]: [
+        {
+          [Op.and]: [
+            fn("DATE", fn("NOW")),
+            sequelize.where(
+              fn("DATE", sequelize.col("deliverDate")),
+              "=",
+              fn("DATE", currentDate)
+            ),
+          ],
+        },
+        {
+          [Op.and]: [
+            fn("DATE", fn("NOW")),
+            sequelize.where(
+              fn("DATE", sequelize.col("receiveDate")),
+              "=",
+              fn("DATE", currentDate)
+            ),
+          ],
+        },
       ],
     },
   })
@@ -335,43 +349,43 @@ exports.postRejectWorkOnPackageDriver = (req, res, next) => {
     });
 };
 
-exports.getSummary = (req, res, next) => {
-  const driverUserName = req.query.driverUserName;
-  let notReceived = 0;
-  let notDeliverd = 0;
-  Package.count({
-    where: { driver_userName: driverUserName, status: "Wait Driver" },
-  })
-    .then((count) => {
-      notReceived = count;
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-  Package.count({
-    where: { driver_userName: driverUserName, status: "With Driver" },
-  })
-    .then((count) => {
-      notDeliverd = count;
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-  Driver.findOne({ where: { userUserName: driverUserName } })
-    .then((Summary) => {
-      res.status(200).json({
-        balance: Summary.totalBalance,
-        deliverd: Summary.deliverdNumber,
-        received: Summary.receivedNumber,
-        notReceived: notReceived,
-        notDeliverd: notDeliverd,
+exports.getSummary = async (req, res, next) => {
+  try {
+    const driverUserName = req.query.driverUserName;
+    let notReceived = 0;
+    let notDelivered = 0;
+
+    try {
+      notReceived = await Package.count({
+        where: { driver_userName: driverUserName, status: "Wait Driver" },
       });
-    })
-    .catch((err) => {
+    } catch (err) {
       console.log(err);
-      res.status(500).json({ message: "failed" });
+    }
+
+    try {
+      notDelivered = await Package.count({
+        where: { driver_userName: driverUserName, status: "With Driver" },
+      });
+    } catch (err) {
+      console.log(err);
+    }
+
+    const summary = await Driver.findOne({ where: { userUserName: driverUserName } });
+
+    res.status(200).json({
+      balance: summary.totalBalance + (await packagePriceAmountDriver(driverUserName, "Delivered")),
+      deliverd: summary.deliverdNumber,
+      received: summary.receivedNumber,
+      notReceived: notReceived==null?0:notReceived,
+      notDelivered: notDelivered==null?0:notDelivered,
     });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "failed" });
+  }
 };
+
 
 exports.GetDriverListManager = (req, res, next) => {
   const todayDay = new Date().toLocaleDateString("en-US", {
@@ -394,7 +408,7 @@ exports.GetDriverListManager = (req, res, next) => {
         username: driver.userUserName,
         img: driver.userUserName + driver.user.url,
         name: driver.user.Fname + " " + driver.user.Lname,
-        updatedAt:driver.updatedAt
+        updatedAt: driver.updatedAt,
       }));
 
       res.status(200).json(driverList);
@@ -409,7 +423,13 @@ exports.GetDriverLocation = (req, res, next) => {
   const driverUserName = req.query.driverUserName;
   Driver.findOne({ where: { userUserName: driverUserName } })
     .then((driver) => {
-      res.status(200).json({ late: driver.latitude, long: driver.longitude,updatedAt:driver.updatedAt });
+      res
+        .status(200)
+        .json({
+          late: driver.latitude,
+          long: driver.longitude,
+          updatedAt: driver.updatedAt,
+        });
     })
     .catch((err) => {
       console.log(err);
@@ -436,4 +456,14 @@ exports.PostEditLocation = (req, res) => {
       res.status(500).json({ message: "failed" });
       console.log(err);
     });
+};
+
+const packagePriceAmountDriver = async (username, status) => {
+  const totalPaiedAmount = await Package.sum("packagePrice", {
+    where: {
+      status:status,
+      driver_userName: username,
+    },
+  });
+  return totalPaiedAmount==null?0:totalPaiedAmount;
 };
