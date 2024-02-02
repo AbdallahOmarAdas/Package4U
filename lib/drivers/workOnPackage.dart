@@ -64,7 +64,7 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
   double boxSizePrice = 0;
   double pricePerKm = 1.5;
   double distancePrice = 0;
-  double bigPackagePrice = 4;
+  double bigPackagePrice = 8;
   int discount = 0;
 
   var showPriceDetiles = false;
@@ -83,6 +83,7 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
     } else {
       boxSizePrice = bigPackagePrice;
     }
+
     setState(() {
       boxSizePrice;
     });
@@ -112,6 +113,8 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
         pricePerKm = data['pricePerKm'] + 0.0;
         discount = data['discount'];
       });
+      calaulateTotalPrice();
+      print(bigPackagePrice);
     } else {
       throw Exception('Failed to load data');
     }
@@ -139,7 +142,6 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
         BitmapDescriptor.defaultMarkerWithHue(90));
 
     //_getPolyline();
-    calaulateTotalPrice();
   }
 
   late GoogleMapController mapController;
@@ -430,10 +432,9 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                       ),
                       Visibility(
                         visible: (((widget.whoWillPay == "The sender") &&
-                                    (package_type == "Wait Driver")) ||
-                                (((widget.whoWillPay == "The recipient")) &&
-                                    (package_type == "With Driver"))) &&
-                            !showPriceDetiles,
+                                (package_type == "Wait Driver")) ||
+                            (((widget.whoWillPay == "The recipient")) &&
+                                (package_type == "With Driver"))),
                         child: Column(
                           children: [
                             Row(

@@ -149,7 +149,7 @@ class _home_page_customerState extends State<home_page_customer> {
                 });
           }),
           title: Text(
-            'Express4U',
+            Titleapp,
             style: TextStyle(
                 color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
           ),
