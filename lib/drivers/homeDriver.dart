@@ -35,7 +35,7 @@ class _HomeDriverState extends State<HomeDriver> {
         _updateDateTime();
       });
       _LocationTimer =
-          Timer.periodic(Duration(seconds: 7), (Timer timer) async {
+          Timer.periodic(Duration(seconds: 120), (Timer timer) async {
         await _getCurrentLocation();
         PostEditLocation();
       });

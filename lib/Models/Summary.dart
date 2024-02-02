@@ -15,7 +15,7 @@ class Summary {
     return Summary(
         balance: json['balance'].toDouble(),
         deliverd: json['deliverd'],
-        notDeliverd: json['notDeliverd'],
+        notDeliverd: json['notDelivered'],
         notReceived: json['notReceived'],
         received: json['received']);
   }

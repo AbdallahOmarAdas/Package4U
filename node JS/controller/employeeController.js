@@ -323,7 +323,6 @@ exports.GetDriverListEmployee = async (req, res, next) => {
   }
 };
 
-
 exports.PostEditDriverWorkingDays = (req, res, next) => {
   const { driverUsername, workingDays } = req.body;
   Driver.update(
@@ -1033,7 +1032,8 @@ exports.GetPackageDetailes = async (req, res) => {
       "toCity",
       "fromCity",
       "driver_userName",
-      "driverComment"
+      "driverComment",
+      "deliverDate",
     ],
     include: [
       {
@@ -1052,6 +1052,18 @@ exports.GetPackageDetailes = async (req, res) => {
       {
         model: User,
         as: "send_user",
+        attributes: [
+          "Fname",
+          "Lname",
+          "userName",
+          "url",
+          "city",
+          "phoneNumber",
+          "email",
+        ],
+      },      {
+        model: User,
+        as: "driver",
         attributes: [
           "Fname",
           "Lname",
