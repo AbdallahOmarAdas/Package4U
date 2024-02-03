@@ -138,6 +138,10 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
       if (delivery_type == "Wait Driver")
         OnGoingOrders.add(
           Content(
+            city_from: packagesList[i]['fromCity'],
+            city_to: packagesList[i]['toCity'],
+            late_from: packagesList[i]['latTo'],
+            long_from: packagesList[i]['longTo'],
             delivery_type: delivery_type,
             img: urlStarter +
                 '/image/' +
@@ -169,6 +173,10 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
       else {
         OnGoingOrders.add(
           Content(
+            city_from: packagesList[i]['fromCity'],
+            city_to: packagesList[i]['toCity'],
+            late_from: packagesList[i]['latFrom'],
+            long_from: packagesList[i]['longFrom'],
             delivery_type: delivery_type,
             img: urlStarter +
                 '/image/' +
@@ -341,10 +349,10 @@ class _OnGoingPackagesState extends State<OnGoingPackages> {
 
 // ignore: must_be_immutable
 class Content extends StatefulWidget {
-  // final String city_from;
-  // final String city_to;
-  // final String late_from;
-  // final String long_from;
+  final String city_from;
+  final String city_to;
+  final double late_from;
+  final double long_from;
   final int id;
   late String reason;
   final String phone;
@@ -385,7 +393,11 @@ class Content extends StatefulWidget {
       required this.refreshData,
       required this.packageType,
       required this.lat,
-      required this.long});
+      required this.long,
+      required this.city_from,
+      required this.city_to,
+      required this.late_from,
+      required this.long_from});
 
   @override
   State<Content> createState() => _ContentState();
@@ -743,6 +755,10 @@ class _ContentState extends State<Content> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => MapWorkOnPackage(
+                                        langfrom: widget.long_from,
+                                        latefrom: widget.late_from,
+                                        city_from: widget.city_from,
+                                        city_to: widget.city_to,
                                         longFrom_driver:
                                             widget.driverPosition.longitude,
                                         latFrom_driver:

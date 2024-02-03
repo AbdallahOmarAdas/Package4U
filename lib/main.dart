@@ -31,13 +31,7 @@ void main() async {
   await Firebase.initializeApp();
   await onGetCurrentLocationPressed();
   await FirebaseMessaging.instance.requestPermission();
-  // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenApp);
-  // FirebaseMessaging.onMessage.listen((event) {
-  //   print(
-  //       "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-  // });
   runApp(LoginUiApp());
 }
 

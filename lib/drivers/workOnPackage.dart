@@ -13,8 +13,8 @@ class MapWorkOnPackage extends StatefulWidget {
   final double latTo;
   final double longTo;
   final String package_type;
-  // final String city_from;
-  // final String city_to;
+  final String city_from;
+  final String city_to;
   final String name;
   final int id;
   final double price;
@@ -26,25 +26,28 @@ class MapWorkOnPackage extends StatefulWidget {
   final double pktdistance;
   final double latFrom_driver;
   final String whoWillPay;
+  final double langfrom;
+  final double latefrom;
 
-  MapWorkOnPackage({
-    required this.latTo,
-    required this.longTo,
-    required this.pktdistance,
-    required this.id,
-    required this.name,
-    required this.package_type,
-    required this.whoWillPay,
-    required this.price,
-    required this.img,
-    required this.del_price,
-    required this.phone,
-    required this.packageType,
-    required this.longFrom_driver,
-    required this.latFrom_driver,
-    // required this.city_from,
-    // required this.city_to
-  });
+  MapWorkOnPackage(
+      {required this.latTo,
+      required this.longTo,
+      required this.pktdistance,
+      required this.id,
+      required this.name,
+      required this.package_type,
+      required this.whoWillPay,
+      required this.price,
+      required this.img,
+      required this.del_price,
+      required this.phone,
+      required this.packageType,
+      required this.longFrom_driver,
+      required this.latFrom_driver,
+      required this.city_from,
+      required this.city_to,
+      required this.langfrom,
+      required this.latefrom});
 
   @override
   State<MapWorkOnPackage> createState() => _MapWorkOnPackageState();
@@ -61,10 +64,10 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
   late String phone;
   late double langfrom_driver;
   late double latefrom_driver;
-  // late double langfrom;
-  // late double latefrom;
-  // late String city_from;
-  // late String city_to;
+  late double langfrom;
+  late double latefrom;
+  late String city_from;
+  late String city_to;
 
   final formGlobalKey = GlobalKey<FormState>();
   String? reason;
@@ -142,18 +145,33 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
     phone = widget.phone;
     langfrom_driver = widget.longFrom_driver;
     latefrom_driver = widget.latFrom_driver;
-    // langfrom = widget.longFrom;
-    // latefrom = widget.latFrom;
-    // city_from = widget.city_from;
-    // city_to = widget.city_to;
+    langfrom = widget.langfrom;
+    latefrom = widget.latefrom;
+    city_from = widget.city_from;
+    city_to = widget.city_to;
     super.initState();
 
     _addMarker(LatLng(latefrom_driver, langfrom_driver), "My Location",
         BitmapDescriptor.defaultMarker);
-    _addMarker(LatLng(Lateto, langto), "Destination",
-        BitmapDescriptor.defaultMarkerWithHue(90));
-    //  _addMarker(LatLng(latefrom, langfrom), "Source",
-    // BitmapDescriptor.defaultMarkerWithHue(90));
+
+    if (city_from.toLowerCase() == city_to.toLowerCase()) {
+      print('/////////////////////');
+      print(Lateto);
+      print(langto);
+      print(latefrom);
+      print(langfrom);
+
+      _addMarker(LatLng(Lateto, langto), "My Target",
+          BitmapDescriptor.defaultMarkerWithHue(90));
+
+      _addMarker(
+          LatLng(latefrom, langfrom),
+          "Deliver the package at this location",
+          BitmapDescriptor.defaultMarkerWithHue(70));
+    } else {
+      _addMarker(LatLng(Lateto, langto), "Destination",
+          BitmapDescriptor.defaultMarkerWithHue(90));
+    }
   }
 
   late GoogleMapController mapController;
@@ -715,7 +733,7 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                                           child: Text(
                                             "Cancel",
                                             style: TextStyle(
-                                                color: Colors.white,
+                                                color: Colors.red,
                                                 fontSize: 18),
                                           ),
                                           onPressed: () {
@@ -729,78 +747,81 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                               },
                             ),
                           ),
-                          // Visibility(
-                          //   visible: city_from == city_to &&
-                          //       package_type == 'recive',
-                          //   child: Container(
-                          //     child: MaterialButton(
-                          //       shape: RoundedRectangleBorder(
-                          //           borderRadius: BorderRadius.circular(25.0)),
-                          //       color: primarycolor,
-                          //       child: Row(
-                          //         mainAxisAlignment: MainAxisAlignment.center,
-                          //         children: [
-                          //           Icon(
-                          //             Icons.done_all_rounded,
-                          //             color: Colors.white,
-                          //           ),
-                          //           Text(
-                          //             'Complete the process to deliver the package',
-                          //             style: TextStyle(
-                          //                 fontSize: 20,
-                          //                 fontWeight: FontWeight.bold,
-                          //                 color: Colors.white),
-                          //           ),
-                          //         ],
-                          //       ),
-                          //       onPressed: () {
-                          //         showDialog(
-                          //           context: context,
-                          //           builder: (context) {
-                          //             return AlertDialog(
-                          //               shape: RoundedRectangleBorder(
-                          //                 borderRadius: BorderRadius.circular(
-                          //                     27.0), // Adjust the radius as needed
-                          //               ),
-                          //               title: Text("Complete deliver"),
-                          //               content: Text(
-                          //                   'Are you sure you have completed the process to deliver the package ?'),
-                          //               titleTextStyle: TextStyle(
-                          //                   color: Colors.white, fontSize: 25),
-                          //               contentTextStyle: TextStyle(
-                          //                   color: Colors.white, fontSize: 16),
-                          //               backgroundColor: primarycolor,
-                          //               actions: [
-                          //                 TextButton(
-                          //                   child: Text(
-                          //                     "Yes",
-                          //                     style: TextStyle(
-                          //                         color: Colors.white,
-                          //                         fontSize: 18),
-                          //                   ),
-                          //                   onPressed: () async {
-                          //                     Navigator.of(context).pop();
-                          //                   },
-                          //                 ),
-                          //                 TextButton(
-                          //                   child: Text(
-                          //                     "Cancel",
-                          //                     style: TextStyle(
-                          //                         color: Colors.white,
-                          //                         fontSize: 18),
-                          //                   ),
-                          //                   onPressed: () {
-                          //                     Navigator.of(context).pop();
-                          //                   },
-                          //                 ),
-                          //               ],
-                          //             );
-                          //           },
-                          //         );
-                          //       },
-                          //     ),
-                          //   ),
-                          // ),
+                          Visibility(
+                            visible: package_type.toLowerCase() ==
+                                    "Wait Driver".toLowerCase() &&
+                                (city_from.toLowerCase() ==
+                                    city_to.toLowerCase()),
+                            child: Container(
+                              child: MaterialButton(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25.0)),
+                                color: primarycolor,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.done_all_rounded,
+                                      color: Colors.white,
+                                    ),
+                                    Text(
+                                      ' Keep the package with me to deliver',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              27.0), // Adjust the radius as needed
+                                        ),
+                                        title: Text("Complete deliver"),
+                                        content: Text(confirmMessage() +
+                                            " and you have completed the process to deliver the package ID's ${widget.id}?"),
+                                        titleTextStyle: TextStyle(
+                                            color: Colors.white, fontSize: 25),
+                                        contentTextStyle: TextStyle(
+                                            color: Colors.white, fontSize: 16),
+                                        backgroundColor: primarycolor,
+                                        actions: [
+                                          TextButton(
+                                            child: Text(
+                                              "Yes",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 18),
+                                            ),
+                                            onPressed: () async {
+                                              Navigator.of(context).pop();
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                          TextButton(
+                                            child: Text(
+                                              "Cancel",
+                                              style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 18),
+                                            ),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
                           Visibility(
                             visible: package_type != "With Driver",
                             child: Container(
@@ -861,7 +882,7 @@ class _MapWorkOnPackageState extends State<MapWorkOnPackage> {
                                                 child: Text(
                                                   "Cancel",
                                                   style: TextStyle(
-                                                      color: Colors.white,
+                                                      color: Colors.red,
                                                       fontSize: 18),
                                                 )),
                                           ],
